@@ -4,7 +4,7 @@
 
     let {
         tabs,
-        selectedTab
+        selectedTab = $bindable()
     } : {
         tabs: string[]
         selectedTab?: any

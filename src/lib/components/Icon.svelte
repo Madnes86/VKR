@@ -1,5 +1,5 @@
 <script lang="ts">
-    const iconModules = import.meta.glob('/src/lib/svg/*.svg', { eager: true, query: '?raw', import: 'default'});
+    let iconModules = import.meta.glob('/src/lib/svg/*.svg', { eager: true, query: '?raw', import: 'default'});
 
     let {
         name,

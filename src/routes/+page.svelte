@@ -3,9 +3,11 @@
     import Tabs from "$lib/components/Tabs.svelte";
     import Tree from "$lib/components/Tree.svelte";
     import Editor from "$lib/components/Editor.svelte";
+    import Notification from "$lib/components/Notification.svelte";
+    import Settings from "$lib/components/Settings.svelte";
 
     const tabs = ['graph', 'entity', 'editor', 'notification', 'settings'];
-    const sections = [Tree, Editor];
+    const sections = [Tree, Tree, Editor, Notification, Settings];
     let selectedTab = 'graph';
 </script>
 

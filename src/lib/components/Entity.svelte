@@ -20,12 +20,12 @@
  <div draggable="true" onmouseenter={hover = true} onmouseleave={hover = false} class="flex w-full p-1 gap-1">
      <button 
          onclick={selected = !selected}
-         class="click flex w-full! items-center gap-1 px-1 rounded-sm hover:bg-[#323232] cursor-pointer">
+         class="click flex w-full! items-center gap-1 px-1 rounded-sm hover:bg-[#323232]">
          <Icon name={type} stroke={selected ? '#835CFD' : '#FFF'} />
          <h3 class:text-[#835CFD]={selected}>{name}</h3>
     </button>
     {#if hover}
-        <button class="hover:bg-[#323232] cursor-pointer click px-1 rounded-sm">
+        <button class="hover:bg-[#323232] click px-1 rounded-sm">
             <Icon name="addUser" />
         </button>
     {/if}

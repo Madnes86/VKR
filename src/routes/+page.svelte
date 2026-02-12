@@ -11,7 +11,7 @@
     let selectedTab = 'graph';
 </script>
 
-<Flex col className="bg-[#32323265] w-80! h-screen">
+<Flex col className="bg-[#32323265] w-90! h-screen">
     <Tabs {tabs} bind:selectedTab={selectedTab}/>
     {#each tabs as tab, i}
         {#if selectedTab == tab}

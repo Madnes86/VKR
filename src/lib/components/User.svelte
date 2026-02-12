@@ -4,4 +4,5 @@
 
 </script>
 
-<Form icon="graph" text="test"/>
+<Form icon="user" text="test"/>
+<Form icon="user" text="test"/>

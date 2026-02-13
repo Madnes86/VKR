@@ -3,11 +3,11 @@
     import Tabs from "$lib/components/Tabs.svelte";
     import Tree from "$lib/components/Tree.svelte";
     import Editor from "$lib/components/Editor.svelte";
-    import Notification from "$lib/components/Notification.svelte";
+    import Alerts from "$lib/components/Alerts.svelte";
     import Settings from "$lib/components/Settings.svelte";
 
-    const tabs = ['graph', 'entity', 'editor', 'notification', 'settings'];
-    const sections = [Tree, Tree, Editor, Notification, Settings];
+    const tabs = ['graph', 'entity', 'editor', 'alert', 'settings'];
+    const sections = [Tree, Tree, Editor, Alerts, Settings];
     let selectedTab = 'graph';
 </script>
 

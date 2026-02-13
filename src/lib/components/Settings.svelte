@@ -6,6 +6,5 @@
 </script>
 
 <Flex col className="p-2">
-    <h1>Settings</h1>
     <User />
 </Flex>

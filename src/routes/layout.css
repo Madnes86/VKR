@@ -1,3 +1,15 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+
+@theme {
+    /* white */
+    /* black */
+    --color-gray-glass: #32323250;
+    --color-gray: #323232;
+    --color-accent: #835CFD;
+    --color-yellow-glass: #c2fd0050;
+    --color-yellow: #C2FD00;
+    --color-red-glass: #ff000050;
+    --color-red: #FF0000;
+}

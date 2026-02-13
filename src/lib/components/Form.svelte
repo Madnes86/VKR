@@ -85,25 +85,25 @@
         </Button>
     
         {#if hover || state == 'error'}
-            {#snippet button(name: string, stroke?: string)}
+            {#snippet button(name: string, onclick: () => void, stroke?: string)}
                 <button
                     transition:fade 
-                    onclick={switchState} 
+                    {onclick} 
                     class="click p-2 ml-1 rounded-md hover:bg-[#323232]"
                 >
                     <Icon {name} {stroke} />
                 </button>
             {/snippet}
             {#if state == 'default'}
-                {@render button('edit')}
+                {@render button('edit', switchState)}
             {:else}
-                {@render button('check', check)}
+                {@render button('check', switchState, check)}
             {/if}
             {#if text.length > 4 && state != 'default'}
-                {@render button('cross')}
+                {@render button('cross', switchState)}
             {/if}
             {#each modificators as {name, onclick} }
-                {@render button(name)}
+                {@render button(name, onclick)}
             {/each}
         {/if}
     </div>

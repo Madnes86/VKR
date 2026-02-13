@@ -1,17 +1,17 @@
 <script lang="ts">
-	import Entity from "./Entity.svelte";
 	import Flex from "./Flex.svelte";
+    import Form from "./Form.svelte";
 
-    const entityes: {name: string, type: 'entity' | 'entityes' | 'optional'}[] = [
-        { name: "test", type: "optional" },
-        { name: "test2", type: "entityes"},
-        { name: "test3", type: "entityes"}
+    const entityes: {text: string, icon: 'entity' | 'entityes' | 'optional'}[] = [
+        { text: "test", icon: "optional"},
+        { text: "test2", icon: "entityes"},
+        { text: "test3", icon: "entityes"}
     ];
-    let selected = entityes[0];
+    const modificators: {name: string, onclick: () => void}[] = [{name: 'addUser', onclick: () => {alert('addUser')}}];
 </script>
 
 <Flex col>
-    {#each entityes as {name, type}}
-        <Entity {name} {type}/>
+    {#each entityes as {text, icon}}
+        <Form {icon} {text} {modificators}/>
     {/each}
 </Flex>

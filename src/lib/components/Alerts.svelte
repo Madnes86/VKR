@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Alert from "./Alert.svelte";
+    import { Alert } from "$lib/components";
     import Button from "./Button.svelte";
 
     let alerts: {title: string, text: string, type: 'alert' | 'error'}[] = [

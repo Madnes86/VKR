@@ -1,21 +1,10 @@
-<script>
-    import Flex from "$lib/components/Flex.svelte";
-    import Tabs from "$lib/components/Tabs.svelte";
-    import Tree from "$lib/components/Tree.svelte";
-    import Editor from "$lib/components/Editor.svelte";
-    import Alerts from "$lib/components/Alerts.svelte";
-    import Settings from "$lib/components/Settings.svelte";
-
-    const tabs = ['graph', 'entity', 'editor', 'alert', 'settings'];
-    const sections = [Tree, Tree, Editor, Alerts, Settings];
-    let selectedTab = 'graph';
+<script lang="ts">
+    import { SideBar, ContextMenu } from "$lib/components";
 </script>
 
-<Flex col className="bg-[#32323265] w-90! h-screen">
-    <Tabs {tabs} bind:selectedTab={selectedTab}/>
-    {#each tabs as tab, i}
-        {#if selectedTab == tab}
-            <svelte:component this={sections[i]}/>
-        {/if}
-    {/each}
-</Flex>
+<div class="flex size-screen">
+    <SideBar />
+    <ContextMenu />
+
+
+</div>

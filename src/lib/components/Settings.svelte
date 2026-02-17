@@ -1,7 +1,5 @@
 <script lang="ts">
-	import Flex from "./Flex.svelte";
-	import User from "./User.svelte";
-    import Toggle from "./Toggle.svelte";
+    import { Flex, User, Toggle } from "$lib/components";
 
     let toggles: {power: boolean, text: string}[] = [
         {power: false, text: 'Hints'},

@@ -1,8 +1,5 @@
 <script lang="ts">
-	import Form from "./Form.svelte";
-    import Button from "./Button.svelte";
-    import Icon from "./Icon.svelte";
-	import Flex from "./Flex.svelte";
+    import { Form, Button, Icon, Flex } from "$lib/components";
 
     let auth: boolean = $state(false);
 

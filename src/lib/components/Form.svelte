@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { fade } from "svelte/transition";
-	import Flex from "./Flex.svelte";
-    import Icon from "./Icon.svelte";
-    import Button from "./Button.svelte";
+    import { Flex, Icon, Button } from "$lib/components";
 
     let {
         icon,

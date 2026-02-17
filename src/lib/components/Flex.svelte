@@ -4,14 +4,16 @@
     let {
         col,
         className,
-        children
+        children,
+        style
     } : {
         col?: boolean
         className?: string
         children: Snippet
+        style?: string
     } = $props();
 </script>
 
-<div class={["flex w-full items-center", col && "flex-col", className]}>
+<div {style} class={["flex w-full items-center gap-2", col && "flex-col", className]}>
     {@render children()}
 </div>

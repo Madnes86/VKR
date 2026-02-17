@@ -1,9 +1,6 @@
 <script lang="ts">
 	import { fly } from "svelte/transition";
-	import Button from "./Button.svelte";
-    import Flex from "./Flex.svelte";
-    import Icon from "./Icon.svelte";
-	import Spacer from "./Spacer.svelte";
+    import { Button, Flex, Icon, Spacer } from "$lib/components";
 
     let {
         title,

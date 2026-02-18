@@ -22,7 +22,7 @@
 
 <svelte:window {onmousemove} {onmouseup} />
 
-<div class="flex h-screen">
+<div class="flex h-screen z-10 absolute top-0 left-0">
     <Flex col style="width: {width}px" className="bg-gray-glass h-screen">
         <Tabs {tabs} bind:selectedTab={selectedTab}/>
         {#each tabs as tab, i}

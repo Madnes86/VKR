@@ -19,3 +19,4 @@ export { default as Tree } from "./Tree.svelte";
 export { default as Toggle } from "./Toggle.svelte";
 export { default as UnknowIcon } from "./UnknowIcon.svelte";
 export { default as User } from "./User.svelte";
+export { default as Canvas } from "./Canvas.svelte";

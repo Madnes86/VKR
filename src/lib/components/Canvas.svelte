@@ -1,9 +1,9 @@
 <script lang="ts">
     import { Object } from "$lib/components";
 
-    let objects = $state([
-        {name: "obj1", x: 300, y: 0, size: 100},
-        {name: "obj2", x: 0, y: 0, size: 100},
+    let objects: {name: string, x: number, y: number, size: number, mass: number}[] = $state([
+        {name: "obj1", x: 300, y: 0, size: 100, mass: 2},
+        {name: "obj2", x: 0, y: 0, size: 100, mass: 4},
     ]);
     let object: HTMLElement | null = $state(null);
     let offsetX: number = 0;
@@ -12,13 +12,25 @@
 
     let centerX: number = window.innerWidth / 2;
     let centerY: number = window.innerHeight / 2;
+    let scale: number = $state(1);
+    let animationFrame: number | null = $state(null);
+    const SIZE: number = 100;
+    const MIN_SCALE: number = 0.5;
+    const MAX_SCALE: number = 3;
     const F: number = 0.05;
     const F_REPULSION: number = 0.1;
+
+    function onwheel(event: WheelEvent) {
+        scale = event.deltaY > 0 ? scale -= 1.01 : scale += 1.01;
+        scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+        console.log(scale);
+        objects.forEach(e => e.size = SIZE * (e.mass * 0.1) * scale);
+        console.log(objects);
+    }
 
     function onmousedown(event: MouseEvent, name: string, ref: HTMLElement) {
         drag = name;
         object = ref;
-        console.log(object);
         const rect = object?.getBoundingClientRect();
         offsetX = event.clientX - rect?.left;
         offsetY = event.clientY - rect?.top
@@ -30,7 +42,7 @@
                 e.y = event.clientY - offsetY;
             }
         });
-        collisions();
+        // collisions();
     }
     function onmouseup() {
         drag = null;
@@ -55,7 +67,7 @@
                 const repulsion = minDist * F_REPULSION;
 
                 if (dist < minDist + repulsion) {
-                    const overlap = (minDist + repulsion - dist) / 2;
+                    const overlap = 100 + F_REPULSION;
                     const angle = Math.atan2(dy, dx);
                     
                if (obj1.name !== drag && obj2.name !== drag) {
@@ -78,18 +90,22 @@
         }
     }
     function attract() {
+        if (animationFrame) {
+            cancelAnimationFrame(animationFrame);
+        }
          if (drag == null) {
             objects.forEach(e => {
                
                 const dx = centerX - e.x;
                 const dy = centerY - e.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist > 1) {
-                    const strength = Math.min(F * (dist / 200), 0.1);
+                console.log(dist);
+                if (dist > 10) {
+                    const strength = Math.min((e.mass * 0.1) * (dist / 200), 0.1);
                     
                     e.x += dx * strength;
                     e.y += dy * strength;
-                    // requestAnimationFrame(attract);
+                    animationFrame = requestAnimationFrame(attract);
                 } else {
                     e.x = centerX;
                     e.y = centerY;
@@ -97,13 +113,26 @@
                 
             });
             collisions();
+            console.log("tes5");
         }
+    }
+    function create(e: MouseEvent) {
+        const x = e.clientX;
+        const y = e.clientY;
+        const newObj: {name: string, x: number, y: number, size: number, mass: number} = {
+            name: 'new', 
+            x: x, 
+            y: y, 
+            size: 100,
+            mass: 1
+        };
+        objects.push(newObj);
     }
 </script>
 
-<svelte:window {onmousemove} />
+<svelte:window {onmousemove} {onwheel} />
 
-<div class="absolute top-0 left-0 size-screen z-0">
+<div class="absolute top-0 left-0 size-full z-0" onclick={(e) => create(e)}>
     {#each objects as {name, x, y, size}, i}
         <Object {name} {x} {y} {size} {onmousedown} {onmouseup} />
     {/each}

@@ -1,17 +1,17 @@
 <script lang="ts">
 	import Flex from "./Flex.svelte";
     import Form from "./Form.svelte";
+    import { objectsStore } from "$lib/stores/objects";
 
-    const entityes: {text: string, icon: 'entity' | 'entityes' | 'optional'}[] = [
-        { text: "test", icon: "optional"},
-        { text: "test2", icon: "entityes"},
-        { text: "test3", icon: "entityes"}
-    ];
+    let entityes = [];
+    objectsStore.subscribe(v => entityes = [...v]);
+    
+    const icon = "entityes";
     const modificators: {name: string, onclick: () => void}[] = [{name: 'addUser', onclick: () => {alert('addUser')}}];
 </script>
 
 <Flex col>
-    {#each entityes as {text, icon}}
-        <Form {icon} {text} {modificators}/>
+    {#each entityes as entity}
+        <Form {icon} text={entity.name} {modificators}/>
     {/each}
 </Flex>

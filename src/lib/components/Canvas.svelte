@@ -1,15 +1,14 @@
 <script lang="ts">
     import { Object } from "$lib/components";
+    import { objectsStore } from "$lib/stores/objects";
 
-    let objects: {name: string, x: number, y: number, size: number, mass: number}[] = $state([
-        {name: "obj1", x: 300, y: 0, size: 100, mass: 2},
-        {name: "obj2", x: 0, y: 0, size: 100, mass: 4},
-    ]);
     let object: HTMLElement | null = $state(null);
     let offsetX: number = 0;
     let offsetY: number = 0;
     let drag: string | null = $state(null);
 
+    let objects: {name: string, x: number, y: number, size: number, mass: number}[] = $state([]);
+    objectsStore.subscribe(v => objects = [...v]);
     let centerX: number = window.innerWidth / 2;
     let centerY: number = window.innerHeight / 2;
     let scale: number = $state(1);
@@ -20,12 +19,15 @@
     const F: number = 0.05;
     const F_REPULSION: number = 0.1;
 
+
+
     function onwheel(event: WheelEvent) {
         scale = event.deltaY > 0 ? scale -= 1.01 : scale += 1.01;
         scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
-        console.log(scale);
+        updateObjects();
+    }
+    function updateObjects() {
         objects.forEach(e => e.size = SIZE * (e.mass * 0.1) * scale);
-        console.log(objects);
     }
 
     function onmousedown(event: MouseEvent, name: string, ref: HTMLElement) {
@@ -70,7 +72,7 @@
                     const overlap = 100 + F_REPULSION;
                     const angle = Math.atan2(dy, dx);
                     
-               if (obj1.name !== drag && obj2.name !== drag) {
+                    if (obj1.name !== drag && obj2.name !== drag) {
                         // Оба не перетаскиваются - мутируем оба
                         obj1.x -= Math.cos(angle) * overlap;
                         obj1.y -= Math.sin(angle) * overlap;
@@ -113,7 +115,6 @@
                 
             });
             collisions();
-            console.log("tes5");
         }
     }
     function create(e: MouseEvent) {
@@ -127,7 +128,9 @@
             mass: 1
         };
         objects.push(newObj);
+        objectsStore.updateAll(objects);
     }
+    updateObjects();
 </script>
 
 <svelte:window {onmousemove} {onwheel} />

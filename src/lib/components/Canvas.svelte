@@ -113,13 +113,13 @@
         }
     }
     function create(e: MouseEvent) {
-        const x = e.clientX;
-        const y = e.clientY;
+        const x = e.clientX - SIZE / 2;
+        const y = e.clientY - SIZE / 2;
         const newObj: {name: string, x: number, y: number, size: number, mass: number} = {
             name: 'new', 
             x: x, 
             y: y, 
-            size: 100,
+            size: SIZE,
             mass: 2
         };
         objects.push(newObj);

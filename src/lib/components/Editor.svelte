@@ -18,6 +18,6 @@
         class="bg-gray-glass w-full border-none rounded-md h-90">
     </textarea>
     <Flex>
-        <Button {onclick} >Optimization diagramm</Button>
+        <Button {onclick} className="bg-accent p-2 rounded-sm">Optimization diagramm</Button>
     </Flex>
 </Flex>

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Icon, Form, Toggle, Button } from "$lib/components";
+    import { Icon, Form, Toggle, Button, Modal } from "$lib/components";
 
     let toggles: {power: boolean, text: string}[] = [
         {power: false, text: 'Hints'},
@@ -8,10 +8,11 @@
     ];
 
     let auth: boolean = $state(false);
+    let show: boolean = $state(false);
 
     function login() {
-        alert('login');
-        auth = true;
+        show = true;
+        // auth = true;
     }
     function logout() {
         alert('logout');
@@ -40,4 +41,9 @@
     {#each toggles as {power, text}}
         <Toggle {power} {text} />
     {/each}
+    <h1>SELECTED lang</h1>
 </div>
+
+{#if show}
+    <Modal bind:show={show} />
+{/if}

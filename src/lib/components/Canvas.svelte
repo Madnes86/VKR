@@ -14,16 +14,10 @@
     let scale: number = $state(1);
     let animationFrame: number | null = $state(null);
     const SIZE: number = 100;
-    const MIN_SCALE: number = 0.5;
-    const MAX_SCALE: number = 3;
-    const F: number = 0.05;
-    const F_REPULSION: number = 0.1;
-
-
 
     function onwheel(event: WheelEvent) {
         scale = event.deltaY > 0 ? scale -= 1.01 : scale += 1.01;
-        scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+        scale = Math.max(0.5, Math.min(3, scale));
         updateObjects();
     }
     function updateObjects() {
@@ -44,7 +38,7 @@
                 e.y = event.clientY - offsetY;
             }
         });
-        // collisions();
+        collisions();
     }
     function onmouseup() {
         drag = null;
@@ -55,6 +49,7 @@
             for (let j = i + 1; j < objects.length; j++) {
                 const obj1 = objects[i];
                 const obj2 = objects[j];
+                console.log(1);
 
                 const x1 = obj1.x + obj1.size / 2;
                 const y1 = obj1.y + obj1.size / 2;
@@ -66,10 +61,10 @@
                 const dist = Math.sqrt(dx * dx + dy * dy);
 
                 const minDist = (obj1.size + obj2.size) / 2;
-                const repulsion = minDist * F_REPULSION;
+                const repulsion = minDist * obj1.mass * obj2.mass * 0.01;
 
                 if (dist < minDist + repulsion) {
-                    const overlap = 100 + F_REPULSION;
+                    const overlap = 5 * (dist - minDist) / minDist;
                     const angle = Math.atan2(dy, dx);
                     
                     if (obj1.name !== drag && obj2.name !== drag) {
@@ -84,8 +79,8 @@
                         obj2.y += Math.sin(angle) * overlap * 2;
                     } else if (obj2.name === drag) {
                         // Тянем obj2 - мутируем только obj1
-                        obj1.x -= Math.cos(angle) * overlap * 2;
-                        obj1.y -= Math.sin(angle) * overlap * 2;
+                        obj1.x += Math.cos(angle) * overlap * 2;
+                        obj1.y += Math.sin(angle) * overlap * 2;
                     }
                 }
             }
@@ -125,7 +120,7 @@
             x: x, 
             y: y, 
             size: 100,
-            mass: 1
+            mass: 2
         };
         objects.push(newObj);
         objectsStore.updateAll(objects);

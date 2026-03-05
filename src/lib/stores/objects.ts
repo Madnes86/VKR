@@ -11,7 +11,9 @@ export type ObjectType = {
 const { subscribe, update, set } = writable<ObjectType[]>([
     {name: "obj1", x: 300, y: 0, size: 100, mass: 2},
     {name: "obj2", x: 0, y: 0, size: 100, mass: 4},
+    {name: "obj3", x: 0, y: 0, size: 100, mass: 9},
 ]);
+
 
 export const objectsStore = {
     subscribe,

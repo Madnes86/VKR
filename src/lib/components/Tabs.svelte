@@ -7,7 +7,7 @@
         selectedTab = $bindable()
     } : {
         tabs: string[]
-        selectedTab?: any
+        selectedTab?: string
     } = $props();
 </script>
 

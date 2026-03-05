@@ -24,14 +24,14 @@
         }
     })
 
-    function oncontextmenu(event: MouseEvent) {
-        event.preventDefault();
-        x = event.clientX - 16;
-        y = event.clientY - 16;
+    function oncontextmenu(e: MouseEvent) {
+        e.preventDefault(); // mb remove
+        x = e.clientX - 16;
+        y = e.clientY - 16;
         show = !show;
     }
-    function onclick(event: MouseEvent) {
-        if (show && !menu.contains(event.target as Node)) {
+    function onclick(e: MouseEvent) {
+        if (show && !menu.contains(e.target as Node)) {
             show = false;
         }
     }

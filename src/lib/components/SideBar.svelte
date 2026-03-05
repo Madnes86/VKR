@@ -1,11 +1,11 @@
 <script lang="ts">
     import { Flex, Tabs, Tree, Editor, Alerts, Settings } from "$lib/components";
 
-    const tabs = ['graph', 'entity', 'editor', 'alert', 'settings'];
+    const tabs: string[] = ['graph', 'entity', 'editor', 'alert', 'settings'];
     const sections = [Tree, Tree, Editor, Alerts, Settings];
-    let selectedTab = $state('graph');
+    let selectedTab: string = $state('graph');
     let width: number = $state(360);
-    let isDrag = $state(false);
+    let isDrag: boolean = $state(false);
 
     const onmousedown = () => isDrag = true;
     const onmouseup   = () => isDrag = false;

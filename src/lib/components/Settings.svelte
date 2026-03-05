@@ -1,16 +1,43 @@
 <script lang="ts">
-    import { Flex, User, Toggle } from "$lib/components";
+    import { Icon, Form, Toggle, Button } from "$lib/components";
 
     let toggles: {power: boolean, text: string}[] = [
         {power: false, text: 'Hints'},
         {power: true, text: 'Display command cursors'},
         {power: true, text: 'Play audio'}
     ];
+
+    let auth: boolean = $state(false);
+
+    function login() {
+        alert('login');
+        auth = true;
+    }
+    function logout() {
+        alert('logout');
+        auth = false;
+    }
 </script>
 
-<Flex col className="p-2">
-    <User />
+<div class="flex w-full items-center gap-2 flex-col p-2">
+    <!-- <div class="flex flex-col w-full gap-2 justify-start items-start"> -->
+        {#if auth}
+            <Form icon="user" text="user"/>
+            <Form icon="mail" text="pochta"/>
+            <Form icon="password" text="password"/>
+            <Button onclick={logout} className="flex gap-2 p-1 m-1 text-red w-full hover:bg-gray rounded-md">
+                <Icon name="exit" />
+                <p>exit</p>
+            </Button>
+        {:else}
+            <Form icon="user" text="anonim"/>
+            <Button onclick={login} className="flex gap-2 p-1 m-1 text-accent w-full hover:bg-gray rounded-md">
+                <Icon name="login" />
+                <p>login</p>
+            </Button>
+        {/if}
+    <!-- </div> -->
     {#each toggles as {power, text}}
         <Toggle {power} {text} />
     {/each}
-</Flex>
+</div>

@@ -130,7 +130,7 @@
 
 <svelte:window {onmousemove} {onwheel} />
 
-<div class="absolute top-0 left-0 size-full z-0" onclick={(e) => create(e)}>
+<div class="fixed top-0 left-0 size-full z-0" onclick={(e) => create(e)}>
     {#each objects as {name, x, y, size}, i}
         <Object {name} {x} {y} {size} {onmousedown} {onmouseup} />
     {/each}

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Icon, Form, Toggle, Button, Modal } from "$lib/components";
+    import { modalStore } from "$lib/stores/modal.svelte";
 
     let toggles: {power: boolean, text: string}[] = [
         {power: false, text: 'Hints'},
@@ -11,12 +12,16 @@
     let show: boolean = $state(false);
 
     function login() {
-        show = true;
-        // auth = true;
+        modalStore.open('login');
+        auth = true; 
+        console.log(modalStore.type);
+        console.log(modalStore.isOpen);
     }
     function logout() {
-        alert('logout');
+        modalStore.open('logout');
         auth = false;
+        console.log(modalStore.type);
+        console.log(modalStore.isOpen);
     }
 </script>
 
@@ -43,7 +48,3 @@
     {/each}
     <h1>SELECTED lang</h1>
 </div>
-
-{#if show}
-    <Modal bind:show={show} />
-{/if}

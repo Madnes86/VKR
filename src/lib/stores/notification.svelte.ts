@@ -9,7 +9,7 @@ interface Notification {
 
 class NotificationStore {
     private notifications = $state<Notification[]>([
-        {id: '0', icon: 'alert', title: 'Welcom to have a good mood ', type: 'error', duration: 3000}
+        {id: '0', icon: 'check', title: 'Welcom to have a good mood ', type: 'success', duration: 3000}
     ]);
     
     get all() {

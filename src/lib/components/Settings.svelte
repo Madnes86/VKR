@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Icon, Form, Toggle, Button, Modal } from "$lib/components";
+    import { Icon, Form, Toggle, Button, DropDown } from "$lib/components";
     import { modalStore } from "$lib/stores/modal.svelte";
 
     let toggles: {power: boolean, text: string}[] = [
@@ -10,6 +10,7 @@
 
     let auth: boolean = $state(false);
     let show: boolean = $state(false);
+    let selectedLang: string = $state('EU');
 
     function login() {
         modalStore.open('login');
@@ -46,5 +47,11 @@
     {#each toggles as {power, text}}
         <Toggle {power} {text} />
     {/each}
-    <h1>SELECTED lang</h1>
+    <DropDown items={['EN', 'RU']} bind:selectedItem={selectedLang} className="w-full">
+        <button class="click flex w-full gap-3 items-center px-2 py-1 rounded-sm hover:bg-gray">
+            <Icon name="lang"/>
+            <h3>Language:</h3>
+            <p>{selectedLang}</p>
+        </button>
+    </DropDown>
 </div>

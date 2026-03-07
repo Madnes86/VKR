@@ -1,40 +1,34 @@
 <script lang="ts">
     import { Icon } from "$lib/components";
 	import { onDestroy } from "svelte";
-	import { flip } from "svelte/animate";
-	import { fade, fly } from "svelte/transition";
 
     let {
-        icon,
+        icon = "alert",
         title,
         type = 'info',
-        duration = 3_000,
+        duration = 3000,
         onClose
     } : {
         icon?: string;
         title?: string;
-        type?: string;
+        type?: 'success' | 'error' | 'info' | 'warning';
         duration?: number;
         onClose?: () => void;
     } = $props();
 
     let visible = $state(true);
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
     let isHiding: boolean = $state(false);
 
     const color = {
         success: 'border-green-400',
-        error: 'border-red',
-        info: 'border-blue-400',
+        error:   'border-red',
+        info:    'border-blue-400',
         warning: 'border-yellow'
     }
 
     timeout = setTimeout(() => {
-        isHiding = true;
-        setTimeout(() => {
-            // visible = false;
-            onClose?.();
-        }, 300);
+        onclick();
     }, duration);
 
     onDestroy(() => {
@@ -42,9 +36,10 @@
     })
 
     function onclick() {
-        visible = false;
+        isHiding = true
         clearTimeout(timeout);
         setTimeout(() => {
+            visible = false;
             onClose?.();
         }, 300);
     }

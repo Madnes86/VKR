@@ -1,6 +1,7 @@
 <script lang="ts">
 
     let {
+        id,
         name,
         x = 300,
         y = 300,
@@ -8,6 +9,7 @@
         onmousedown,
         onmouseup,
     } : {
+        id: number;
         name: string;
         x: number;
         y: number;
@@ -27,12 +29,14 @@
 
 <div 
     bind:this={ref}
-    style="top: {y}px; left: {x}px; width: {size}px; height: {size + font}px" 
-    class="absolute flex flex-col size-12"
+    style="top: {y}px; left: {x}px; width: {size}px; height: {size}px" 
+    class="absolute flex flex-col"
     >
-    <p class="w-full text-center">{name}</p>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
         onmousedown={handleMouseDown}
         {onmouseup}
-        class="border border-white rounded-full hover:border-accent size-full"></div>
+        class="border z-2 border-white rounded-full hover:border-accent size-full relative bg-black">
+        <p class="w-full text-center absolute bottom-full text-border">{name}</p>
+    </div>
 </div>

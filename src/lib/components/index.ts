@@ -22,3 +22,4 @@ export { default as Canvas } from "./Canvas.svelte";
 export { default as Modal } from "./Modal.svelte";
 export { default as Form2 } from "./Form2.svelte";
 export { default as DropDown } from "./DropDown.svelte";
+export { default as Link } from "./Link.svelte";

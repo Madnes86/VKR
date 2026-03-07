@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store';
 
 export type ObjectType = {
+    id: number,
     name: string, 
     x: number, 
     y: number, 
@@ -9,9 +10,9 @@ export type ObjectType = {
 };
 
 const { subscribe, update, set } = writable<ObjectType[]>([
-    {name: "obj1", x: 300, y: 0, size: 100, mass: 2},
-    {name: "obj2", x: 0, y: 0, size: 100, mass: 4},
-    {name: "obj3", x: 0, y: 0, size: 100, mass: 9},
+    {id: 1, name: "obj1", x: 390, y: 20, size: 100, mass: 2},
+    {id: 2, name: "obj2", x: 390,   y: 300, size: 100, mass: 4},
+    {id: 3, name: "obj3", x: 500,   y: 500, size: 100, mass: 9},
 ]);
 
 

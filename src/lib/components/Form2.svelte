@@ -43,7 +43,11 @@
         {/if}
         {#if iType == 'password' && value.length > 0}
             <button onclick={toggleType} class="click p-1 rounded-sm hover:bg-gray">
-                <Icon name="show" />
+                {#if type == 'password'}
+                    <Icon name="show" />
+                {:else}
+                    <Icon name="eyeOff" />
+                {/if}
             </button>
         {/if}
     </div>

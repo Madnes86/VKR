@@ -8,6 +8,8 @@
     let offsetY: number = 0;
     let drag: string | null = $state(null);
 
+    let center: boolean = $state(true);
+
     let objects: {id: number, name: string, x: number, y: number, size: number, mass: number}[] = $state([]);
     objectsStore.subscribe(v => objects = [...v]);
     let links: {id: number, name: string, objects: {is: number, to: number}[]}[] = [];
@@ -31,9 +33,6 @@
             return null;
         }).filter(Boolean) // Убираем null
     );
-    console.log(links);
-    console.log(objects);
-    console.log(sortLink);
 
     let centerX: number = window.innerWidth / 2;
     let centerY: number = window.innerHeight / 2;
@@ -49,7 +48,6 @@
     function updateObjects() {
         objects.forEach(e => e.size = SIZE * (e.mass * 0.1) * scale);
     }
-
     function onmousedown(event: MouseEvent, name: string, ref: HTMLElement) {
         drag = name;
         object = ref;
@@ -63,84 +61,89 @@
                 if (e.name === drag) {
                     e.x = event.clientX - offsetX;
                     e.y = event.clientY - offsetY;
-
                 }
             });
-            setTimeout(() => {
-                collisions();
-            }, 10);
         }
     }
-    function onmouseup() {
-        // drag = null;
-        // attract();
+    let targetObj = $state(0);
+    function linking(e: MouseEvent, id: number) {
+        targetObj = id;
     }
-    function collisions() {
+    function onmouseup(id: number) {
+        if (targetObj > 0) {
+            linksStore.addLink({id: 20, name: 'test', objects: [{is: targetObj, to: id}]});
+            targetObj = 0;
+        }
+    }
+    function physics() {
+        if (drag) return;
+
+        const forces = objects.map(() => ({ fx: 0, fy: 0 }));
+
+        // Приоритет #1: Коллизии с зазором 30%
         for (let i = 0; i < objects.length; i++) {
+            const obj1 = objects[i];
+            const centerX1 = obj1.x + obj1.size / 2;
+            const centerY1 = obj1.y + obj1.size / 2;
+
             for (let j = i + 1; j < objects.length; j++) {
-                const obj1 = objects[i];
                 const obj2 = objects[j];
+                const centerX2 = obj2.x + obj2.size / 2;
+                const centerY2 = obj2.y + obj2.size / 2;
 
-                const x1 = obj1.x + obj1.size / 2;
-                const y1 = obj1.y + obj1.size / 2;
-                const x2 = obj2.x + obj2.size / 2;
-                const y2 = obj2.y + obj2.size / 2;
-                
-                const dx = x1 - x2;
-                const dy = y1 - y2;
+                const dx = centerX1 - centerX2;
+                const dy = centerY1 - centerY2;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-
-                const minDist = (obj1.size + obj2.size) / 2;
-                const repulsion = minDist * obj1.mass * obj2.mass * 0.01;
-
-                if (dist < minDist + repulsion) {
-                    const overlap = (dist - minDist) / minDist;
-                    const angle = Math.atan2(dy, dx);
+                
+                const desiredDist = (obj1.size + obj2.size) * (1 + 0.3);
+                
+                if (dist < desiredDist && dist > 0.01) {
+                    const compression = 1 - (dist / desiredDist);
+                    const strength = 1.5 * Math.pow(compression, 1.5) * (obj1.mass + obj2.mass);
                     
-                    if (obj1.name !== drag && obj2.name !== drag) {
-                        // Оба не перетаскиваются - мутируем оба
-                        obj1.x -= Math.cos(angle) * overlap;
-                        obj1.y -= Math.sin(angle) * overlap;
-                        obj2.x += Math.cos(angle) * overlap;
-                        obj2.y += Math.sin(angle) * overlap;
-                    } else if (obj1.name === drag) {
-                        // Тянем obj1 - мутируем только obj2
-                        obj2.x += Math.cos(angle) * overlap * 2;
-                        obj2.y += Math.sin(angle) * overlap * 2;
-                    } else if (obj2.name === drag) {
-                        // Тянем obj2 - мутируем только obj1
-                        obj1.x += Math.cos(angle) * overlap * 2;
-                        obj1.y += Math.sin(angle) * overlap * 2;
-                    }
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    
+                    const totalMass = obj1.mass + obj2.mass;
+                    const massRatio1 = obj2.mass / totalMass;
+                    const massRatio2 = obj1.mass / totalMass;
+                    
+                    forces[i].fx += nx * strength * massRatio2;
+                    forces[i].fy += ny * strength * massRatio2;
+                    forces[j].fx -= nx * strength * massRatio1;
+                    forces[j].fy -= ny * strength * massRatio1;
                 }
             }
         }
-    }
-    function attract() {
-        if (animationFrame) {
-            cancelAnimationFrame(animationFrame);
-        }
-        if (drag == null) {
-            objects.forEach(e => {
-               
-                const dx = centerX - e.x;
-                const dy = centerY - e.y;
+
+        // Приоритет #2: Гравитация к центру
+        if (center) {
+            for (let i = 0; i < objects.length; i++) {
+                const obj1 = objects[i];
+                const centerX1 = obj1.x + obj1.size / 2;
+                const centerY1 = obj1.y + obj1.size / 2;
+
+                const dx = centerX - centerX1;
+                const dy = centerY - centerY1;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                console.log(dist);
-                if (dist > 10) {
-                    const strength = Math.min((e.mass * 0.1) * (dist / 200), 0.1);
-                    
-                    e.x += dx * strength;
-                    e.y += dy * strength;
-                } else {
-                    e.x = centerX;
-                    e.y = centerY;
-                }
                 
-            });
-            collisions();
+                if (dist > 1) {
+                    // Большие объекты сильнее притягиваются к центру
+                    const massFactor = Math.pow(obj1.mass, 2);
+                    const strength = 0.01 * massFactor * Math.min(dist / 300, 1);
+                    
+                    forces[i].fx += dx * strength * 0.9;
+                    forces[i].fy += dy * strength * 0.9;
+                }
+            }
         }
-        animationFrame = requestAnimationFrame(attract);
+
+        // Применяем силы
+        for (let i = 0; i < objects.length; i++) {
+            const MAX_MOVE = 3
+            objects[i].x += forces[i].fx * 0.9;
+            objects[i].y += forces[i].fy * 0.9;
+        }
     }
     function create(e: MouseEvent) {
         if (drag) {
@@ -148,9 +151,10 @@
         } else {
             const x = e.clientX - SIZE / 2;
             const y = e.clientY - SIZE / 2;
+            const name = (objects.length + 1).toString();
             const newObj: {id: number, name: string, x: number, y: number, size: number, mass: number} = {
                 id: Math.random(),
-                name: 'new', 
+                name: name, 
                 x: x, 
                 y: y, 
                 size: SIZE,
@@ -158,19 +162,31 @@
             };
             objects.push(newObj);
             objectsStore.updateAll(objects);
+            updateObjects();
         }
     }
+    function toggle() {
+        center = !center;
+    }
     updateObjects();
+    function loop() {
+        physics();
+        animationFrame = requestAnimationFrame(loop);
+    }
     setTimeout(() => {
-        attract();
-    }, 10);
+        loop();
+    }, 1000);
 </script>
 
 <svelte:window {onmousemove} {onwheel} />
 
+<button onclick={toggle} class="absolute z-10 right-0 p-2 click bg-accent">
+    centering
+</button>
+
 <div class="fixed top-0 left-0 size-full z-0" onclick={(e) => create(e)}>
     {#each objects as {id, name, x, y, size}, i}
-        <Object {id} {name} {x} {y} {size} {onmousedown} {onmouseup} />
+        <Object {id} {name} {x} {y} {size} {onmousedown} {onmouseup} {linking}/>
     {/each}
     {#each sortLink as {id, name, x1, y1, x2, y2}}
         <Link {id} {name} {x1} {y1} {x2} {y2} />

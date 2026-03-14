@@ -1,4 +1,7 @@
 <script lang="ts">
+    import { Object } from "$lib/components";
+    import { physics } from "$lib/functions/physics";
+    import { dragStore } from "$lib/stores/drag.svelte";  
 
     let {
         id,
@@ -6,57 +9,90 @@
         x = 300,
         y = 300,
         size = 100,
-        onmousedown,
-        onmouseup,
-        linking
+        linking,
+        objects = []
     } : {
         id: number;
         name: string;
         x: number;
         y: number;
         size: number;
-        onmousedown: (event: MouseEvent, name: string) => void;
-        onmouseup: (id: number) => void;
         linking: (event: MouseEvent, id: number) => void;
+        objects: any[];
     } = $props();
 
-    let font: number = $state(24);
     let ref: HTMLElement | undefined = $state(undefined);
     let hover: boolean = $state(false);
+    let centerX: number = size / 2;
+    let centerY: number = size / 2;
 
-    function handleMouseDown(event: MouseEvent) {
-        onmousedown(event, name, ref);
+    const onmouseenter = () => hover = true;
+    const onmouseleave = () => hover = false;
+
+    function onmousedown(e: MouseEvent) {
+        if (!ref || e.button !== 0) return;
+        e.stopPropagation();
+        e.preventDefault();
+        const offsetX = e.clientX - x;
+        const offsetY = e.clientY - y;
+        
+        dragStore.setDrag({
+            ref,
+            id,
+            offsetX,
+            offsetY,
+            startX: x,
+            startY: y,
+        });
     }
     function handleLinking(event: MouseEvent) {
         linking(event, id);
     }
-    function onmouseenter() {
-        hover = true;
+    function onmousemove(event: MouseEvent) {
+        const dragObj = dragStore.getValue();
+        
+        if (dragObj) {
+            const obj = objects.find(o => o.id === dragObj.id);
+
+            if (!obj) return;
+            obj.x = event.clientX - dragObj.offsetX;
+            obj.y = event.clientY - dragObj.offsetY;
+        }
     }
-    function onmouseleave() {
-        hover = false;
+    function onmouseup() {
+        if (dragStore.hasValue()) {
+            dragStore.clearDrag();
+        }
     }
-    function handleOnmouseup() {
-        onmouseup(id);
+    function loop() {
+        if (!dragStore.hasValue()) {
+            physics(objects, centerX, centerY);
+        }
+        requestAnimationFrame(loop);
     }
+    loop();
     
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div 
     bind:this={ref}
-    style="top: {y}px; left: {x}px; width: {size}px; height: {size}px" 
+    style="top: {y}px; left: {x}px; width: {size}px; height: {size}px; z-index: {id}" 
     class="absolute flex flex-col"
     {onmouseenter}
     {onmouseleave}
+    {onmousemove}
     >
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="size-full relative">
-        <p style="font-size: {size / 3}px" class="w-full z-5 text-center absolute bottom-full text-border">{name}</p>
+        <p  style="font-size: {size / 3}px" class="select-none w-full text-center absolute bottom-full text-border">{name}</p>
         <div
-            onmousedown={handleMouseDown}
-            onmouseup={handleOnmouseup}
-            class="border z-2 border-white rounded-full hover:border-accent size-full bg-black">
+            {onmousedown}
+            {onmouseup}
+            class={`${hover && 'border-accent!'} border border-white rounded-full size-full bg-black`}>
+            {#each objects as {id, name, x, y, size, objects}, i}
+                <Object {id} {name} {x} {y} {size} {objects} {linking}/>
+            {/each}  
         </div>
         {#if hover}
             <div {onmouseenter} {onmouseleave} style="width: {size / 3}px; height: {size / 3}px" class="absolute flex items-center justify-between -translate-x-1/2 left-1/2 z-5 top-full bg-black">

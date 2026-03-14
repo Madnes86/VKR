@@ -1,17 +1,19 @@
 <script lang="ts">
     import { Object, Link } from "$lib/components";
-    import { objectsStore } from "$lib/stores/objects";
+    import { objectsStore, type ObjectType } from "$lib/stores/objects";
+    import { scaleStore } from "$lib/stores/scale.svelte";
     import { linksStore } from "$lib/stores/links.svelte";
-
-    let object: HTMLElement | null = $state(null);
-    let offsetX: number = 0;
-    let offsetY: number = 0;
-    let drag: string | null = $state(null);
+    import { dragStore } from "$lib/stores/drag.svelte";
+    import { physics, resizeObjects } from "$lib/functions/physics";
 
     let center: boolean = $state(true);
+    let centerX: number = $derived(window.innerWidth  / 2);
+    let centerY: number = $derived(window.innerHeight / 2);
+    const SIZE: number = 100;
 
-    let objects: {id: number, name: string, x: number, y: number, size: number, mass: number}[] = $state([]);
+    let objects: {id: number, name: string, x: number, y: number, size: number, mass: number, parent: number | null}[] = $state([]);
     objectsStore.subscribe(v => objects = [...v]);
+    console.log(objects)
     let links: {id: number, name: string, objects: {is: number, to: number}[]}[] = [];
     linksStore.subscribe(v => links = [...v]);
     let sortLink = $derived(
@@ -34,148 +36,67 @@
         }).filter(Boolean) // Убираем null
     );
 
-    let centerX: number = window.innerWidth / 2;
-    let centerY: number = window.innerHeight / 2;
-    let scale: number = $state(1);
-    let animationFrame: number | null = $state(null);
-    const SIZE: number = 100;
-
+    const toggle = () => center = !center
     function onwheel(event: WheelEvent) {
-        scale = event.deltaY > 0 ? scale -= 1.01 : scale += 1.01;
-        scale = Math.max(0.5, Math.min(3, scale));
-        updateObjects();
+        scaleStore.value = event.deltaY > 0 ? scaleStore.value -= 1.01 : scaleStore.value += 1.01;
+        scaleStore.value = Math.max(0.5, Math.min(3, scaleStore.value));
+        resizeObjects(objects, scaleStore.value);
     }
-    function updateObjects() {
-        objects.forEach(e => e.size = SIZE * (e.mass * 0.1) * scale);
-    }
-    function onmousedown(event: MouseEvent, name: string, ref: HTMLElement) {
-        drag = name;
-        object = ref;
-        const rect = object?.getBoundingClientRect();
-        offsetX = event.clientX - rect?.left;
-        offsetY = event.clientY - rect?.top
-    }
-    function onmousemove(event: MouseEvent) {
-        if (drag) {
-            objects.forEach(e => {
-                if (e.name === drag) {
-                    e.x = event.clientX - offsetX;
-                    e.y = event.clientY - offsetY;
-                }
-            });
+    function onmousemove(event: MouseEvent) { // ?
+        const dragObj = dragStore.getValue();
+        
+        if (dragObj) {
+            const obj = objects.find(o => o.id === dragObj.id);
+
+            if (!obj) return;
+            obj.x = event.clientX - dragObj.offsetX;
+            obj.y = event.clientY - dragObj.offsetY;
         }
     }
+    
     let targetObj = $state(0);
     function linking(e: MouseEvent, id: number) {
         targetObj = id;
     }
     function onmouseup(id: number) {
+        if (dragStore.hasValue()) {
+            dragStore.clearDrag();
+        } 
         if (targetObj > 0) {
             linksStore.addLink({id: 20, name: 'test', objects: [{is: targetObj, to: id}]});
             targetObj = 0;
         }
     }
-    function physics() {
-        if (drag) return;
-
-        const forces = objects.map(() => ({ fx: 0, fy: 0 }));
-
-        // Приоритет #1: Коллизии с зазором 30%
-        for (let i = 0; i < objects.length; i++) {
-            const obj1 = objects[i];
-            const centerX1 = obj1.x + obj1.size / 2;
-            const centerY1 = obj1.y + obj1.size / 2;
-
-            for (let j = i + 1; j < objects.length; j++) {
-                const obj2 = objects[j];
-                const centerX2 = obj2.x + obj2.size / 2;
-                const centerY2 = obj2.y + obj2.size / 2;
-
-                const dx = centerX1 - centerX2;
-                const dy = centerY1 - centerY2;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                
-                const desiredDist = (obj1.size + obj2.size) * (1 + 0.3);
-                
-                if (dist < desiredDist && dist > 0.01) {
-                    const compression = 1 - (dist / desiredDist);
-                    const strength = 1.5 * Math.pow(compression, 1.5) * (obj1.mass + obj2.mass);
-                    
-                    const nx = dx / dist;
-                    const ny = dy / dist;
-                    
-                    const totalMass = obj1.mass + obj2.mass;
-                    const massRatio1 = obj2.mass / totalMass;
-                    const massRatio2 = obj1.mass / totalMass;
-                    
-                    forces[i].fx += nx * strength * massRatio2;
-                    forces[i].fy += ny * strength * massRatio2;
-                    forces[j].fx -= nx * strength * massRatio1;
-                    forces[j].fy -= ny * strength * massRatio1;
-                }
-            }
-        }
-
-        // Приоритет #2: Гравитация к центру
-        if (center) {
-            for (let i = 0; i < objects.length; i++) {
-                const obj1 = objects[i];
-                const centerX1 = obj1.x + obj1.size / 2;
-                const centerY1 = obj1.y + obj1.size / 2;
-
-                const dx = centerX - centerX1;
-                const dy = centerY - centerY1;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                
-                if (dist > 1) {
-                    // Большие объекты сильнее притягиваются к центру
-                    const massFactor = Math.pow(obj1.mass, 2);
-                    const strength = 0.01 * massFactor * Math.min(dist / 300, 1);
-                    
-                    forces[i].fx += dx * strength * 0.9;
-                    forces[i].fy += dy * strength * 0.9;
-                }
-            }
-        }
-
-        // Применяем силы
-        for (let i = 0; i < objects.length; i++) {
-            const MAX_MOVE = 3
-            objects[i].x += forces[i].fx * 0.9;
-            objects[i].y += forces[i].fy * 0.9;
-        }
-    }
     function create(e: MouseEvent) {
-        if (drag) {
-            drag = null;
+        if (dragStore.hasValue()) {
+            // dragStore.clearDrag();
         } else {
             const x = e.clientX - SIZE / 2;
             const y = e.clientY - SIZE / 2;
             const name = (objects.length + 1).toString();
-            const newObj: {id: number, name: string, x: number, y: number, size: number, mass: number} = {
-                id: Math.random(),
+            const newObj: ObjectType = {
+                id: Math.floor(Math.random() * Math.pow(10, 4)),
                 name: name, 
                 x: x, 
                 y: y, 
                 size: SIZE,
-                mass: 2
+                mass: 2,
+                parent: 0
             };
-            objects.push(newObj);
-            objectsStore.updateAll(objects);
-            updateObjects();
+            objectsStore.addObject(newObj);
+            // objects.push(newObj);
+            // objectsStore.updateAll(objects);
+            resizeObjects(objects, scaleStore.value);
         }
     }
-    function toggle() {
-        center = !center;
-    }
-    updateObjects();
     function loop() {
-        physics();
-        animationFrame = requestAnimationFrame(loop);
+        if (!dragStore.hasValue()) {
+            physics(objects, centerX, centerY, center);
+        }
+        requestAnimationFrame(loop);
     }
-    setTimeout(() => {
-        loop();
-    }, 1000);
+    resizeObjects(objects, scaleStore.value);
+    loop();
 </script>
 
 <svelte:window {onmousemove} {onwheel} />
@@ -185,11 +106,10 @@
 </button>
 
 <div class="fixed top-0 left-0 size-full z-0" onclick={(e) => create(e)}>
-    {#each objects as {id, name, x, y, size}, i}
-        <Object {id} {name} {x} {y} {size} {onmousedown} {onmouseup} {linking}/>
+    {#each objects as {id, name, x, y, size, objects}, i}
+        <Object {id} {name} {x} {y} {size} {objects} {linking}/>
     {/each}
     {#each sortLink as {id, name, x1, y1, x2, y2}}
         <Link {id} {name} {x1} {y1} {x2} {y2} />
     {/each}
 </div>
-

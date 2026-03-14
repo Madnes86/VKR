@@ -41,10 +41,10 @@
 
 </script>
 
-<svelte:window {oncontextmenu} {onclick}/>
+<svelte:window {oncontextmenu} {onclick} />
 
 {#if show}
-    <div bind:this={menu} style="left: {x}px; top: {y}px" class="flex items-center gap-2 w-90! h-10 absolute">
+    <div bind:this={menu} style="left: {x}px; top: {y}px" class="flex items-center gap-2 w-90! h-10 absolute z-1000">
         <ButtonIcon name="link" onclick={clear}/>
         <Input bind:value={value} bind:ref={input} placeholder="search" />   
         {#each buttons as {name, onclick}}

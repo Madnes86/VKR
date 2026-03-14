@@ -20,7 +20,6 @@
     linksStore.subscribe(v => links = [...v]);
     let sortLink = $derived(
         links.map(link => {
-            // Для каждого объекта связи получаем координаты
             const fromObj = objects.find(o => o.id === link.objects[0]?.is);
             const toObj = objects.find(o => o.id === link.objects[0]?.to);
             

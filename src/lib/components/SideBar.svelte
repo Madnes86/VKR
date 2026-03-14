@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { Flex, Tabs, Tree, Editor, Alerts, Settings } from "$lib/components";
+    import { Flex, Tabs, Tree, Entityes, Editor, Alerts, Settings } from "$lib/components";
 
     const tabs: string[] = ['graph', 'entity', 'editor', 'alert', 'settings'];
-    const sections = [Tree, Tree, Editor, Alerts, Settings];
+    const sections = [Tree, Entityes, Editor, Alerts, Settings];
     let selectedTab: string = $state('graph');
     let ref: number | null = $state(null);
     let width: number = $state(350);

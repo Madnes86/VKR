@@ -20,9 +20,10 @@ export type ITreeObject ={
     objects: ITreeObject[];
 }
 
-const data: IFlatObject[] = [
+export const data: IFlatObject[] = [
     {id: 0, name: "root", x: 100, y: 100, size: 100, mass: 4, parent: 'root'},
     {id: 1, name: "obj1", x: 390, y: 20,  size: 100, mass: 3, parent: 0},
+    {id: 4, name: "obj4", x: 390, y: 20,  size: 100, mass: 3, parent: 0},
     {id: 2, name: "obj2", x: 390, y: 300, size: 100, mass: 1, parent: 1},
     {id: 3, name: "obj3", x: 500, y: 500, size: 100, mass: 1, parent: 1},
 ];

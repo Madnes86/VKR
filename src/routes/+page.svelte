@@ -1,10 +1,8 @@
 <script lang="ts">
     import { SideBar, ContextMenu, Canvas } from "$lib/components";
-    import { modalStore } from "$lib/stores/modal.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import Notification from "$lib/components/Notification.svelte";
     import { notificationStore } from "$lib/stores/notification.svelte";
-	import { flip } from "svelte/animate";
 
     let notifications = $derived(notificationStore.all);
 </script>

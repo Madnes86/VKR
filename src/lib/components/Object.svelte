@@ -23,8 +23,8 @@
 
     let ref: HTMLElement | undefined = $state(undefined);
     let hover: boolean = $state(false);
-    let centerX: number = size / 2;
-    let centerY: number = size / 2;
+    let centerX: number = $derived(size / 2);
+    let centerY: number = $derived(size / 2);
 
     const onmouseenter = () => hover = true;
     const onmouseleave = () => hover = false;

@@ -7,8 +7,10 @@
     import { physics, resizeObjects } from "$lib/functions/physics";
 
     let center: boolean = $state(true);
-    let centerX: number = $derived(window.innerWidth  / 2);
-    let centerY: number = $derived(window.innerHeight / 2);
+    let width: number = $state(0);
+    let height: number = $state(0);
+    let centerX: number = $derived(width  / 2);
+    let centerY: number = $derived(height / 2);
     const SIZE: number = 100;
 
     let objects: {id: number, name: string, x: number, y: number, size: number, mass: number, parent: number | null}[] = $state([]);
@@ -99,7 +101,7 @@
     loop();
 </script>
 
-<svelte:window {onmousemove} {onwheel} />
+<svelte:window {onmousemove} {onwheel} bind:innerWidth={width} bind:innerHeight={height} />
 
 <button onclick={toggle} class="absolute z-10 right-0 p-2 click bg-accent">
     centering

@@ -20,16 +20,15 @@ export type ITreeObject ={
     objects: ITreeObject[];
 }
 
-export const data: IFlatObject[] = [
+export let flatData: IFlatObject[] = [
     {id: 0, name: "root", x: 100, y: 100, size: 100, mass: 4, parent: 'root'},
     {id: 1, name: "obj1", x: 390, y: 20,  size: 100, mass: 3, parent: 0},
     {id: 4, name: "obj4", x: 390, y: 20,  size: 100, mass: 3, parent: 0},
     {id: 2, name: "obj2", x: 390, y: 300, size: 100, mass: 1, parent: 1},
     {id: 3, name: "obj3", x: 500, y: 500, size: 100, mass: 1, parent: 1},
 ];
-const { subscribe, update, set } = writable<IFlatObject[]>(buildTree(data));
 
-function buildTree(flatObjects: IFlatObject[]) {
+function buildTree(flatObjects: IFlatObject[]): ITreeObject[] {
     const objectMap = new Map();
     const roots: any = [];
     flatObjects.forEach(obj => {
@@ -70,50 +69,39 @@ function updateMass(node) {
     return node.mass;
 }
 
-export const objectsStore = {
-    subscribe,
-    set,
-    
-    addObject: (newObj: IFlatObject) => update(tree => {
-        // Создаем узел для нового объекта
-        const newNode: ITreeObject = {
-            id: newObj.id,
-            name: newObj.name,
-            x: newObj.x,
-            y: newObj.y,
-            size: newObj.size,
-            mass: newObj.mass,
-            parent: newObj.parent,
-            objects: []
-        };
-        
-        // Если объект корневой
-        if (newObj.parent === 'root') {
-            tree.push(newNode);
-        } else {
-            // Ищем родителя
-            const parent = findNodeById(tree, newObj.parent as number);
-            if (parent) {
-                parent.objects.push(newNode);
-                updateMass(parent); // Пересчитываем массу родителя
-            }
-        }
-        
-        return tree;
-    }),
+const treeStore = writable<ITreeObject[]>(buildTree(flatData));
 
-    update: (obj: IFlatObject) => update(objects => objects.map(e => e.name === obj.name ? obj : e)),
+export const objectsStore = {
+    subscribe: treeStore.subscribe,
     
-    updateSizes: (scale: number, SIZE: number) => update(objects => 
-        objects.map(obj => ({
+    addObject: (newObj: IFlatObject) => {
+        const exists = flatData.some(obj => obj.id === newObj.id);
+        if (exists) {
+            return
+        }
+        flatData = [...flatData, newObj];
+        treeStore.set(buildTree(flatData));
+    },
+
+    // update: (obj: IFlatObject) => update(objects => objects.map(e => e.name === obj.name ? obj : e)),
+    updateSizes: (scale: number, SIZE: number) => {
+        flatData= flatData.map(obj => ({
             ...obj,
-            size: SIZE * (obj.mass) * scale
-        }))
-    ),
+            size: SIZE * obj.mass * scale
+        }));
+        treeStore.set(buildTree(flatData));
+    },
+    // updateSizes: (scale: number, SIZE: number) => {
+    //     objects.map(obj => ({
+    //         ...obj,
+    //         size: SIZE * (obj.mass) * scale
+    //     }))
+    //     treeStore.set(buildTree(flatData));
+    // ),
     
-    updateAll: (newObjects: IFlatObject[]) => set(newObjects),
+    // updateAll: (newObjects: IFlatObject[]) => set(newObjects),
     
-    removeObject: (name: string) => update(objects => 
-        objects.filter(obj => obj.name !== name)
-    )
+    // removeObject: (name: string) => update(objects => 
+    //     objects.filter(obj => obj.name !== name)
+    // )
 };

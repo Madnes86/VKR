@@ -6,7 +6,7 @@ export function physics(objects: any[], centerX: any, centerY: any, center?: boo
         const obj1 = objects[i];
         const centerX1 = obj1.x + obj1.size / 2;
         const centerY1 = obj1.y + obj1.size / 2;
-
+        
         for (let j = i + 1; j < objects.length; j++) {
             const obj2 = objects[j];
             const centerX2 = obj2.x + obj2.size / 2;
@@ -16,11 +16,11 @@ export function physics(objects: any[], centerX: any, centerY: any, center?: boo
             const dy = centerY1 - centerY2;
             const dist = Math.sqrt(dx * dx + dy * dy);
             
-            const desiredDist = (obj1.size + obj2.size) * (1 + 0.3);
+            const desiredDist = (obj1.size + obj2.size) * 0.65;
             
             if (dist < desiredDist && dist > 0.01) {
                 const compression = 1 - (dist / desiredDist);
-                const strength = Math.pow(compression, 2);
+                const strength = Math.pow(compression, 2) * 350;
                 const nx = dx / dist;
                 const ny = dy / dist;
                 
@@ -46,11 +46,11 @@ export function physics(objects: any[], centerX: any, centerY: any, center?: boo
             if (dist > 1) {
                 // Большие объекты сильнее притягиваются к центру
                 const size = obj1.size;
-                const test = Math.min(dist / 500, 1);
-                const strength = 0.0002 * size;
+                const test = Math.max(dist / 50, 1);
+                const strength = 0.00002 * size * test;
                 
-                forces[i].fx += dx * strength * 0.9;
-                forces[i].fy += dy * strength * 0.9;
+                forces[i].fx += dx * strength;
+                forces[i].fy += dy * strength;
             }
         }
     // }

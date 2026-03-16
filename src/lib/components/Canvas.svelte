@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Object, Link } from "$lib/components";
-    import { objectsStore, type ObjectType } from "$lib/stores/objects";
+    import { objectsStore, type IFlatObject, type ITreeObject } from "$lib/stores/objects";
     import { scaleStore } from "$lib/stores/scale.svelte";
     import { linksStore } from "$lib/stores/links.svelte";
     import { dragStore } from "$lib/stores/drag.svelte";
@@ -13,29 +13,28 @@
     let centerY: number = $derived(height / 2);
     const SIZE: number = 100;
 
-    let objects: {id: number, name: string, x: number, y: number, size: number, mass: number, parent: number | null}[] = $state([]);
-    objectsStore.subscribe(v => objects = [...v]);
-    console.log(objects)
-    let links: {id: number, name: string, objects: {is: number, to: number}[]}[] = [];
-    linksStore.subscribe(v => links = [...v]);
-    let sortLink = $derived(
-        links.map(link => {
-            const fromObj = objects.find(o => o.id === link.objects[0]?.is);
-            const toObj = objects.find(o => o.id === link.objects[0]?.to);
+    let objects: ITreeObject[] = $state([]);
+    objectsStore.subscribe(v => objects = v);
+    // let links: {id: number, name: string, objects: {is: number, to: number}[]}[] = [];
+    // linksStore.subscribe(v => links = [...v]);
+    // let sortLink = $derived(
+    //     links.map(link => {
+    //         const fromObj = objects.find(o => o.id === link.objects[0]?.is);
+    //         const toObj = objects.find(o => o.id === link.objects[0]?.to);
             
-            if (fromObj && toObj) {
-                return {
-                    id: link.id,
-                    name: link.name,
-                    x1: fromObj.x + fromObj.size / 2,
-                    y1: fromObj.y + fromObj.size / 2,
-                    x2: toObj.x + toObj.size / 2,
-                    y2: toObj.y + toObj.size / 2
-                };
-            }
-            return null;
-        }).filter(Boolean) // Убираем null
-    );
+    //         if (fromObj && toObj) {
+    //             return {
+    //                 id: link.id,
+    //                 name: link.name,
+    //                 x1: fromObj.x + fromObj.size / 2,
+    //                 y1: fromObj.y + fromObj.size / 2,
+    //                 x2: toObj.x + toObj.size / 2,
+    //                 y2: toObj.y + toObj.size / 2
+    //             };
+    //         }
+    //         return null;
+    //     }).filter(Boolean) // Убираем null
+    // );
 
     const toggle = () => center = !center
     function onwheel(event: WheelEvent) {
@@ -69,26 +68,27 @@
         }
     }
     function create(e: MouseEvent) {
-        if (dragStore.hasValue()) {
-            // dragStore.clearDrag();
-        } else {
-            const x = e.clientX - SIZE / 2;
-            const y = e.clientY - SIZE / 2;
-            const name = (objects.length + 1).toString();
-            const newObj: ObjectType = {
-                id: Math.floor(Math.random() * Math.pow(10, 4)),
-                name: name, 
-                x: x, 
-                y: y, 
-                size: SIZE,
-                mass: 2,
-                parent: 0
-            };
-            objectsStore.addObject(newObj);
-            // objects.push(newObj);
-            // objectsStore.updateAll(objects);
-            resizeObjects(objects, scaleStore.value);
-        }
+        // if (e.button == 2) {
+
+            if (dragStore.hasValue()) {
+                // dragStore.clearDrag();
+            } else {
+                const newObj: IFlatObject = {
+                    id: Math.floor(Math.random() * Math.pow(10, 4)),
+                    name: (objects.length + 1).toString(), 
+                    x: e.clientX - SIZE / 2, 
+                    y: e.clientY - SIZE / 2, 
+                    size: SIZE,
+                    mass: 2,
+                    parent: "root"
+                };
+                    console.log(objects);
+                objectsStore.addObject(newObj);
+                // objects.push(newObj);
+                // objectsStore.updateAll(objects);
+                resizeObjects(objects, scaleStore.value);
+            }
+        // }
     }
     function loop() {
         if (!dragStore.hasValue()) {
@@ -110,7 +110,7 @@
     {#each objects as {id, name, x, y, size, objects}, i}
         <Object {id} {name} {x} {y} {size} {objects} {linking}/>
     {/each}
-    {#each sortLink as {id, name, x1, y1, x2, y2}}
+    <!-- {#each sortLink as {id, name, x1, y1, x2, y2}}
         <Link {id} {name} {x1} {y1} {x2} {y2} />
-    {/each}
+    {/each} -->
 </div>

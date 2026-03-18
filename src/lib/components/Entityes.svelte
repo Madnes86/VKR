@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { flatData, objectsStore, type IFlatObject } from "$lib/stores/objects";
+    import { flatObjects, objectsStore, type IFlatObject } from "$lib/stores/objects.svelte";
     import { Form } from "$lib/components";
 
     let entityes: IFlatObject[] = $state([]);
     objectsStore.subscribe(() => {
-        entityes = flatData;
+        entityes = flatObjects;
     })
 </script>
 

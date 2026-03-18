@@ -1,10 +1,10 @@
 <script lang="ts">
 	import Flex from "./Flex.svelte";
     import { TreeItem } from "$lib/components";
-    import { objectsStore, type ITreeObject } from "$lib/stores/objects";
+    import { objectsStore, type ITreeObject } from "$lib/stores/objects.svelte";
 
     let objects: ITreeObject[] = [];
-    objectsStore.subscribe(v => objects = v);
+    // objectsStore.subscribe(v => objects = v);
     
     const icon = "entityes";
     const modificators: {name: string, onclick: () => void}[] = [{name: 'addUser', onclick: () => {alert('addUser')}}];

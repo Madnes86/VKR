@@ -1,7 +1,8 @@
 <script lang="ts">
     import { Object } from "$lib/components";
-    import { physics } from "$lib/functions/physics";
+    import { physics, resizeObjects } from "$lib/functions/physics";
     import { dragStore } from "$lib/stores/drag.svelte";  
+    // import { selectedStore, visibleStore } from "$lib/stores/objects.svelte";
 
     let {
         id,
@@ -9,7 +10,6 @@
         x = 300,
         y = 300,
         size = 100,
-        linking,
         objects = []
     } : {
         id: number;
@@ -17,17 +17,13 @@
         x: number;
         y: number;
         size: number;
-        linking: (event: MouseEvent, id: number) => void;
         objects: any[];
     } = $props();
 
     let ref: HTMLElement | undefined = $state(undefined);
-    let hover: boolean = $state(false);
+    // let selected: boolean = $derived(selectedStore.value == id);
     let centerX: number = $derived(size / 2);
     let centerY: number = $derived(size / 2);
-
-    const onmouseenter = () => hover = true;
-    const onmouseleave = () => hover = false;
 
     function onmousedown(e: MouseEvent) {
         if (!ref || e.button !== 0) return;
@@ -44,9 +40,8 @@
             startX: x,
             startY: y,
         });
-    }
-    function handleLinking(event: MouseEvent) {
-        linking(event, id);
+        // selectedStore.value=id; // selecting
+        // visibleStore.value=1;
     }
     function onmousemove(event: MouseEvent) {
         const dragObj = dragStore.getValue();
@@ -79,8 +74,6 @@
     bind:this={ref}
     style="top: {y}px; left: {x}px; width: {size}px; height: {size}px; z-index: {id}" 
     class="absolute flex flex-col"
-    {onmouseenter}
-    {onmouseleave}
     {onmousemove}
     >
     <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -89,14 +82,20 @@
         <div
             {onmousedown}
             {onmouseup}
-            class={`${hover && 'border-accent!'} border border-white rounded-full size-full bg-black`}>
+            style="border: {size / 100}px solid;"
+            class={`${true && 'border-accent!'} border-white rounded-full size-full bg-black`}>
             {#each objects as {id, name, x, y, size, objects}, i}
-                <Object {id} {name} {x} {y} {size} {objects} {linking}/>
+                <Object {id} {name} {x} {y} {size} {objects} />
             {/each}  
         </div>
-        {#if hover}
-            <div {onmouseenter} {onmouseleave} style="width: {size / 3}px; height: {size / 3}px" class="absolute flex items-center justify-between -translate-x-1/2 left-1/2 z-5 top-full bg-black">
-                <button onmousedown={handleLinking} class="size-1/3 rounded-full bg-white hover:bg-accent"></button>
+        {#if true}
+            <div 
+                style="width: {size / 3}px; height: {size / 3}px" 
+                class="absolute flex items-center justify-between -translate-x-1/2 left-1/2 z-5 top-full rounded-full bg-"
+                >
+                <button 
+                    style="border: {size / 100}px solid;"
+                    class="size-1/3 rounded-full border-black bg-white hover:bg-accent"></button>
                 <div class="size-1/3 rounded-full bg-white hover:bg-red"></div>
             </div>
         {/if}

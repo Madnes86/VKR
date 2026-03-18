@@ -31,7 +31,7 @@ export let flatObjects: IFlatObject[] = [
     {id: 2, name: "obj2", parent: 1},
     {id: 3, name: "obj3", parent: 1},
     {id: 5, name: "obj5", parent: 3},
-    {id: 6, name: "obj6", parent: 4},
+    {id: 6, name: "obj6", parent: 5},
 ];
 
 export let flatLinks: IFlatLink[] = [
@@ -39,56 +39,56 @@ export let flatLinks: IFlatLink[] = [
 ];
 
 const cacheObjects = new Map<number, IFlatObject>();
-const visible = 0;
 
 flatObjects.forEach(o => cacheObjects.set(o.id, o));
 
-function buildTree(visible: number): ITreeObject | null {
-    const raw = cacheObjects.get(visible);
-    if (!raw) return null;
+function buildTree(visible: number): ITreeObject {
+    const raw = cacheObjects.get(visible) || { id: visible, name: "Not Found", parent: null };;
     const build = (o: IFlatObject, current: number): ITreeObject => {
         const node: ITreeObject = { ...o, objects: [], mass: 1, x: 0, y: 0, size: 100 };
         if (current < 3) {
             const children = Array.from(cacheObjects.values()).filter(i => i.parent === o.id);
-            node.objects = children.map(child => build(child, current +1));
+            
+            if (children.length > 0) {
+                node.objects = children.map(child => build(child, current + 1));
+                node.mass += node.objects.reduce((sum, child) => sum + child.mass, 0); // updateMass
+            }
         }
         return node;
     };
     return build(raw, 0);
 }
-function updateMass(node: ITreeObject): number {
-    node.mass = 1;
-
-    if (node.objects.length === 0) {
-        return node.mass;
+class SelectedStore {
+    selected: number | null = $state(null);
+    set(id: number) {
+        this.selected = id;
     }
-    const children = node.objects.reduce((sum, child) => {
-        return sum + updateMass(child);
-    }, 0);
-    node.mass = node.mass + children;
-    return node.mass;
 }
-let tree = (buildTree(visible));
-if (tree) {
-    updateMass(tree);
+export const selectedStore = new SelectedStore();
+class ViewStore {
+    view: number = $state(0);
+    set(id: number) {
+        this.view = id;
+        // console.log(id);
+        const newTree = buildTree(id);
+        // console.log(newTree);
+        if (newTree) {
+            treeStore.set(newTree);
+        }
+    }
 }
+export const viewStore = new ViewStore();
 
-const treeStore = writable<ITreeObject>(tree);
+const treeStore = writable<ITreeObject>(buildTree(viewStore.view));
 
 export const objectsStore = {
     subscribe: treeStore.subscribe,
     
-    // Обновляем кэш при добавлении
     addObject: (newObj: IFlatObject) => {
         if (cacheObjects.has(newObj.id)) return;
         
-        cacheObjects.set(newObj.id, newObj); // Сначала в кэш!
-        flatObjects.push(newObj); 
-        
-        const tree = buildTree(visible);
-        if (tree) {
-            updateMass(tree);
-            treeStore.set(tree);
-        }
+        cacheObjects.set(newObj.id, newObj);
+        flatObjects.push(newObj);
+        treeStore.set(buildTree(viewStore.view));
     },
 };

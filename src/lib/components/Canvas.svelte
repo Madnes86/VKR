@@ -37,8 +37,10 @@
         }
         requestAnimationFrame(loop);
     }
-    resizeObjects(object?.objects, scaleStore.value);
-    loop();
+    if (object?.objects) {
+        resizeObjects(object?.objects, scaleStore.value);
+        loop();
+    }
 </script>
 
 <svelte:window {onmousemove} {onwheel} bind:innerWidth={width} bind:innerHeight={height} />
@@ -47,18 +49,4 @@
     {#each object?.objects as {id, name, x, y, size, objects}, i}
         <Object {id} {name} {x} {y} {size} {objects} />
     {/each}
-    <!-- {#each objects as {id, name, x, y, size, objects}, i} -->
-    <!-- <Object 
-        id={object.id}
-        name={object.name}
-        x={object.x}
-        y={object.y}
-        size={object.size}
-        objects={object.objects}
-    /> -->
-        <!-- <Object {id} {name} {x} {y} {size} {objects} /> -->
-    <!-- {/each} -->
-    <!-- {#each sortLink as {id, name, x1, y1, x2, y2}}
-        <Link {id} {name} {x1} {y1} {x2} {y2} />
-    {/each} -->
 </div>

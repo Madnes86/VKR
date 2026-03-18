@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Object } from "$lib/components";
+    import { Object, Link } from "$lib/components";
     import { physics } from "$lib/functions/physics";
     import { dragStore } from "$lib/stores/drag.svelte";  
     import { viewStore, selectedStore } from "$lib/stores/objects.svelte";
@@ -10,7 +10,8 @@
         x = 300,
         y = 300,
         size = 100,
-        objects = []
+        objects = [],
+        links = []
     } : {
         id: number;
         name: string;
@@ -18,12 +19,32 @@
         y: number;
         size: number;
         objects: any[];
+        links: any[];
     } = $props();
 
     let ref: HTMLElement | undefined = $state(undefined);
     let selected: boolean = $derived(selectedStore.selected == id);
     let centerX: number = $derived(size / 2);
     let centerY: number = $derived(size / 2);
+    let sortLinks: any = $derived(links.map(l => {
+        const is = objects.find(o => o.id === l.is);
+        const to = objects.find(o => o.id === l.to);
+        if (is && to) {
+            return {
+                id: l.id,
+                name: l.name,
+                x1: is.x + is.size / 2,
+                y1: is.y + is.size / 2,
+                x2: to.x + to.size / 2,
+                y2: to.y + to.size / 2,
+                r1: is.size / 2,
+                r2: to.size / 2
+            };
+        }
+        return null
+    }).filter(Boolean));
+    // $inspect(sortLinks);
+    // console.log(sortLinks);
 
     function onmousedown(e: MouseEvent) {
         if (!ref || e.button !== 0) return;
@@ -88,9 +109,12 @@
             {onmouseup}
             style="border: {size / 100}px solid;"
             class={`${selected && 'border-accent!'} border-white rounded-full size-full bg-black`}>
-            {#each objects as {id, name, x, y, size, objects}, i}
-                <Object {id} {name} {x} {y} {size} {objects} />
-            {/each}  
+            {#each objects as {id, name, x, y, size, objects, links}, i}
+                <Object {id} {name} {x} {y} {size} {objects} {links} />
+            {/each}
+            {#each sortLinks as {id, name, x1, y1, x2, y2, r1, r2}}
+                <Link {id} {name} {x1} {y1} {x2} {y2} {r1} {r2} />
+            {/each}
         </div>
         {#if selected}
             <div 

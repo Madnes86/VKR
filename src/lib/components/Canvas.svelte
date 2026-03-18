@@ -46,7 +46,7 @@
 <svelte:window {onmousemove} {onwheel} bind:innerWidth={width} bind:innerHeight={height} />
 
 <div class="fixed top-0 left-0 size-full z-0">
-    {#each object?.objects as {id, name, x, y, size, objects}, i}
-        <Object {id} {name} {x} {y} {size} {objects} />
+    {#each object?.objects as {id, name, x, y, size, objects, links}, i}
+        <Object {id} {name} {x} {y} {size} {objects} {links} />
     {/each}
 </div>

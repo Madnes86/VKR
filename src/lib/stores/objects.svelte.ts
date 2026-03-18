@@ -14,8 +14,9 @@ export type ITreeObject ={
     mass: number;
     parent: number | null;
     objects: ITreeObject[];
+    links: ILink[];
 };
-export type IFlatLink = {
+export type ILink = {
     id: number;
     name: string;
     is: number;
@@ -34,32 +35,49 @@ export let flatObjects: IFlatObject[] = [
     {id: 6, name: "obj6", parent: 5},
 ];
 
-export let flatLinks: IFlatLink[] = [
-    { id: 0, name: "read", is: 1, to: 4, isValue: 1, toValue: 1 }
+export let flatLinks: ILink[] = [
+    { id: 0, name: "read", is: 1, to: 4, isValue: 1, toValue: 1 },
+    { id: 1, name: "write", is: 2, to: 3, isValue: 1, toValue: 1 },
 ];
 
 const cacheObjects = new Map<number, IFlatObject>();
+const cacheLinks = new Map<number, ILink>();
 
 flatObjects.forEach(o => cacheObjects.set(o.id, o));
+flatLinks.forEach(l => cacheLinks.set(l.id, l));
 
 function buildTree(visible: number): ITreeObject {
     const raw = cacheObjects.get(visible) || { id: visible, name: "Not Found", parent: null };;
     const build = (o: IFlatObject, current: number): ITreeObject => {
-        const node: ITreeObject = { ...o, objects: [], mass: 1, x: 0, y: 0, size: 100 };
+        const node: ITreeObject = { ...o, objects: [], links: [], mass: 1, x: 0, y: 0, size: 100 };
         if (current < 3) {
             const children = Array.from(cacheObjects.values()).filter(i => i.parent === o.id);
+            // const links = Array.from(cacheLinks.values()).filter(i => i.is === o.id);
             
             if (children.length > 0) {
                 node.objects = children.map(child => build(child, current + 1));
                 node.mass += node.objects.reduce((sum, child) => sum + child.mass, 0); // updateMass
+                const links = new Set(children.map(i => i.id));
+                node.links = Array.from(cacheLinks.values()).filter(e => 
+                    links.has(e.is) && links.has(e.to)
+                );
+                // console.log(node.links);
             }
         }
         return node;
     };
     return build(raw, 0);
 }
+class LinkStore {
+    link: number | null = $state(null);
+    set(id: number) {
+        this.link = id;
+    }
+}
+export const linkStore = new LinkStore();
 class SelectedStore {
     selected: number | null = $state(null);
+    link: number | null = $state(null);
     set(id: number) {
         this.selected = id;
     }

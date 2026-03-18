@@ -1,18 +1,31 @@
 <script lang="ts">
-    import { SideBar, ContextMenu, Canvas } from "$lib/components";
-	import Modal from "$lib/components/Modal.svelte";
-	import Notification from "$lib/components/Notification.svelte";
-    import { notificationStore } from "$lib/stores/notification.svelte";
+    import { Header } from "$lib/components";
 
-    let notifications = $derived(notificationStore.all);
+    const cards = [
+        { title: '', points: [
+            { title: '', desc: '' },
+
+        ]},
+        // { title: '', }
+    ];
 </script>
 
-<div class="flex size-screen">
-    <SideBar />
-    <ContextMenu />
-    <Canvas />
-    <Modal show={true} />
-    {#each notifications as {icon, title, type} (title)}
-        <Notification {icon} {title} {type} />
-    {/each}
+<Header />
+    
+<div>
+    <h1>Новое восприятие структурных диаграмм</h1>
+    <b>Создавайте сложные системы без хаоса</b>
+    <p>Structura помогает архитекторам, аналитикам и разработчикам визуализировать, проверять и преобразовывать структурные диаграммы с помощью физической модели, семантического анализа и встроенного ИИ.</p>
+    <div>
+        <button>Попробовать</button>
+        <button>Зарегисртироваться</button>
+    </div>
+</div>
+
+<div>
+
+</div>
+
+<div>
+
 </div>

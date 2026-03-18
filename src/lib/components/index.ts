@@ -25,3 +25,4 @@ export { default as DropDown } from "./DropDown.svelte";
 export { default as Link } from "./Link.svelte";
 export { default as TreeItem } from "./TreeItem.svelte";
 export { default as Entityes } from "./Entityes.svelte";
+export { default as Header } from "./Header.svelte";

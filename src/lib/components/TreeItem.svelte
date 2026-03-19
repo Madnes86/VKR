@@ -1,19 +1,22 @@
 <script lang="ts">
     import { TreeItem, Icon, Form, TreeForm } from "$lib/components";
-    import { selectedStore } from "$lib/stores/objects.svelte";
+    import { selectedStore, type ILink } from "$lib/stores/objects.svelte";
     type IObject = {
         id: number;
         name: string; 
         objects: IObject[];
+        links: ILink[];
     }
     let {
         id,
         name,
-        objects
+        objects,
+        links
     } : {
         id: number;
         name?: string;
         objects: IObject[];
+        links?: ILink[];
     } = $props();
 
     let show: boolean = $state(false);
@@ -32,14 +35,17 @@
                         <Icon name="arrow" />
                 </button>
             {/if}
-            <TreeForm {id} name="entityes" text={name} />
+            <TreeForm {id} name="entityes" text={name} type="o" />
             <!-- <Form icon="entityes" text={name} /> -->
         </div>
     {/if}
     {#if show || !name}
         <div class={`${isObjects && 'ml-4!'}`}>
-            {#each objects as {id, name, objects}}
-                <TreeItem {id} {name} {objects} />
+            {#each objects as {id, name, objects, links}}
+                <TreeItem {id} {name} {objects} {links} />
+            {/each}
+            {#each links as l}
+                <TreeForm id={l.id} name="edit" text={l.name} type="l" />
             {/each}
         </div>
     {/if}

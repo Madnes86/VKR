@@ -1,13 +1,17 @@
 <script lang="ts">
 	import Flex from "./Flex.svelte";
     import { TreeItem } from "$lib/components";
-    import { objectsStore, type ITreeObject } from "$lib/stores/objects.svelte";
+    import { objectsStore, type ILink, type ITreeObject } from "$lib/stores/objects.svelte";
 
-    let object: ITreeObject | null = null;
-    objectsStore.subscribe(v => object = v);
+    let objects: ITreeObject | null = null;
+    let links: ILink | null = null;
+    objectsStore.subscribe(v => {
+        objects = v?.objects;
+        links = v?.links;
+    });
     
 </script>
 
 <Flex col>
-    <TreeItem objects={object?.objects} />
+    <TreeItem {objects} {links} />
 </Flex>

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { linkStore } from "$lib/stores/objects.svelte";
+    import { selectedStore } from "$lib/stores/objects.svelte";
 
     let {
         id,
@@ -13,6 +14,9 @@
         to: any;
     } = $props();
 
+    let selL: boolean = $derived(selectedStore.selL === id);
+    let hoverL: boolean = $derived(selectedStore.hoverL === id);
+
     let x1 = $derived(is.x + is.size / 2);
     let y1 = $derived(is.y + is.size / 2);
     let x2 = $derived(to.x + to.size / 2);
@@ -21,7 +25,7 @@
     let r2 = $derived(to.size / 2);
     let size = $derived((is.size + to.size) / 2);
 
-    let selected: boolean = $derived(linkStore.link === id);
+    // let selected: boolean = $derived(linkStore.link === id);
     let dx = $derived(x2 - x1);
     let dy = $derived(y2 - y1);
     let dist = $derived(Math.hypot(dx, dy)); // расстояние между центрами
@@ -40,12 +44,19 @@
     function onclick() {
         linkStore.set(id);
     }
+    function onmouseenter() {
+
+    }
+    function onmouseleave() {
+
+    }
+
 
 </script>
 
 <div>
     <svg class="absolute top-0 left-0 size-full">
-        <line {onclick} x1={sx} y1={sy} x2={ex} y2={ey} stroke={`${selected ? 'var(--color-accent)' : 'white'}`} stroke-width={3} stroke-linecap="round"/>
+        <line {onmouseenter} {onmouseleave} {onclick} x1={sx} y1={sy} x2={ex} y2={ey} stroke={`${selL ? 'var(--color-accent)' : 'white'}`} stroke-width={3} stroke-linecap="round"/>
     </svg>
     <span {onclick} style="left: {midX}px; top: {midY}px; font-size: {size / 7}px" class="click absolute text-border z-3 -translate-1/2">
         {name}

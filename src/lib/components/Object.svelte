@@ -12,7 +12,8 @@
         y = 300,
         size = 100,
         objects = [],
-        links = []
+        links = [],
+        selParent
     } : {
         id: number;
         name: string;
@@ -21,6 +22,7 @@
         size: number;
         objects: ITreeObject[];
         links: ILink[];
+        selParent: boolean
     } = $props();
 
     let ref: HTMLElement | undefined = $state(undefined);
@@ -94,6 +96,7 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="size-full relative">
         <p  style="font-size: {size / 3}px" class="click select-none w-full text-center absolute bottom-full text-border">{name}</p>
+        <!-- svelte-ignore a11y_mouse_events_have_key_events -->
         <div
             {onmousedown}
             {ondblclick}
@@ -101,10 +104,10 @@
             {oncontextmenu}
             {onmouseover}
             {onmouseleave}
-            style="border: {size / 100}px solid white; outline: {size / 100}px solid black;"
-            class={`${selO && 'bg-accent! border-none!'} ${hoverO && 'outline-accent! border-0!'} click-object border- rounded-full size-full bg-black`}>
+            style="border: {size / 100}px solid {selParent ? 'black' : 'white'}; outline: {size / 100}px solid black; transition-duration: {size}ms"
+            class={`${selO && 'bg-accent! border-none!'} ${hoverO && 'outline-accent! border-0!'} transition-all rounded-full size-full bg-black`}>
             {#each objects as {id, name, x, y, size, objects, links}, i}
-                <Object {id} {name} {x} {y} {size} {objects} {links} />
+                <Object {id} {name} {x} {y} {size} {objects} {links} selParent={selO ? true : false} />
             {/each}
             {#each links as l}
                 {@const is = objects.find(o => o.id === l.is)}

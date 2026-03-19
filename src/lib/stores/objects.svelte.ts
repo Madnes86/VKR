@@ -76,15 +76,22 @@ class LinkStore {
 }
 export const linkStore = new LinkStore();
 class SelectedStore {
-    selected: number | null = $state(null);
-    link: number | null = $state(null);
-    set(id: number) {
-        this.selected = id;
+    selO: number | null = $state(null);
+    selL: number | null = $state(null);
+    hoverO: number | null = $state(null);
+    hoverL: number | null = $state(null);
+
+    set(key: 'selO' | 'selL' | 'hoverO' | 'hoverL', id: number) {
+        this[key] = id;
+    }
+    clear(key: 'selO' | 'selL' | 'hoverO' | 'hoverL') {
+        this[key] = null;
     }
 }
 export const selectedStore = new SelectedStore();
 class ViewStore {
     view: number = $state(0);
+    hover: number = $state(0);
     set(id: number) {
         this.view = id;
         // console.log(id);
@@ -93,6 +100,9 @@ class ViewStore {
         if (newTree) {
             treeStore.set(newTree);
         }
+    }
+    clear() {
+        this.view = 0;
     }
 }
 export const viewStore = new ViewStore();

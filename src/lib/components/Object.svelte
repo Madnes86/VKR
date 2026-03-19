@@ -24,7 +24,8 @@
     } = $props();
 
     let ref: HTMLElement | undefined = $state(undefined);
-    let selected: boolean = $derived(selectedStore.selected == id);
+    let selO: boolean = $derived(selectedStore.selO == id);
+    let hoverO: boolean = $derived(selectedStore.hoverO == id);
     const centerX:  number = $derived(size / 2);
     const centerY:  number = $derived(size / 2);
 
@@ -32,18 +33,17 @@
         if (!ref || e.button !== 0) return;
         e.stopPropagation();
         e.preventDefault();
-        const offsetX = e.clientX - x;
-        const offsetY = e.clientY - y;
         
         dragStore.setDrag({
             ref,
             id,
-            offsetX,
-            offsetY,
+            offsetX: e.clientX - x,
+            offsetY: e.clientY - y,
             startX: x,
             startY: y,
         });
-        selectedStore.set(id);
+        selectedStore.set("selO", id);
+        if (selO) selectedStore.clear("hoverO");
     }
     function onmousemove(event: MouseEvent) {
         const dragObj = dragStore.getValue();
@@ -55,6 +55,14 @@
             obj.x = event.clientX - dragObj.offsetX;
             obj.y = event.clientY - dragObj.offsetY;
         }
+    }
+    function onmouseover(e: MouseEvent) {
+        e.stopPropagation();
+        selectedStore.set('hoverO', id);
+    }
+    function onmouseleave(e: MouseEvent) {
+        e.stopPropagation();
+        selectedStore.clear('hoverO');
     }
     function ondblclick(e: MouseEvent) {
         e.stopPropagation();
@@ -91,8 +99,10 @@
             {ondblclick}
             {onmouseup}
             {oncontextmenu}
-            style="border: {size / 100}px solid;"
-            class={`${selected && 'border-accent!'} click-object border-white rounded-full size-full bg-black`}>
+            {onmouseover}
+            {onmouseleave}
+            style="border: {size / 100}px solid white; outline: {size / 100}px solid black;"
+            class={`${selO && 'bg-accent! border-none!'} ${hoverO && 'outline-accent! border-0!'} click-object border- rounded-full size-full bg-black`}>
             {#each objects as {id, name, x, y, size, objects, links}, i}
                 <Object {id} {name} {x} {y} {size} {objects} {links} />
             {/each}
@@ -105,7 +115,7 @@
                 {/if}
             {/each}
         </div>
-        {#if selected}
+        {#if selO}
             <div 
                 style="width: {size / 3}px; height: {size / 3}px" 
                 class="absolute flex items-center justify-between -translate-x-1/2 left-1/2 z-5 top-full rounded-full bg-"

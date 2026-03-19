@@ -1,4 +1,6 @@
-export function physics(objects: any[], centerX: any, centerY: any, center?: boolean) {
+import { type ITreeObject } from "$lib/stores/objects.svelte";
+
+export function physics(objects: ITreeObject[], centerX: number, centerY: number) {
     const forces = objects.map(() => ({ fx: 0, fy: 0 }));
 
     // Приоритет #1: Коллизии с зазором 30%
@@ -16,7 +18,7 @@ export function physics(objects: any[], centerX: any, centerY: any, center?: boo
             const dy = centerY1 - centerY2;
             const dist = Math.sqrt(dx * dx + dy * dy);
             
-            const desiredDist = (obj1.size + obj2.size) * 0.65;
+            const desiredDist = (obj1.size + obj2.size) * 0.75; // Процент тут
             
             if (dist < desiredDist && dist > 0.01) {
                 const compression = 1 - (dist / desiredDist);
@@ -33,27 +35,25 @@ export function physics(objects: any[], centerX: any, centerY: any, center?: boo
     }
 
     // Приоритет #2: Гравитация к центру
-    // if (center) {
-        for (let i = 0; i < objects.length; i++) {
-            const obj1 = objects[i];
-            const centerX1 = obj1.x + obj1.size / 2;
-            const centerY1 = obj1.y + obj1.size / 2;
+    for (let i = 0; i < objects.length; i++) {
+        const obj1 = objects[i];
+        const centerX1 = obj1.x + obj1.size / 2;
+        const centerY1 = obj1.y + obj1.size / 2;
 
-            const dx = centerX - centerX1;
-            const dy = centerY - centerY1;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+        const dx = centerX - centerX1;
+        const dy = centerY - centerY1;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > 1) {
+            // Большие объекты сильнее притягиваются к центру
+            const size = obj1.size;
+            const test = Math.max(dist / 50, 1);
+            const strength = 0.00002 * size * test;
             
-            if (dist > 1) {
-                // Большие объекты сильнее притягиваются к центру
-                const size = obj1.size;
-                const test = Math.max(dist / 50, 1);
-                const strength = 0.00002 * size * test;
-                
-                forces[i].fx += dx * strength;
-                forces[i].fy += dy * strength;
-            }
+            forces[i].fx += dx * strength;
+            forces[i].fy += dy * strength;
         }
-    // }
+    }
 
     // Применяем силы
     for (let i = 0; i < objects.length; i++) {
@@ -61,7 +61,7 @@ export function physics(objects: any[], centerX: any, centerY: any, center?: boo
         objects[i].y += forces[i].fy * 0.9;
     }
 }
-export function resizeObjects(objects: any[], scale: number) {
+export function resizeObjects(objects: ITreeObject[], scale: number) {
     objects.forEach(e => {
         e.size = 100 * (e.mass) * scale;
         if (e.objects.length > 0) {

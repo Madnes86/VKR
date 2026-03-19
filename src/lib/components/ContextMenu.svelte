@@ -1,15 +1,16 @@
 <script lang="ts">
     import { ButtonIcon, Input } from "$lib/components";
+    import { objectsStore } from "$lib/stores/objects.svelte";
+    import { contextStore } from "$lib/stores/context.svelte";
 
-    let show: boolean = $state(false);
+    let x: number = $derived(contextStore.x);
+    let y: number = $derived(contextStore.y);
 
     let items: string[] = $state([
         'test', 'test23423'
     ]);
     let input: HTMLInputElement | null = $state(null);
     let value: string = $state('');
-    let x: number = $state(0);
-    let y: number = $state(0);
     let sort: string[] = $derived(
         items.filter(item => item.includes(value))
     );
@@ -19,33 +20,33 @@
     ]);
 
     $effect(() => {
-        if (show) {
+        if (contextStore.isOpen) {
             input?.focus();
+            value = '';
         }
-    })
-
-    function oncontextmenu(e: MouseEvent) {
-        e.preventDefault(); // mb remove
-        x = e.clientX - 16;
-        y = e.clientY - 16;
-        show = !show;
-    }
+    });
     function onclick(e: MouseEvent) {
-        if (show && !menu.contains(e.target as Node)) {
-            show = false;
+        if (contextStore.isOpen && !menu.contains(e.target as Node)) {
+            contextStore.close();
         }
+    }
+    function create() {
+        objectsStore.addObject({
+            id: Math.random(),
+            name: "test",
+            parent: contextStore.data?.id ?? 0
+        });
     }
     function clear() {
         alert(value);
     }
-
 </script>
 
-<svelte:window {oncontextmenu} {onclick} />
+<svelte:window {onclick} />
 
-{#if show}
-    <div bind:this={menu} style="left: {x}px; top: {y}px" class="flex items-center gap-2 w-90! h-10 absolute z-1000">
-        <ButtonIcon name="link" onclick={clear}/>
+{#if contextStore.isOpen}
+    <div bind:this={menu} style="left: {x}px; top: {y}px" class="flex items-center gap-2 w-90! h-10 fixed z-1000">
+        <ButtonIcon name="link" onclick={create}/>
         <Input bind:value={value} bind:ref={input} placeholder="search" />   
         {#each buttons as {name, onclick}}
             <ButtonIcon {name} {onclick} />

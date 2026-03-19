@@ -49,7 +49,7 @@ flatLinks.forEach(l => cacheLinks.set(l.id, l));
 function buildTree(visible: number): ITreeObject {
     const raw = cacheObjects.get(visible) || { id: visible, name: "Not Found", parent: null };;
     const build = (o: IFlatObject, current: number): ITreeObject => {
-        const node: ITreeObject = { ...o, objects: [], links: [], mass: 1, x: 0, y: 0, size: 100 };
+        const node: ITreeObject = { ...o, objects: [], links: [], mass: 1, x: Math.random(), y: Math.random(), size: 100 };
         if (current < 3) {
             const children = Array.from(cacheObjects.values()).filter(i => i.parent === o.id);
             // const links = Array.from(cacheLinks.values()).filter(i => i.is === o.id);
@@ -105,6 +105,7 @@ export const objectsStore = {
     addObject: (newObj: IFlatObject) => {
         if (cacheObjects.has(newObj.id)) return;
         
+        newObj.id = flatObjects.length;
         cacheObjects.set(newObj.id, newObj);
         flatObjects.push(newObj);
         treeStore.set(buildTree(viewStore.view));

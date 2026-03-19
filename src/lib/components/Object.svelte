@@ -2,7 +2,8 @@
     import { Object, Link } from "$lib/components";
     import { physics } from "$lib/functions/physics";
     import { dragStore } from "$lib/stores/drag.svelte";  
-    import { viewStore, selectedStore } from "$lib/stores/objects.svelte";
+    import { viewStore, selectedStore, type ITreeObject, type ILink } from "$lib/stores/objects.svelte";
+    import { contextStore } from "$lib/stores/context.svelte";
 
     let {
         id,
@@ -18,33 +19,14 @@
         x: number;
         y: number;
         size: number;
-        objects: any[];
-        links: any[];
+        objects: ITreeObject[];
+        links: ILink[];
     } = $props();
 
     let ref: HTMLElement | undefined = $state(undefined);
     let selected: boolean = $derived(selectedStore.selected == id);
-    let centerX: number = $derived(size / 2);
-    let centerY: number = $derived(size / 2);
-    let sortLinks: any = $derived(links.map(l => {
-        const is = objects.find(o => o.id === l.is);
-        const to = objects.find(o => o.id === l.to);
-        if (is && to) {
-            return {
-                id: l.id,
-                name: l.name,
-                x1: is.x + is.size / 2,
-                y1: is.y + is.size / 2,
-                x2: to.x + to.size / 2,
-                y2: to.y + to.size / 2,
-                r1: is.size / 2,
-                r2: to.size / 2
-            };
-        }
-        return null
-    }).filter(Boolean));
-    // $inspect(sortLinks);
-    // console.log(sortLinks);
+    const centerX:  number = $derived(size / 2);
+    const centerY:  number = $derived(size / 2);
 
     function onmousedown(e: MouseEvent) {
         if (!ref || e.button !== 0) return;
@@ -61,7 +43,7 @@
             startX: x,
             startY: y,
         });
-        selectedStore.set(id); 
+        selectedStore.set(id);
     }
     function onmousemove(event: MouseEvent) {
         const dragObj = dragStore.getValue();
@@ -79,14 +61,15 @@
         viewStore.set(id);
     }
     function onmouseup() {
-        if (dragStore.hasValue()) {
-            dragStore.clearDrag();
-        }
+        if (dragStore.hasValue()) dragStore.clearDrag();
+    }
+    function oncontextmenu(e: MouseEvent) {
+        e.preventDefault();
+        e.stopPropagation();
+        contextStore.set(e, id);
     }
     function loop() {
-        if (!dragStore.hasValue()) {
-            physics(objects, centerX, centerY);
-        }
+        if (!dragStore.hasValue()) physics(objects, centerX, centerY);
         requestAnimationFrame(loop);
     }
     loop();
@@ -102,18 +85,24 @@
     >
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="size-full relative">
-        <p  style="font-size: {size / 3}px" class="select-none w-full text-center absolute bottom-full text-border">{name}</p>
+        <p  style="font-size: {size / 3}px" class="click select-none w-full text-center absolute bottom-full text-border">{name}</p>
         <div
             {onmousedown}
             {ondblclick}
             {onmouseup}
+            {oncontextmenu}
             style="border: {size / 100}px solid;"
-            class={`${selected && 'border-accent!'} border-white rounded-full size-full bg-black`}>
+            class={`${selected && 'border-accent!'} click-object border-white rounded-full size-full bg-black`}>
             {#each objects as {id, name, x, y, size, objects, links}, i}
                 <Object {id} {name} {x} {y} {size} {objects} {links} />
             {/each}
-            {#each sortLinks as {id, name, x1, y1, x2, y2, r1, r2}}
-                <Link {id} {name} {x1} {y1} {x2} {y2} {r1} {r2} />
+            {#each links as l}
+                {@const is = objects.find(o => o.id === l.is)}
+                {@const to = objects.find(o => o.id === l.to)}
+
+                {#if is && to}
+                    <Link id={l.id} name={l.name} {is} {to} />
+                {/if}
             {/each}
         </div>
         {#if selected}
@@ -122,9 +111,10 @@
                 class="absolute flex items-center justify-between -translate-x-1/2 left-1/2 z-5 top-full rounded-full bg-"
                 >
                 <button 
-                    style="border: {size / 100}px solid;"
-                    class="size-1/3 rounded-full border-black bg-white hover:bg-accent"></button>
-                <div class="size-1/3 rounded-full bg-white hover:bg-red"></div>
+                    style="border: {size / 100}px solid black;"
+                    class="size-1/3 rounded-full bg-white hover:bg-accent"></button>
+                <button style="border: {size / 100}px solid black;"
+                    class="size-1/3 rounded-full bg-white hover:bg-red"></button>
             </div>
         {/if}
     </div>

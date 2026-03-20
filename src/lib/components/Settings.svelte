@@ -4,7 +4,6 @@
 
     let toggles: {power: boolean, text: string}[] = [
         {power: false, text: 'Hints'},
-        // {power: true, text: 'Display command cursors'},
         {power: true, text: 'Play audio'}
     ];
     let drops = $state([
@@ -14,6 +13,10 @@
 
     let auth: boolean = $state(false);
     let show: boolean = $state(false);
+
+    let name: string = $derived(localStorage.getItem('name') ?? 'anonim');
+    let email: string = $derived(localStorage.getItem('email') ?? '');
+    // let password: string = $derived(localStorage.getItem() ?? '')
 
     function login() {
         modalStore.open('login');
@@ -27,8 +30,8 @@
 
 <div class="flex w-full items-center gap-2 flex-col p-2">
     {#if auth}
-        <Form icon="user" text="user"/>
-        <Form icon="mail" text="pochta"/>
+        <Form icon="user" text={name} />
+        <Form icon="mail" text={email} />
         <Form icon="password" text="password"/>
         <Button onclick={logout} className="flex gap-2 p-1 m-1 text-red w-full hover:bg-gray rounded-md">
             <Icon name="exit" />

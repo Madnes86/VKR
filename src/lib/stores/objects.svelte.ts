@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { getObjects } from "$lib/functions/backend";
 
 export type IFlatObject = {
     id: number,
@@ -34,6 +35,48 @@ export let flatObjects: IFlatObject[] = [
     {id: 5, name: "obj5", parent: 3},
     {id: 6, name: "obj6", parent: 5},
 ];
+
+class ObjectsStore {
+    #objects: IFlatObject[] = $state([]);
+
+    get all() {
+        return this.#objects;
+    }
+
+    // Загрузка данных с сервера FastAPI
+    async fetch() {
+        const data = await getObjects();
+        if (data && data.length > 0) {
+            this.#objects = data;
+        } else {
+            this.#objects = [
+                {id: 0, name: "root", parent: null},
+                {id: 1, name: "obj1", parent: 0},
+                {id: 4, name: "obj4", parent: 0},
+                {id: 2, name: "obj2", parent: 1},
+                {id: 3, name: "obj3", parent: 1},
+                {id: 5, name: "obj5", parent: 3},
+                {id: 6, name: "obj6", parent: 5},
+            ];
+        }
+    }
+    update(id: number, new_o: Partial<IFlatObject>) {
+        const index = this.#objects.findIndex(o => o.id === id);
+        if (index !== -1) {
+            this.#objects[index] = { ...this.#objects[index], ...new_o };
+        }
+    }
+
+    clear() { this.#objects = [] }
+}
+
+export const objects = new ObjectsStore();
+
+async function init() {
+    await objects.fetch();
+    console.log(objects.all);
+}
+init();
 
 export let flatLinks: ILink[] = [
     { id: 0, name: "read", is: 1, to: 4, isValue: 1, toValue: 1 },

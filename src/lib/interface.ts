@@ -22,3 +22,9 @@ export type ILink = {
     isValue: number;
     toValue: number;
 };
+export type IObject = {
+    id: number;
+    name: string; 
+    objects: IObject[];
+    links: ILink[];
+};

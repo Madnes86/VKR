@@ -1,5 +1,4 @@
 <script lang="ts">
-    // import { linkStore } from "$lib/stores/objects.svelte";
     import { selectedStore } from "$lib/stores/objects.svelte";
 
     let {
@@ -14,8 +13,9 @@
         to: any;
     } = $props();
 
-    let selL: boolean = $derived(selectedStore.selL === id);
-    let hoverL: boolean = $derived(selectedStore.hoverL === id);
+    let data: string = $derived(`l + ${id}`);
+    let selected: boolean = $derived(selectedStore.selected === data);
+    let hover: boolean = $derived(selectedStore.hover === data);
 
     let x1 = $derived(is.x + is.size / 2);
     let y1 = $derived(is.y + is.size / 2);
@@ -42,13 +42,13 @@
     let midX: number = $derived((sx + ex) / 2);
     let midY: number = $derived((sy + ey) / 2);
     function onclick() {
-        // linkStore.set(id);
+        selectedStore.set('selected', data);
     }
     function onmouseenter() {
-
+        selectedStore.set('hover', data);
     }
     function onmouseleave() {
-
+        selectedStore.clear('hover');
     }
 
 
@@ -56,9 +56,23 @@
 
 <div>
     <svg class="absolute top-0 left-0 size-full">
-        <line {onmouseenter} {onmouseleave} {onclick} x1={sx} y1={sy} x2={ex} y2={ey} stroke={`${selL ? 'var(--color-accent)' : 'white'}`} stroke-width={3} stroke-linecap="round"/>
+        <line 
+            {onmouseenter} 
+            {onmouseleave} 
+            {onclick} 
+            x1={sx} 
+            y1={sy} 
+            x2={ex} 
+            y2={ey} 
+            stroke={`${selected || hover ? 'var(--color-accent)' : 'white'}`} 
+            stroke-width={3} 
+            stroke-linecap="round"
+            />
     </svg>
-    <span {onclick} style="left: {midX}px; top: {midY}px; font-size: {size / 7}px" class="click absolute text-border z-3 -translate-1/2">
+    <span 
+        {onclick} 
+        style="left: {midX}px; top: {midY}px; font-size: {size / 7}px" 
+        class={`${false ? 'text-accent' : 'text-border'} click absolute text-border z-3 -translate-1/2`}>
         {name}
     </span>
 </div>

@@ -27,8 +27,9 @@
     } = $props();
 
     let ref: HTMLElement | undefined = $state(undefined);
-    let selO: boolean = $derived(selectedStore.selO == id);
-    let hoverO: boolean = $derived(selectedStore.hoverO == id);
+    let data = $derived(`o + ${id}`);
+    let selected: boolean = $derived(selectedStore.selected === data);
+    let hover: boolean = $derived(selectedStore.hover === data);
     const centerX:  number = $derived(size / 2);
     const centerY:  number = $derived(size / 2);
 
@@ -45,8 +46,8 @@
             startX: x,
             startY: y,
         });
-        selectedStore.set("selO", id);
-        if (selO) selectedStore.clear("hoverO");
+        selectedStore.set("selected", data);
+        if (selected) selectedStore.clear("hover");
     }
     function onmousemove(event: MouseEvent) {
         const dragObj = dragStore.getValue();
@@ -61,11 +62,11 @@
     }
     function onmouseover(e: MouseEvent) {
         e.stopPropagation();
-        selectedStore.set('hoverO', id);
+        selectedStore.set('hover', data);
     }
     function onmouseleave(e: MouseEvent) {
         e.stopPropagation();
-        selectedStore.clear('hoverO');
+        selectedStore.clear('hover');
     }
     function ondblclick(e: MouseEvent) {
         e.stopPropagation();
@@ -106,9 +107,9 @@
             {onmouseover}
             {onmouseleave}
             style="border: {size / 100}px solid {selParent ? 'black' : 'white'}; outline: {size / 100}px solid black; transition-duration: {size}ms"
-            class={`${selO && 'bg-accent! border-none!'} ${hoverO && 'outline-accent! border-0!'} transition-all rounded-full size-full bg-black`}>
+            class={`${selected && 'bg-accent! border-none!'} ${hover && 'outline-accent! border-0!'} transition-all rounded-full size-full bg-black`}>
             {#each objects as {id, name, x, y, size, objects, links}, i}
-                <Object {id} {name} {x} {y} {size} {objects} {links} selParent={selO ? true : false} />
+                <Object {id} {name} {x} {y} {size} {objects} {links} selParent={selected ? true : false} />
             {/each}
             {#each links as l}
                 {@const is = objects.find(o => o.id === l.is)}
@@ -119,7 +120,7 @@
                 {/if}
             {/each}
         </div>
-        {#if selO}
+        {#if selected}
             <div 
                 style="width: {size / 3}px; height: {size / 3}px" 
                 class="absolute flex items-center justify-between -translate-x-1/2 left-1/2 z-5 top-full rounded-full bg-"

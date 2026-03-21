@@ -1,18 +1,12 @@
 <script lang="ts">
     import { TreeItem, Icon, TreeForm } from "$lib/components";
-    import type { ILink } from "$lib/interface";
-    interface IObject {
-        id: number;
-        name: string; 
-        objects: IObject[];
-        links: ILink[];
-    };
+    import type { IObject, ILink } from "$lib/interface";
 
     let {
         id,
         name,
         objects,
-        links
+        links,
     } : {
         id: number;
         name?: string;
@@ -36,8 +30,8 @@
                         <Icon name="arrow" />
                 </button>
             {/if}
-            <TreeForm {id} name="entityes" text={name} type="o" />
-            <!-- <Form icon="entityes" text={name} /> -->
+            <TreeForm {id} {name} text={name} type='o'/>
+            
         </div>
     {/if}
     {#if show || !name}
@@ -45,9 +39,11 @@
             {#each objects as {id, name, objects, links}}
                 <TreeItem {id} {name} {objects} {links} />
             {/each}
-            {#each links as l}
-                <TreeForm id={l.id} name="edit" text={l.name} type="l" />
-            {/each}
+            <div class={`ml-6 flex gap-2 items-center`} >
+                {#each links as {id, name}}
+                    <TreeForm {id} {name} text={name} type='l' />
+                {/each}
+            </div>
         </div>
     {/if}
 </div>

@@ -18,6 +18,12 @@ export class ObjectsStore {
             this.#objects[index] = { ...this.#objects[index], ...new_o };
         }
     }
+    add(new_o: IFlatObject) {
+        this.#objects.push(new_o);
+    }
+    remove(id: number) {
+        this.#objects = this.#objects.filter(o => o.id !== id);
+    }
     clear() { this.#objects = [] }
 }
 export const objects = new ObjectsStore();

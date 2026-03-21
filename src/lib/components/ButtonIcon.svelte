@@ -3,13 +3,15 @@
 
     let {
         onclick,
-        name
+        name,
+        stroke
     } : {
         onclick: () => void;
         name: string;
+        stroke?: string;
     } = $props();
 </script>
 
 <button {onclick} class="click rounded-full border border-gray bg-gray-glass p-1.5">
-    <Icon {name} />
+    <Icon {name} {stroke} />
 </button>

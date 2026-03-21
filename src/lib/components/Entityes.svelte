@@ -1,12 +1,10 @@
 <script lang="ts">
-    import { flatObjects, selectedStore, treeStore } from "$lib/stores/objects.svelte";
+    import { selectedStore, treeStore } from "$lib/stores/objects.svelte";
     import type { IFlatObject } from "$lib/interface";
     import { Form } from "$lib/components";
 
     let entityes: IFlatObject[] = $derived(treeStore.all.objects ?? []);
-    // objectsStore.subscribe(() => {
-    //     entityes = flatObjects;
-    // });
+    
     function onclick(id: number) {
         selectedStore.set(id);
     }

@@ -1,18 +1,8 @@
-import { writable } from 'svelte/store';
 import { getObjects, getLinks } from "$lib/functions/backend";
 import type { IFlatObject, ITreeObject, ILink } from '$lib/interface';
+import { buildTree } from '$lib/functions/build';
 
-export let flatObjects: IFlatObject[] = [
-    {id: 0, name: "root", parent: null},
-    {id: 1, name: "obj1", parent: 0},
-    {id: 4, name: "obj4", parent: 0},
-    {id: 2, name: "obj2", parent: 1},
-    {id: 3, name: "obj3", parent: 1},
-    {id: 5, name: "obj5", parent: 3},
-    {id: 6, name: "obj6", parent: 5},
-];
-
-class ObjectsStore {
+export class ObjectsStore {
     #objects: IFlatObject[] = $state([]);
 
     get all() {
@@ -32,10 +22,9 @@ class ObjectsStore {
     }
     clear() { this.#objects = [] }
 }
-
 export const objects = new ObjectsStore();
 
-class LinksStore {
+export class LinksStore {
     #links: ILink[] = $state([]);
 
     get all() { return this.#links }
@@ -51,31 +40,6 @@ async function init() {
     await links.fetch();
 }
 init();
-// TODO: using new store objects
-
-function buildTree(visible: number, objects: ObjectsStore, links: LinksStore): ITreeObject {
-    const cacheObjects = new Map<number, IFlatObject>(objects.all.map(o => [o.id, o]));
-    const cacheLinks   = new Map<number, ILink>(links.all.map(l => [l.id, l]));
-
-    const raw = cacheObjects.get(visible) || { id: visible, name: "Not Found", parent: null };;
-    const build = (o: IFlatObject, current: number): ITreeObject => {
-        const node: ITreeObject = { ...o, objects: [], links: [], mass: 1, x: Math.random(), y: Math.random(), size: 100 };
-        if (current < 3) {
-            const children = Array.from(cacheObjects.values()).filter(i => i.parent === o.id);
-            
-            if (children.length > 0) {
-                node.objects = children.map(child => build(child, current + 1));
-                node.mass += node.objects.reduce((sum, child) => sum + child.mass, 0); // updateMass
-                const links = new Set(children.map(i => i.id));
-                node.links = Array.from(cacheLinks.values()).filter(e => 
-                    links.has(e.is) && links.has(e.to)
-                );
-            }
-        }
-        return node;
-    };
-    return build(raw, 0);
-}
 
 // TODO: refactoring stores
 class SelectedStore {
@@ -92,6 +56,7 @@ class SelectedStore {
     }
 }
 export const selectedStore = new SelectedStore();
+
 class ViewStore {
     view: number = $state(0);
     hover: number = $state(0);
@@ -112,18 +77,4 @@ class TreeStore {
         return this.#data;
     }
 }
-
 export const treeStore = new TreeStore();
-
-// export const objectsStore = {
-//     subscribe: treeStore.subscribe,
-    
-//     addObject: (newObj: IFlatObject) => {
-//         // if (cacheObjects.has(newObj.id)) return;
-        
-//         newObj.id = flatObjects.length;
-//         // cacheObjects.set(newObj.id, newObj);
-//         flatObjects.push(newObj);
-//         treeStore.set(buildTree(viewStore.view, objects, links));
-//     },
-// };

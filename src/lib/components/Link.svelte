@@ -70,6 +70,8 @@
             />
     </svg>
     <span 
+        {onmouseenter}
+        {onmouseleave}
         {onclick} 
         style="left: {midX}px; top: {midY}px; font-size: {size / 7}px" 
         class={`${false ? 'text-accent' : 'text-border'} click absolute text-border z-3 -translate-1/2`}>

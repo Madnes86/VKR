@@ -27,3 +27,4 @@ export { default as TreeItem } from "./TreeItem.svelte";
 export { default as Entityes } from "./Entityes.svelte";
 export { default as Header } from "./Header.svelte";
 export { default as TreeForm } from "./TreeForm.svelte";
+export { default as Search } from "./Search.svelte";

@@ -6,18 +6,26 @@
     let {
         id,
         name,
-        text,
-        type
+        type,
+        more
     } : {
         id: number
         name: string
-        text: string
         type: 'o' | 'l'
+        more?: boolean
     } = $props();
 
     let data = $derived(`${type} + ${id}`);
     let selected: boolean = $derived(selectedStore.selected === data);
     let hover: boolean = $derived(selectedStore.hover === data);
+    let icon: string = $derived.by(() => {
+        if (type === 'o') {
+            return more ? 'objects' : 'object'; 
+        } else {
+
+            return more ? 'lines' : 'line';
+        }
+    });
     let state: boolean = $state(true);
 
     function onmouseenter() {
@@ -45,7 +53,7 @@
     {onmouseleave} 
     class={`${selected && 'border-accent border'} ${hover && 'outline-accent outline-1'} m-1 rounded-sm flex gap-2 w-full`}>
     <button {onclick} class="click flex gap-2 p-1 items-center w-full">
-        <Icon name={name} />
+        <Icon name={icon} />
         {#if state}
             <p>{name}</p>
         {:else}

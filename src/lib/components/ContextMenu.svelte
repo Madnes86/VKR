@@ -1,6 +1,5 @@
 <script lang="ts">
     import { ButtonIcon, Input } from "$lib/components";
-    // import { objectsStore } from "$lib/stores/objects.svelte";
     import { contextStore } from "$lib/stores/context.svelte";
 
     let x: number = $derived(contextStore.x);

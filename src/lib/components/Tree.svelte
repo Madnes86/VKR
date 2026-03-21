@@ -1,6 +1,5 @@
 <script lang="ts">
-	import Flex from "./Flex.svelte";
-    import { TreeItem } from "$lib/components";
+    import { TreeItem, Search } from "$lib/components";
     import { treeStore } from "$lib/stores/objects.svelte";
     import type { ITreeObject, ILink } from "$lib/interface";
 
@@ -9,6 +8,8 @@
     
 </script>
 
-<Flex col>
-    <TreeItem id={0} {objects} {links} />
-</Flex>
+    <Search />
+
+    <div class="border-t-2 p-1 border-gray flex flex-col w-full">
+        <TreeItem id={0} {objects} {links} />
+    </div>

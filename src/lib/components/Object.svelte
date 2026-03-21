@@ -2,13 +2,14 @@
     import { Object, Link } from "$lib/components";
     import { physics } from "$lib/functions/physics";
     import { dragStore } from "$lib/stores/drag.svelte";  
-    import { viewStore, selectedStore, type ITreeObject, type ILink } from "$lib/stores/objects.svelte";
+    import { viewStore, selectedStore } from "$lib/stores/objects.svelte";
     import { contextStore } from "$lib/stores/context.svelte";
+    import type { ITreeObject, ILink } from "$lib/interface";
 
     let {
         id,
         name,
-        x = 300,
+        x = 300,    
         y = 300,
         size = 100,
         objects = [],

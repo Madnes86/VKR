@@ -1,6 +1,6 @@
 <script lang="ts">
     import { ButtonIcon, Input } from "$lib/components";
-    import { objectsStore } from "$lib/stores/objects.svelte";
+    // import { objectsStore } from "$lib/stores/objects.svelte";
     import { contextStore } from "$lib/stores/context.svelte";
 
     let x: number = $derived(contextStore.x);
@@ -31,11 +31,11 @@
         }
     }
     function create() {
-        objectsStore.addObject({
-            id: Math.random(),
-            name: "test",
-            parent: contextStore.data?.id ?? 0
-        });
+        // objectsStore.addObject({
+        //     id: Math.random(),
+        //     name: "test",
+        //     parent: contextStore.data?.id ?? 0
+        // });
     }
     function clear() {
         alert(value);

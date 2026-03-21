@@ -1,6 +1,7 @@
 import { notificationStore } from "$lib/stores/notification.svelte";
 import { modalStore } from "$lib/stores/modal.svelte";
 
+// TODO: create ENV faile 
 const BASE_URL: string = 'http://127.0.0.1:8000';
 
 export async function updateMe(data: object) { // Надобы интерфейс добавить

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { linkStore } from "$lib/stores/objects.svelte";
+    // import { linkStore } from "$lib/stores/objects.svelte";
     import { selectedStore } from "$lib/stores/objects.svelte";
 
     let {
@@ -42,7 +42,7 @@
     let midX: number = $derived((sx + ex) / 2);
     let midY: number = $derived((sy + ey) / 2);
     function onclick() {
-        linkStore.set(id);
+        // linkStore.set(id);
     }
     function onmouseenter() {
 

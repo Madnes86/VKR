@@ -1,30 +1,6 @@
 import { writable } from 'svelte/store';
-import { getObjects } from "$lib/functions/backend";
-
-export type IFlatObject = {
-    id: number,
-    name: string, 
-    parent: number | null,
-};
-export type ITreeObject ={
-    id: number;
-    name: string;
-    x: number;
-    y: number;
-    size: number;
-    mass: number;
-    parent: number | null;
-    objects: ITreeObject[];
-    links: ILink[];
-};
-export type ILink = {
-    id: number;
-    name: string;
-    is: number;
-    to: number;
-    isValue: number;
-    toValue: number;
-};
+import { getObjects, getLinks } from "$lib/functions/backend";
+import type { IFlatObject, ITreeObject, ILink } from '$lib/interface';
 
 export let flatObjects: IFlatObject[] = [
     {id: 0, name: "root", parent: null},
@@ -46,19 +22,7 @@ class ObjectsStore {
     // Загрузка данных с сервера FastAPI
     async fetch() {
         const data = await getObjects();
-        if (data && data.length > 0) {
-            this.#objects = data;
-        } else {
-            this.#objects = [
-                {id: 0, name: "root", parent: null},
-                {id: 1, name: "obj1", parent: 0},
-                {id: 4, name: "obj4", parent: 0},
-                {id: 2, name: "obj2", parent: 1},
-                {id: 3, name: "obj3", parent: 1},
-                {id: 5, name: "obj5", parent: 3},
-                {id: 6, name: "obj6", parent: 5},
-            ];
-        }
+        this.#objects = data;
     }
     update(id: number, new_o: Partial<IFlatObject>) {
         const index = this.#objects.findIndex(o => o.id === id);
@@ -66,36 +30,38 @@ class ObjectsStore {
             this.#objects[index] = { ...this.#objects[index], ...new_o };
         }
     }
-
     clear() { this.#objects = [] }
 }
 
 export const objects = new ObjectsStore();
 
+class LinksStore {
+    #links: ILink[] = $state([]);
+
+    get all() { return this.#links }
+    async fetch() {
+        const data = await getLinks();
+        this.#links = data;
+    }
+}
+export const links = new LinksStore();
+
 async function init() {
     await objects.fetch();
-    console.log(objects.all);
+    await links.fetch();
 }
 init();
+// TODO: using new store objects
 
-export let flatLinks: ILink[] = [
-    { id: 0, name: "read", is: 1, to: 4, isValue: 1, toValue: 1 },
-    { id: 1, name: "write", is: 2, to: 3, isValue: 1, toValue: 1 },
-];
+function buildTree(visible: number, objects: ObjectsStore, links: LinksStore): ITreeObject {
+    const cacheObjects = new Map<number, IFlatObject>(objects.all.map(o => [o.id, o]));
+    const cacheLinks   = new Map<number, ILink>(links.all.map(l => [l.id, l]));
 
-const cacheObjects = new Map<number, IFlatObject>();
-const cacheLinks = new Map<number, ILink>();
-
-flatObjects.forEach(o => cacheObjects.set(o.id, o));
-flatLinks.forEach(l => cacheLinks.set(l.id, l));
-
-function buildTree(visible: number): ITreeObject {
     const raw = cacheObjects.get(visible) || { id: visible, name: "Not Found", parent: null };;
     const build = (o: IFlatObject, current: number): ITreeObject => {
         const node: ITreeObject = { ...o, objects: [], links: [], mass: 1, x: Math.random(), y: Math.random(), size: 100 };
         if (current < 3) {
             const children = Array.from(cacheObjects.values()).filter(i => i.parent === o.id);
-            // const links = Array.from(cacheLinks.values()).filter(i => i.is === o.id);
             
             if (children.length > 0) {
                 node.objects = children.map(child => build(child, current + 1));
@@ -104,20 +70,14 @@ function buildTree(visible: number): ITreeObject {
                 node.links = Array.from(cacheLinks.values()).filter(e => 
                     links.has(e.is) && links.has(e.to)
                 );
-                // console.log(node.links);
             }
         }
         return node;
     };
     return build(raw, 0);
 }
-class LinkStore {
-    link: number | null = $state(null);
-    set(id: number) {
-        this.link = id;
-    }
-}
-export const linkStore = new LinkStore();
+
+// TODO: refactoring stores
 class SelectedStore {
     selO: number | null = $state(null);
     selL: number | null = $state(null);
@@ -137,12 +97,6 @@ class ViewStore {
     hover: number = $state(0);
     set(id: number) {
         this.view = id;
-        // console.log(id);
-        const newTree = buildTree(id);
-        // console.log(newTree);
-        if (newTree) {
-            treeStore.set(newTree);
-        }
     }
     clear() {
         this.view = 0;
@@ -150,17 +104,26 @@ class ViewStore {
 }
 export const viewStore = new ViewStore();
 
-const treeStore = writable<ITreeObject>(buildTree(viewStore.view));
+class TreeStore {
+    #data = $derived.by(() => {
+        return buildTree(viewStore.view, objects, links);
+    })
+    get all() {
+        return this.#data;
+    }
+}
 
-export const objectsStore = {
-    subscribe: treeStore.subscribe,
+export const treeStore = new TreeStore();
+
+// export const objectsStore = {
+//     subscribe: treeStore.subscribe,
     
-    addObject: (newObj: IFlatObject) => {
-        if (cacheObjects.has(newObj.id)) return;
+//     addObject: (newObj: IFlatObject) => {
+//         // if (cacheObjects.has(newObj.id)) return;
         
-        newObj.id = flatObjects.length;
-        cacheObjects.set(newObj.id, newObj);
-        flatObjects.push(newObj);
-        treeStore.set(buildTree(viewStore.view));
-    },
-};
+//         newObj.id = flatObjects.length;
+//         // cacheObjects.set(newObj.id, newObj);
+//         flatObjects.push(newObj);
+//         treeStore.set(buildTree(viewStore.view, objects, links));
+//     },
+// };

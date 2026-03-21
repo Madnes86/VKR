@@ -1,4 +1,4 @@
-import { type ITreeObject } from "$lib/stores/objects.svelte";
+import type { ITreeObject } from "$lib/interface";
 
 export function physics(objects: ITreeObject[], centerX: number, centerY: number) {
     const forces = objects.map(() => ({ fx: 0, fy: 0 }));

@@ -1,12 +1,13 @@
 <script lang="ts">
-    import { TreeItem, Icon, Form, TreeForm } from "$lib/components";
-    import { selectedStore, type ILink } from "$lib/stores/objects.svelte";
-    type IObject = {
+    import { TreeItem, Icon, TreeForm } from "$lib/components";
+    import type { ILink } from "$lib/interface";
+    interface IObject {
         id: number;
         name: string; 
         objects: IObject[];
         links: ILink[];
-    }
+    };
+
     let {
         id,
         name,

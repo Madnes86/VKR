@@ -1,7 +1,6 @@
 <script lang="ts">
-    import { Form2, Notification } from "$lib/components";
+    import { Form2 } from "$lib/components";
     import { modalStore } from "$lib/stores/modal.svelte";
-    import { notificationStore } from "$lib/stores/notification.svelte";
     import { register, login } from "$lib/functions/auth";
 
     let ref: HTMLElement | null = $state(null);

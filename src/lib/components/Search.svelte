@@ -1,6 +1,7 @@
 <script lang="ts">
     import { searchStore } from "$lib/stores/search.svelte";
     import { Icon } from "$lib/components";
+    import { objectValidation } from "$lib/functions/other";
 
     let global: boolean = $state(true);
     let stroke = $derived(global ? '#FFF' : 'var(--color-accent)');
@@ -9,7 +10,12 @@
     const placeholder = 'Search';
 
     function search() {
-        searchStore.set(v, global);
+        const newV = objectValidation(v);
+
+        if (3  > newV.length) return;
+        if (newV.length > 64) return;
+
+        searchStore.set(newV, global);
     }
     function toggle() {
         global = !global;
@@ -19,12 +25,11 @@
         searchStore.set(v, global);
     }
 
-
 </script>
 
     <div class="flex gap-2 items-center w-full p-2">
         {#snippet button(name: string, onclick: () => void, stroke?: string)}
-            <button {onclick} class="click p-1.5 size-7 rounded-md hover:bg-gray">
+            <button {onclick} aria-label={name} class="click p-1.5 size-7 rounded-md hover:bg-gray">
                 <Icon {name} {stroke} />
             </button>
         {/snippet}

@@ -6,24 +6,24 @@
     let x: number = $derived(contextStore.x - 15);
     let y: number = $derived(contextStore.y - 15);
 
-    let items: string[] = $state([
-        'test', 'test23423'
-    ]);
-    let input: HTMLInputElement | null = $state(null);
-    let value: string = $state('');
-    let sort: string[] = $derived(
-        items.filter(item => item.includes(value))
-    );
+    // let items: string[] = $state([
+    //     'test', 'test23423'
+    // ]);
+    // let input: HTMLInputElement | null = $state(null);
+    // let value: string = $state('');
+    // let sort: string[] = $derived(
+    //     items.filter(item => item.includes(value))
+    // );
     let menu: HTMLInputElement| null = $state(null);
     let buttons: {name: string, onclick: () => void}[] = $state([
         {name: 'graph', onclick: clear}
     ]);
 
     $effect(() => {
-        if (contextStore.isOpen) {
-            input?.focus();
-            value = '';
-        }
+        // if (contextStore.isOpen) {
+        //     input?.focus();
+        //     value = '';
+        // }
     });
     function onclick(e: MouseEvent) {
         if (contextStore.isOpen && !menu.contains(e.target as Node)) {

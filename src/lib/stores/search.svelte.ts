@@ -1,15 +1,15 @@
-
+import type { ICategory } from "$lib/interface";
 
 class SearchStore {
     #data: string = $state('');
-    #global: boolean = $state(true);
+    #cats: Omit<ICategory, 'icon'>[] = $state([]);
 
-    set(v: string, global: boolean = true) {
+    set(v: string, cats: Omit<ICategory, 'icon'>[]) {
         this.#data = v;
-        this.#global = global;
+        this.#cats = cats;
     }
     get() { return this.#data }
-    get isGlobal() { return this.#global }
+    get cats() { return this.#cats }
 }
 
 export const searchStore = new SearchStore();

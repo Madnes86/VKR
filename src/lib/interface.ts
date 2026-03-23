@@ -28,3 +28,8 @@ export type IObject = {
     objects: IObject[];
     links: ILink[];
 };
+export type ICategory = {
+    name: string;
+    icon: string;
+    check: boolean;
+}

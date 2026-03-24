@@ -11,6 +11,7 @@
     let cats: ICategory[] = $state(categoryes);
     let global: boolean = $derived(cats[0].check);
     let stroke = $derived(global ? 'var(--color-accent)' : '#FFF');
+    let selected: Omit<ICategory, 'icon'>[] = $derived(cats.filter(c => c.check).map(({ name, check }) => ({ name, check })));
     const placeholder = 'Search';
 
     function search() {
@@ -19,14 +20,14 @@
         if (3  > newV.length) return notificationStore.error('Не корректное значение поиска', 'error');
         if (newV.length > 64) return notificationStore.error('Не корректное значение поиска', 'error');
 
-        const selected = cats.filter(c => c.check).map(({ name, check }) => ({ name, check }));
-        console.log(selected);
+        // const selected = cats.filter(c => c.check).map(({ name, check }) => ({ name, check }));
+        // console.log(selected);
 
         searchStore.set(newV, selected);
     }
     function clear() {
         v = '';
-        const selected = cats.filter(c => c.check).map(({ name, check }) => ({ name, check }));
+        // const selected = cats.filter(c => c.check).map(({ name, check }) => ({ name, check }));
         searchStore.set(v, selected);
     }
     

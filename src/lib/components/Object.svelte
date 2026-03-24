@@ -9,22 +9,14 @@
     let {
         id,
         name,
+        type,
         x = 300,    
         y = 300,
         size = 100,
         objects = [],
         links = [],
         selParent
-    } : {
-        id: number;
-        name: string;
-        x: number;
-        y: number;
-        size: number;
-        objects: ITreeObject[];
-        links: ILink[];
-        selParent: boolean
-    } = $props();
+    } : ITreeObject = $props();
 
     let ref: HTMLElement | undefined = $state(undefined);
     let data = $derived(`o + ${id}`);
@@ -32,6 +24,7 @@
     let hover: boolean = $derived(selectedStore.hover === data);
     const centerX:  number = $derived(size / 2);
     const centerY:  number = $derived(size / 2);
+    const border:   string = $derived(type === 'default' ? 'solid' : 'dashed');
 
     function onmousedown(e: MouseEvent) {
         if (!ref || e.button !== 0) return;
@@ -106,17 +99,17 @@
             {oncontextmenu}
             {onmouseover}
             {onmouseleave}
-            style="border: {size / 100}px solid {selParent ? 'black' : 'white'}; outline: {size / 100}px solid black; transition-duration: {size}ms"
+            style="border: {size / 100}px {border} {selParent ? 'black' : 'white'}; outline: {size / 100}px solid black; transition-duration: {size}ms"
             class={`${selected && 'bg-accent! border-none!'} ${hover && 'outline-accent! border-0!'} transition-all rounded-full size-full bg-black`}>
-            {#each objects as {id, name, x, y, size, objects, links}, i}
-                <Object {id} {name} {x} {y} {size} {objects} {links} selParent={selected ? true : false} />
+            {#each objects as {id, name, type, x, y, size, objects, links}, i}
+                <Object {id} {name} {type} {x} {y} {size} {objects} {links} selParent={selected ? true : false} />
             {/each}
             {#each links as l}
                 {@const is = objects.find(o => o.id === l.is)}
                 {@const to = objects.find(o => o.id === l.to)}
 
                 {#if is && to}
-                    <Link id={l.id} name={l.name} {is} {to} />
+                    <Link id={l.id} name={l.name} type={l.type} {is} {to} />
                 {/if}
             {/each}
         </div>

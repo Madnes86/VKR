@@ -35,9 +35,11 @@
                 </div> -->
                 {#each items as item, i (i)}
                     <div class="flex gap-2 w-full items-center whitespace-nowrap p-1 select-none">
-                        <input bind:checked={item.check} aria-label={item.name} type="checkbox" class="click text-accent rounded-sm border-none">
-                        <Icon name={item.icon} />
-                        <p class="w-full text-sm">{item.name}</p>
+                        <input bind:checked={item.check} aria-label={item.name} type="checkbox" class="click size-3.5 text-accent rounded-xs border-none">
+                        <button onclick={() => item.check = !item.check} class="click flex gap-1 items-center ">
+                            <Icon name={item.icon} />
+                            <p class="w-full text-sm">{item.name}</p>
+                        </button>
                     </div>
                 {/each}
             </div>

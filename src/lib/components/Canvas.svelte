@@ -63,15 +63,15 @@
 <svelte:window {oncontextmenu} {onmousemove} {onwheel} bind:innerWidth={width} bind:innerHeight={height} />
 
 <div class="fixed top-0 left-0 size-full z-0">
-    {#each objects as {id, name, x, y, size, objects, links}, i}
-        <Object {id} {name} {x} {y} {size} {objects} {links} selParent={false}/>
+    {#each objects as {id, name, type, x, y, size, objects, links}, i}
+        <Object {id} {name} {type} {x} {y} {size} {objects} {links} selParent={false}/>
     {/each}
     {#each links as l}
         {@const is = objects.find(o => o.id === l.is)}
         {@const to = objects.find(o => o.id === l.to)}
 
         {#if is && to}
-            <Link id={l.id} name={l.name} {is} {to} />
+            <Link id={l.id} name={l.name} type={l.type} {is} {to} />
         {/if}
     {/each}
 </div>

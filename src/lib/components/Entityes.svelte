@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { objects } from "$lib/stores/objects.svelte";
-    import type { IFlatObject } from "$lib/interface";
+    import { objects, treeStore } from "$lib/stores/objects.svelte";
+    // import type { IFlatObject } from "$lib/interface";
     import { searchStore } from "$lib/stores/search.svelte";
     import { TreeForm, Search } from "$lib/components";
 
@@ -11,6 +11,7 @@
         if (!query) return allEntityes;
         return allEntityes.filter(e => e.name.toLowerCase().includes(query));
     });
+    $inspect(searchStore.cats);
 
 </script>
 

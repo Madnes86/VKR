@@ -1,21 +1,19 @@
 <script lang="ts">
     import { selectedStore } from "$lib/stores/objects.svelte";
+    import type { ILink } from "$lib/interface";
 
     let {
         id,
         name,
+        type,
         is,
         to
-    } : {
-        id: number;
-        name: string;
-        is: any;
-        to: any;
-    } = $props();
+    } : ILink = $props();
 
     let data: string = $derived(`l + ${id}`);
     let selected: boolean = $derived(selectedStore.selected === data);
     let hover: boolean = $derived(selectedStore.hover === data);
+    let dasharray: string = $derived(type === 'default' ? '0' : '8 8');
 
     let x1 = $derived(is.x + is.size / 2);
     let y1 = $derived(is.y + is.size / 2);
@@ -64,8 +62,9 @@
             y1={sy} 
             x2={ex} 
             y2={ey} 
-            stroke={`${selected || hover ? 'var(--color-accent)' : 'white'}`} 
-            stroke-width={3} 
+            stroke={`${selected || hover ? 'var(--color-accent)' : 'white'}`}
+            stroke-width={3}
+            stroke-dasharray={dasharray}
             stroke-linecap="round"
             />
     </svg>

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Icon } from "$lib/components";
-	import type { IObject, ILink } from "$lib/interface";
+	// import type { IObject, ILink } from "$lib/interface";
     import { selectedStore, viewStore } from "$lib/stores/objects.svelte";
 
     let {
@@ -8,18 +8,19 @@
         name,
         type,
         more,
-        query,
+        query
     } : {
         id: number
         name: string
         type: 'o' | 'l'
         more?: boolean
         query: string
-    } = $props();
+    } = $props();   
 
     let data = $derived(`${type} + ${id}`);
     let selected: boolean = $derived(selectedStore.selected === data);
     let hover: boolean = $derived(selectedStore.hover === data);
+    let state: boolean = $state(true);
     let icon: string = $derived.by(() => {
         if (type === 'o') {
             return more ? 'objects' : 'object'; 
@@ -27,35 +28,27 @@
             return more ? 'lines' : 'line';
         }
     });
-    let state: boolean = $state(true);
+        let match = $derived.by(() => {
+        const n = name.toLowerCase();
+        if (!query || !n.includes(query)) return { start: -1, end: -1 };
+        const start = n.indexOf(query);
+        return { start, end: start + query.length };
+    });
 
-    function onmouseenter() {
-        selectedStore.set("hover", data);
-    }
-    function onmouseleave() {
-        selectedStore.clear('hover');
-    }
+    const onmouseenter = () => selectedStore.set('hover', data);
+    const onmouseleave = () => selectedStore.clear('hover');
+    const onclick      = () => selectedStore.set('selected', data);
+    const toggle       = () => state = !state;
 
-    function onclick() {
-        selectedStore.set("selected", data);
-    }
     function ondblclick(e: MouseEvent) {
         if (type === 'l') return;
         e.stopPropagation();
         viewStore.set(id);
     }
-        // Находим позицию совпадения
-    let match = $derived.by(() => {
-        if (!query || query.trim() === '') return { start: -1, end: -1 };
-        const start = name.toLowerCase().indexOf(query.toLowerCase());
-        if (start === -1) return { start: -1, end: -1 };
-        return { start, end: start + query.length };
-    });
-    $inspect(match);
-
 
 </script>
 <!-- TODO: rename -->
+<!-- TODO: function toggle type -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div 
     {ondblclick} 
@@ -74,11 +67,11 @@
                 {/each}
             </p>
         {:else}
-            <input bind:value={name} type="text">
+            <input bind:value={name} type="text" class={`w-full focus:outline-none bg-transparent p-0 h-6 border-0`}>
         {/if}
     </button>
     {#if hover}
-        <button class="click p-1 hover:bg-gray rounded-sm">
+        <button onclick={toggle} class="click p-1 hover:bg-gray rounded-sm">
             <Icon name="edit" />
         </button>
     {/if}

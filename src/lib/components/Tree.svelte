@@ -1,7 +1,7 @@
 <script lang="ts">
     import { TreeItem, Search } from "$lib/components";
     import { treeStore, objects } from "$lib/stores/objects.svelte";
-    import type { ITreeObject, ILink } from "$lib/interface";
+    // import type { ITreeObject, ILink } from "$lib/interface";
 	import { searchStore } from "$lib/stores/search.svelte";
 	import { flatTree } from "$lib/functions/other";
 
@@ -35,10 +35,8 @@
         return {
             ids: new Set(filtered.map(e => e.id)),
             query: query
-        }
-            
+        }      
     });
-    $inspect(highlightedIds);
 
 </script>
 

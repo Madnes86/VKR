@@ -13,6 +13,17 @@
     let stroke = $derived(global ? 'var(--color-accent)' : '#FFF');
     let selected: Omit<ICategory, 'icon'>[] = $derived(cats.filter(c => c.check).map(({ name, check }) => ({ name, check })));
     const placeholder = 'Search';
+    const MAX_LENGTH = 64;
+
+    $effect(() => {
+        const newV = objectValidation(v);
+
+        if (newV.length > 64) {
+            notificationStore.error('Не корректное значение поиска', 'error');
+        } else {
+            searchStore.set(newV, selected);
+        }
+    });
 
     function search() {
         const newV = objectValidation(v);
@@ -44,6 +55,7 @@
             bind:value={v} 
             {placeholder}
             type="text" 
+            maxlength={MAX_LENGTH}
             class="w-full text-lg p-0 border-none bg-transparent">
         {#if v.length > 2}
             {@render button("cross", clear)}

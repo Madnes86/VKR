@@ -29,10 +29,6 @@
         </button>
         {#if show}
             <div aria-label="cats-menu" role="group" class="absolute z-3 rounded-sm bg-gray top-full left-0 p-1 flex flex-col">
-                <!-- <div class="flex gap-1 w-full whitespace-nowrap">
-                    <p>Local search</p>
-                    <input bind:checked={global} type="checkbox">
-                </div> -->
                 {#each items as item, i (i)}
                     <div class="flex gap-2 w-full items-center whitespace-nowrap p-1 select-none">
                         <input bind:checked={item.check} aria-label={item.name} type="checkbox" class="click size-3.5 text-accent rounded-xs border-none">

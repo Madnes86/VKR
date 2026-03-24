@@ -1,17 +1,35 @@
 <script lang="ts">
     import { objects, treeStore } from "$lib/stores/objects.svelte";
-    // import type { IFlatObject } from "$lib/interface";
     import { searchStore } from "$lib/stores/search.svelte";
     import { TreeForm, Search } from "$lib/components";
+    import { flatTree } from "$lib/functions/other";
 
     let entityes = $derived.by(() => {
-        const query = searchStore.get().toLowerCase().trim();
-        const allEntityes = objects.all
+        const query = searchStore.get();
+        const all = objects.all
+        const cats = searchStore.cats
+        const isWeak = cats.find(c => c.name === 'optional')?.check;
+        const isLocal = cats.find(c => c.name === 'Local search')?.check;
+        const local = flatTree(treeStore.all);
 
-        if (!query) return allEntityes;
-        return allEntityes.filter(e => e.name.toLowerCase().includes(query));
+        return all.filter(e => {
+            const result = !query || e.name.toLowerCase().includes(query);
+
+            let matchesCategory = true;
+
+            if (isWeak && isLocal) {
+                // Если включены оба — элемент должен быть Weak И быть в дереве
+                matchesCategory = e.type === 'optional' && local.has(e.id);
+            } else if (isWeak) {
+                matchesCategory = e.type === 'optional';
+            } else if (isLocal) {
+                // Предполагаем, что в treeStore есть метод has или массив ids
+                matchesCategory = local.has(e.id);
+            }
+
+            return result && matchesCategory;
+        });
     });
-    $inspect(searchStore.cats);
 
 </script>
 

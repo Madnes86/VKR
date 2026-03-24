@@ -10,7 +10,7 @@
         items: any[];
     } = $props();
 
-    let show: boolean = $state(true);
+    let show: boolean = $state(false);
     let ref: HTMLElement | null = $state(null);
 
     const toggle = () => show = !show;

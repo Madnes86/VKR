@@ -4,7 +4,7 @@
     import { dragStore } from "$lib/stores/drag.svelte";  
     import { viewStore, selectedStore } from "$lib/stores/objects.svelte";
     import { contextStore } from "$lib/stores/context.svelte";
-    import type { ITreeObject, ILink } from "$lib/interface";
+    import type { ITreeObject } from "$lib/interface";
 
     let {
         id,
@@ -99,7 +99,7 @@
             {oncontextmenu}
             {onmouseover}
             {onmouseleave}
-            style="border: {size / 100}px {border} {selParent ? 'black' : 'white'}; outline: {size / 100}px solid black; transition-duration: {size}ms"
+            style="border: {size / 100}px {border} {selParent ? 'black' : 'white'}; outline: {size / 100}px {border} black; transition-duration: {size}ms"
             class={`${selected && 'bg-accent! border-none!'} ${hover && 'outline-accent! border-0!'} transition-all rounded-full size-full bg-black`}>
             {#each objects as {id, name, type, x, y, size, objects, links}, i}
                 <Object {id} {name} {type} {x} {y} {size} {objects} {links} selParent={selected ? true : false} />

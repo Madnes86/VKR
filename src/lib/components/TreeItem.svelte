@@ -7,15 +7,20 @@
         name,
         objects,
         links,
+        highlightedIds
     } : {
         id: number;
         name?: string;
         objects: IObject[];
         links?: ILink[];
+        highlightedIds: { ids: Set<number>, text: string };
     } = $props();
 
     let show: boolean = $state(false);
     let isObjects: boolean = $derived(objects?.length > 0);
+    let isHighlighted = $derived(highlightedIds.ids.has(id));
+    const query = $derived(highlightedIds.query);
+    // $inspect(isHighlighted);
 
     function onclick() {
         show = !show;
@@ -30,17 +35,20 @@
                         <Icon name="arrow" />
                 </button>
             {/if}
-            <TreeForm {id} {name} text={name} type='o' more={isObjects}/>
+            <p>
+                {isHighlighted}
+            </p>
+            <TreeForm {id} {name} type='o' more={isObjects} {query} />
         </div>
     {/if}
     {#if show || !name}
         <div class={`${isObjects && 'ml-8!'}`}>
             {#each objects as {id, name, objects, links}}
-                <TreeItem {id} {name} {objects} {links} />
+                <TreeItem {id} {name} {objects} {links} {highlightedIds} />
             {/each}
             <div class="flex gap-2 items-center">
                 {#each links as {id, name}}
-                    <TreeForm {id} {name} type='l' more={false} />
+                    <TreeForm {id} {name} type='l' more={false} {query} />
                 {/each}
             </div>
         </div>

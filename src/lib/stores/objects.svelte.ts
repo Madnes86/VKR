@@ -1,6 +1,6 @@
 import { getObjects, getLinks } from "$lib/functions/backend";
 import type { IFlatObject, ILink } from '$lib/interface';
-import { buildTree } from '$lib/functions/build';
+import { buildTree } from '$lib/functions/other';
 
 export class ObjectsStore {
     #objects: IFlatObject[] = $state([]);

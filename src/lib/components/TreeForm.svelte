@@ -7,12 +7,14 @@
         id,
         name,
         type,
-        more
+        more,
+        query,
     } : {
         id: number
         name: string
         type: 'o' | 'l'
         more?: boolean
+        query: string
     } = $props();
 
     let data = $derived(`${type} + ${id}`);
@@ -22,7 +24,6 @@
         if (type === 'o') {
             return more ? 'objects' : 'object'; 
         } else {
-
             return more ? 'lines' : 'line';
         }
     });
@@ -43,9 +44,18 @@
         e.stopPropagation();
         viewStore.set(id);
     }
+        // Находим позицию совпадения
+    let match = $derived.by(() => {
+        if (!query || query.trim() === '') return { start: -1, end: -1 };
+        const start = name.toLowerCase().indexOf(query.toLowerCase());
+        if (start === -1) return { start: -1, end: -1 };
+        return { start, end: start + query.length };
+    });
+    $inspect(match);
+
 
 </script>
-
+<!-- TODO: rename -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div 
     {ondblclick} 
@@ -55,7 +65,14 @@
     <button {onclick} class="click flex gap-2 p-1 items-center w-full">
         <Icon name={icon} />
         {#if state}
-            <p>{name}</p>
+            <p>
+                {#each name as symbol, i}
+                    {@const isMatch = i >= match.start && i < match.end}
+                    {@const isFirst = i === match.start}
+                    {@const isLast  = i === match.end - 1}
+                    <span class="{isMatch && 'bg-accent'} {isFirst && 'rounded-l-xs'} {isLast && 'rounded-r-xs'}">{symbol}</span>
+                {/each}
+            </p>
         {:else}
             <input bind:value={name} type="text">
         {/if}

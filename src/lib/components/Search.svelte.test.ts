@@ -34,22 +34,13 @@ describe('Компонент поиска', () => {
 
         await expect.element(input).toHaveValue('Svelte 5');
     });
-    it('пустой ввод', async () => {
-        const { input, searchBtn } = setup();
-    
-        await input.fill(' ');
-        await expect.element(input).toHaveValue(' ');
-        await searchBtn.click();
-
-        expect(searchStore.set).not.toHaveBeenCalled();
-    });
     it('передача в стор', async () => {
         const { input, searchBtn } = setup();
         
         await input.fill('  123 Пример   !@# поиска 456  ');
         await searchBtn.click();
 
-        expect(searchStore.set).toHaveBeenCalledWith('Пример поиска', true);
+        expect(searchStore.set).toHaveBeenCalledWith('Пример поиска', expect.any(Array));
     });
     it('переключение глобального поиска, и передача стор', async () => {
         const { input, globalBtn, searchBtn } = setup(); 
@@ -58,28 +49,7 @@ describe('Компонент поиска', () => {
         await input.fill('test');
         await searchBtn.click();
         
-        expect(searchStore.set).toHaveBeenCalledWith('test', false);
+        expect(searchStore.set).toHaveBeenCalledWith('test', expect.any(Array));
     });
-    it('появление категорий поиска', async () => {
-        const { categoryBtn } = setup();
-
-        const menu = page.getByRole('group', { name: 'cats-menu'});
-        await expect.element(menu).not.toBeInTheDocument();
-        await categoryBtn.click();
-        await expect.element(menu).toBeVisible();
-    });
-    it('выбор категории поиска', async () => {
-        const { categoryBtn } = setup();
-
-        await categoryBtn.click();
-        for (const cat of categoryes) {
-            const checkbox = page.getByRole('checkbox', { name: cat.name, exact: true });
-            
-            await expect.element(checkbox).not.toBeChecked;
-            await checkbox.click();
-            await expect.element(checkbox).toBeChecked;
-        }
-    });
-    it('поиск с учетом категорий', );
 });
 

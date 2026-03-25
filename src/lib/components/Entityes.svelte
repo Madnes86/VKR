@@ -28,34 +28,6 @@
             ids: new Set(entityes.map(e => e.id)),
             query: query
     });
-    // let highlightedIds = $derived.by(() => {
-    //     const query = searchStore.get().toLowerCase().trim();
-    //     const cats = searchStore.cats;
-    //     const all = objects.all;
-        
-    //     const isWeak = cats.find(c => c.name === 'optional')?.check;
-    //     const isLocal = cats.find(c => c.name === 'Local search')?.check;
-    //     const local = flatTree(treeStore.all); // ID текущего дерева
-
-    //     // Если поиска нет и категории не выбраны — ничего не подсвечиваем
-    //     if (!query && !isWeak && !isLocal) return { ids: new Set<number>(), query: '' };
-
-    //     const filtered = all.filter(e => {
-    //         const matchesQuery = !query || e.name.toLowerCase().includes(query);
-    //         let matchesCat = true;
-            
-    //         if (isWeak && isLocal) matchesCat = e.type === 'optional' && local.has(e.id);
-    //         else if (isWeak) matchesCat = e.type === 'optional';
-    //         else if (isLocal) matchesCat = local.has(e.id);
-
-    //         return matchesQuery && matchesCat;
-    //     });
-
-    //     return {
-    //         ids: new Set(filtered.map(e => e.id)),
-    //         query: query
-    //     }      
-    // });
 
 </script>
 

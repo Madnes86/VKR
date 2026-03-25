@@ -54,6 +54,7 @@
     {ondblclick} 
     {onmouseenter} 
     {onmouseleave} 
+    data-testid="row"
     class={`${selected && 'border-accent border'} ${hover && 'outline-accent outline-1'} m-1 rounded-sm flex gap-2 w-full`}>
     <button {onclick} class="click flex gap-2 p-1 items-center w-full">
         <Icon name={icon} />
@@ -70,9 +71,13 @@
             <input bind:value={name} type="text" class={`w-full focus:outline-none bg-transparent p-0 h-6 border-0`}>
         {/if}
     </button>
-    {#if hover}
+    {#if hover || !state}
         <button onclick={toggle} class="click p-1 hover:bg-gray rounded-sm">
-            <Icon name="edit" />
+            {#if state}
+                <Icon name="edit" />
+            {:else}
+                <Icon name="check" stroke="green" />
+            {/if}
         </button>
     {/if}
 </div>

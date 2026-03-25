@@ -45,4 +45,9 @@ export type ICategory = {
     name: string;
     icon: string;
     check: boolean;
-}
+};
+export type IAlert = {
+    title: string, 
+    text: string, 
+    type: 'alert' | 'error'
+};

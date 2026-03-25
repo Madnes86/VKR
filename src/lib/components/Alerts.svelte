@@ -1,11 +1,16 @@
 <script lang="ts">
-    import { Alert } from "$lib/components";
-    import Button from "./Button.svelte";
+    import { Alert, Button } from "$lib/components";
+    import { alerts } from "$lib/stores/alert.svelte";
+    import { searchStore } from "$lib/stores/search.svelte";
 
-    let alerts: {title: string, text: string, type: 'alert' | 'error'}[] = [
-        {title: 'test', text: 'test', type: 'alert'},
-        {title: 'test2', text: 'test', type: 'error'},
-    ];
+    let query = $derived(searchStore.get());
+    let filterAlerts = $derived.by(() => {
+        const all = alerts.all
+
+        return all.filter(e => {
+            if (e.title.includes(query)) return e;
+        });
+    });
    
     let show: number | null = $state(1000);
 
@@ -15,8 +20,8 @@
 
 </script>
 
-{#each alerts as {title, text, type}, i (title)}
+{#each filterAlerts as {title, text, type}, i (title)}
     <Button onclick={() => toggle(i)} className="w-full">
-        <Alert {title} {text} {type} show={show === i} />
+        <Alert {title} {text} {type} show={show === i} {query} />
     </Button>
 {/each}

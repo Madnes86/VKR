@@ -1,6 +1,5 @@
 <script lang="ts">
-    import Flex from "./Flex.svelte";
-    import Icon from "./Icon.svelte";
+    import { Flex, Icon } from "$lib/components";
 
     let {
         tabs,
@@ -11,13 +10,15 @@
     } = $props();
 </script>
 
-<Flex className="p-2 gap-3 border-[#323232]">
+<Flex className="p-1 gap-2 border-gray">
     {#each tabs as tab}
         {#if tab == selectedTab}
-            <Icon name={tab} stroke="#835CFD" className="cursor-pointer"/>
+            <div class="rounded-sm p-1 hover:bg-gray">
+                <Icon name={tab} stroke="#835CFD" />
+            </div>
         {:else}
-            <button onclick={() => selectedTab = tab} class="click">
-                <Icon name={tab} className="cursor-pointer"/>
+            <button onclick={() => selectedTab = tab} class="click rounded-sm p-1 hover:bg-gray">
+                <Icon name={tab} />
             </button>
         {/if}
     {/each}

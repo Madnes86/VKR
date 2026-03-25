@@ -28,7 +28,7 @@
             return more ? 'lines' : 'line';
         }
     });
-        let match = $derived.by(() => {
+    let match = $derived.by(() => {
         const n = name.toLowerCase();
         if (!query || !n.includes(query)) return { start: -1, end: -1 };
         const start = n.indexOf(query);

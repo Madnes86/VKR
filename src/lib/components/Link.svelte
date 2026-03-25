@@ -1,6 +1,7 @@
 <script lang="ts">
     import { selectedStore } from "$lib/stores/objects.svelte";
     import type { ILink } from "$lib/interface";
+	import Name from "./Name.svelte";
 
     let {
         id,
@@ -23,7 +24,6 @@
     let r2 = $derived(to.size / 2);
     let size = $derived((is.size + to.size) / 2);
 
-    // let selected: boolean = $derived(linkStore.link === id);
     let dx = $derived(x2 - x1);
     let dy = $derived(y2 - y1);
     let dist = $derived(Math.hypot(dx, dy)); // расстояние между центрами
@@ -54,6 +54,8 @@
 
 <div>
     <svg class="absolute top-0 left-0 size-full">
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <line 
             {onmouseenter} 
             {onmouseleave} 
@@ -68,12 +70,12 @@
             stroke-linecap="round"
             />
     </svg>
-    <span 
+    <button 
         {onmouseenter}
         {onmouseleave}
         {onclick} 
         style="left: {midX}px; top: {midY}px; font-size: {size / 7}px" 
         class={`${false ? 'text-accent' : 'text-border'} click absolute text-border z-3 -translate-1/2`}>
-        {name}
-    </span>
+        <Name {name} size={size * 0.7} />
+    </button>
 </div>

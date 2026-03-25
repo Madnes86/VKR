@@ -2,25 +2,51 @@ import { getObjects, getLinks } from "$lib/functions/backend";
 import type { IFlatObject, ILink } from '$lib/interface';
 import { buildTree } from '$lib/functions/other';
 
+// TODO: Возможно стоит убрать null?
 export class ObjectsStore {
     #objects: IFlatObject[] = $state([]);
 
-    get all() {
-        return this.#objects;
-    }
+    get all() { return this.#objects }
     async fetch() {
         const data = await getObjects();
         this.#objects = data;
     }
+    get(id: number) { return this.#objects.find(o => o.id === id)}
+    add(new_o: IFlatObject) { this.#objects.push(new_o) }
     update(id: number, new_o: Partial<IFlatObject>) {
         const index = this.#objects.findIndex(o => o.id === id);
         if (index !== -1) {
             this.#objects[index] = { ...this.#objects[index], ...new_o };
         }
     }
-    add(new_o: IFlatObject) {
-        this.#objects.push(new_o);
+    updateType(id: number, newType: string) {
+        const o = this.get(id);
+        if (!o) return;
+        const newO = {
+            ...o,
+            type: newType
+        }
+        this.update(id, newO);
     }
+    up(id: number) {
+        const o = this.get(id)
+        if (!o) return;
+        const newO = {
+            ...o,
+            parent : o.parent != null ? o.parent -1 : null
+        }
+        this.update(id, newO);
+    }
+    down(id: number) {
+        const o = this.get(id)
+        if (!o) return;
+        const newO = {
+            ...o,
+            parent : o.parent != null ? o.parent +1 : null
+        }
+        this.update(id, newO);
+    }
+    
     remove(id: number) {
         this.#objects = this.#objects.filter(o => o.id !== id);
     }

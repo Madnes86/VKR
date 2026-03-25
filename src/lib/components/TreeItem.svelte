@@ -41,7 +41,7 @@
             {#each objects as {id, name, objects, links}}
                 <TreeItem {id} {name} {objects} {links} {highlightedIds} />
             {/each}
-            <div class="flex gap-2 items-center">
+            <div class="flex flex-col gap-2 items-center">
                 {#each links as {id, name}}
                     <TreeForm {id} {name} type='l' more={false} {query} />
                 {/each}

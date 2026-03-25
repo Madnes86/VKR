@@ -5,7 +5,7 @@
     let {
         name,
         stroke,
-        className
+        className,
     } : {
         name: string;
         stroke?: string; // update

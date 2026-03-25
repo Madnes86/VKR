@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Object, Link } from "$lib/components";
+    import { Object, Link, Name } from "$lib/components";
     import { physics } from "$lib/functions/physics";
     import { dragStore } from "$lib/stores/drag.svelte";  
     import { viewStore, selectedStore } from "$lib/stores/objects.svelte";
@@ -89,8 +89,9 @@
     {onmousemove}
     >
     <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <!-- TODO: размеры ввода большие -->
     <div class="size-full relative">
-        <p  style="font-size: {size / 3}px" class="click select-none w-full text-center absolute bottom-full text-border">{name}</p>
+        <Name {name} {size} />
         <!-- svelte-ignore a11y_mouse_events_have_key_events -->
         <div
             {onmousedown}
@@ -121,7 +122,8 @@
                 <button 
                     style="border: {size / 100}px solid black;"
                     class="size-1/3 rounded-full bg-white hover:bg-accent"></button>
-                <button style="border: {size / 100}px solid black;"
+                <button 
+                    style="border: {size / 100}px solid black;"
                     class="size-1/3 rounded-full bg-white hover:bg-red"></button>
             </div>
         {/if}

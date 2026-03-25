@@ -11,7 +11,7 @@
     } = $props();
 </script>
 
-<Flex className="p-2 gap-3 border-b-2 border-[#323232]">
+<Flex className="p-2 gap-3 border-[#323232]">
     {#each tabs as tab}
         {#if tab == selectedTab}
             <Icon name={tab} stroke="#835CFD" className="cursor-pointer"/>

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { TreeItem, Search } from "$lib/components";
+    import { TreeItem } from "$lib/components";
     import { treeStore, objects } from "$lib/stores/objects.svelte";
     // import type { ITreeObject, ILink } from "$lib/interface";
 	import { searchStore } from "$lib/stores/search.svelte";
@@ -40,8 +40,6 @@
 
 </script>
 
-    <Search />
-
-    <div class="border-t-2 p-1 border-gray flex flex-col w-full">
+    <div class="p-1 border-gray flex flex-col w-full">
         <TreeItem id={root} objects={currentObj} {links} {highlightedIds} />
     </div>

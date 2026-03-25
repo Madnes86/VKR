@@ -35,14 +35,14 @@
 <svelte:window {onclick} />
 
 {#snippet button(name: string, text: string, onclick: () => void, color?: string)}
-    <button {onclick} class="flex gap-2 px-1 click hover:bg-gray w-full rounded-sm">
+    <button {onclick} class="flex gap-2 p-1 click hover:bg-black w-full rounded-sm">
         <Icon {name} stroke={color} />
         <p style="color: {color}">{text}</p>
     </button>
 {/snippet}
 
 {#if contextStore.isOpen}
-    <div bind:this={menu} style="left: {x}px; top: {y}px" class="flex items-start border border-accent flex-col gap-2 fixed p-2 rounded-md backdrop-blur-[4px] bg-gray-glass z-1000">
+    <div bind:this={menu} style="left: {x}px; top: {y}px" class="flex items-start border border-white flex-col gap-2 fixed p-2 rounded-lg backdrop-blur-[4px] bg-gray-glass z-1000">
         {@render button('add', 'Add object', create)}
         {#if id > 0}
             {#if type !== 'default'}
@@ -56,7 +56,7 @@
             {/if}
             {@render button('up', 'up object', up)}
             {@render button('down', 'down object', down)}
+            {@render button('delete', 'remove', remove, 'red')}
         {/if}
-        {@render button('delete', 'remove', remove, 'red')}
     </div>
 {/if}

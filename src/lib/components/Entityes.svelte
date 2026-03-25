@@ -31,9 +31,7 @@
 
 </script>
 
-    <Search />
-
-    <div class="flex flex-col gap-2 items-start w-full">
+    <div class="flex flex-col p-1 gap-2 items-start w-full">
         {#each entityes as {id, name, type, parent}}
             {@const more = parent !== null ? true : false}
 

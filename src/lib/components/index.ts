@@ -29,3 +29,4 @@ export { default as Header } from "./Header.svelte";
 export { default as TreeForm } from "./TreeForm.svelte";
 export { default as Search } from "./Search.svelte";
 export { default as DropDownMore } from "./DropDownMore.svelte";
+export { default as Name } from "./Name.svelte";

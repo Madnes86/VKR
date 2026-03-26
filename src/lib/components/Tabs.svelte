@@ -8,16 +8,23 @@
         tabs: string[]
         selectedTab?: string
     } = $props();
+
+    function ondragstart(e: DragEvent, tab: string) {
+        if (e.dataTransfer) {
+            e.dataTransfer.setData("text/plain", tab);
+            e.dataTransfer.effectAllowed = "move";
+        }
+    }
 </script>
 
 <Flex className="p-1 gap-2 border-gray">
     {#each tabs as tab}
         {#if tab == selectedTab}
-            <div class="rounded-sm p-1 hover:bg-gray">
+            <div draggable="true" class="rounded-sm p-1 hover:bg-gray">
                 <Icon name={tab} stroke="#835CFD" />
             </div>
         {:else}
-            <button onclick={() => selectedTab = tab} class="click rounded-sm p-1 hover:bg-gray">
+            <button onclick={() => selectedTab = tab} ondragstart={(e) => ondragstart(e, tab)} draggable="true" class="click rounded-sm p-1 hover:bg-gray">
                 <Icon name={tab} />
             </button>
         {/if}

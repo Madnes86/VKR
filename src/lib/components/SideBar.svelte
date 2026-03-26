@@ -3,10 +3,19 @@
     import { sideWidth } from "$lib/stores/other.svelte";
 
     const tabs: string[] = ['graph', 'entity', 'editor', 'alert', 'settings'];
+    let {
+        pos = 'r'
+    } : {
+        pos: 'rt' | 'rb' | 'lt' | 'lb' | 'r' | 'l'
+    } = $props();
+    let posClass: string = $derived.by(() => {
+        if (pos === 'l') return 'left-0';
+        if (pos === 'r') return 'right-0';
+        return 'left-0';
+    });
     const sections = [Tree, Entityes, Editor, Alerts, Settings];
     let selectedTab: string = $state('graph');
     let ref: number | null = $state(null);
-    // let width: number = $state(350);
     let isDrag: boolean = $state(false);
     let show: boolean = $derived(ref > 800);
 
@@ -26,7 +35,7 @@
 <svelte:window {onmousemove} {onmouseup} bind:innerWidth={ref} />
 
 {#if show}
-    <div class="flex h-screen z-1 absolute top-0 left-0 backdrop-blur-[2px]">
+    <div class="{posClass} flex h-screen z-1 absolute top-0 backdrop-blur-[2px]">
         <div style="width: {sideWidth.v}px" class="bg-gray-glass h-screen">
             <Tabs {tabs} bind:selectedTab={selectedTab}/>
             {#if selectedTab !== 'settings'}

@@ -54,7 +54,7 @@
                     onmousedown={(e) => toggle(e)} 
                     style="font-size: {size / 5}px; height: {size / 4}px; line-height: {size / 4}px;" 
                     class="click whitespace-nowrap select-none">
-                    <LightText text={name} {query} />
+                    <LightText text={name} />
                 </button>
                 {#if hover}
                     <button onmousedown={(e) => toggle(e)} style="width: {size / 5}px; height: {size / 5}px" class="click absolute top-1/2 left-full -translate-y-1/2">

@@ -31,7 +31,7 @@
     <Flex className={`${hover ? bg : show ? bg : color} p-1 w-full flex items-center`}>
         <Icon name="alert" stroke={hover ? '#323232' : show ? '#323232' : stroke} />
         <h3 class={`${hover ? '' : show ? 'text-gray' : color} p-1 whitespace-nowrap`}>
-            <LightText text={title} {query} />
+            <LightText text={title} />
         </h3>
         <Spacer />
         <Button onclick={goError} className="p-1 hover:bg-gray hover:text-white rounded-md">
@@ -40,7 +40,7 @@
     </Flex>
     {#if show}
         <p transition:fly class={`${show ? glass : glass} ${color} w-full text-start p-3`}>
-            <LightText {text} {query} />
+            <LightText {text} />
         </p>
     {/if}
 </div>

@@ -52,7 +52,7 @@
     <button {onclick} class="click flex gap-2 p-1 items-center w-full">
         <Icon name={icon} />
         {#if state}
-            <LightText text={name} {query} />
+            <LightText text={name} />
         {:else}
             <input bind:value={name} type="text" class={`w-full focus:outline-none bg-transparent p-0 h-6 border-0`}>
         {/if}

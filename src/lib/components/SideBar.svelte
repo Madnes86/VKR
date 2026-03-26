@@ -29,7 +29,9 @@
     <div class="flex h-screen z-1 absolute top-0 left-0 backdrop-blur-[2px]">
         <div style="width: {sideWidth.v}px" class="bg-gray-glass h-screen">
             <Tabs {tabs} bind:selectedTab={selectedTab}/>
-            <Search />
+            {#if selectedTab !== 'settings'}
+                <Search />
+            {/if}
             {#each tabs as tab, i}
                 {#if selectedTab == tab}
                     <!-- svelte-ignore svelte_component_deprecated -->

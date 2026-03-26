@@ -24,10 +24,6 @@
             return result && matchesCategory;
         });
     });
-    const highlightedIds = $derived({
-            ids: new Set(entityes.map(e => e.id)),
-            query: query
-    });
 
 </script>
 
@@ -36,7 +32,7 @@
             {@const more = parent !== null ? true : false}
 
             <div class="w-full flex">
-                <TreeForm {id} {name} type='o' {more} query={highlightedIds.query} />
+                <TreeForm {id} {name} type='o' {more} {query} />
             </div>
         {/each}
     </div>

@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { Icon } from "$lib/components";
-	// import type { IObject, ILink } from "$lib/interface";
+    import { Icon, LightText } from "$lib/components";
     import { selectedStore, viewStore } from "$lib/stores/objects.svelte";
 
     let {
@@ -28,12 +27,6 @@
             return more ? 'lines' : 'line';
         }
     });
-    let match = $derived.by(() => {
-        const n = name.toLowerCase();
-        if (!query || !n.includes(query)) return { start: -1, end: -1 };
-        const start = n.indexOf(query);
-        return { start, end: start + query.length };
-    });
 
     const onmouseenter = () => selectedStore.set('hover', data);
     const onmouseleave = () => selectedStore.clear('hover');
@@ -59,14 +52,7 @@
     <button {onclick} class="click flex gap-2 p-1 items-center w-full">
         <Icon name={icon} />
         {#if state}
-            <p>
-                {#each name as symbol, i}
-                    {@const isMatch = i >= match.start && i < match.end}
-                    {@const isFirst = i === match.start}
-                    {@const isLast  = i === match.end - 1}
-                    <span class="{isMatch && 'bg-accent'} {isFirst && 'rounded-l-xs'} {isLast && 'rounded-r-xs'}">{symbol}</span>
-                {/each}
-            </p>
+            <LightText text={name} {query} />
         {:else}
             <input bind:value={name} type="text" class={`w-full focus:outline-none bg-transparent p-0 h-6 border-0`}>
         {/if}

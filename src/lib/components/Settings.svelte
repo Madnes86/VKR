@@ -5,7 +5,8 @@
     let toggles: {power: boolean, text: string}[] = [
         {power: false, text: 'Hints'},
         {power: true, text: 'Play audio'},
-        {power: false, text: 'Right main panel'}
+        {power: false, text: 'Right main panel'},
+        {power: false, text: 'View panel'}
     ];
     let drops = $state([
         {items: ['EN', 'RU'], selected: 'EN', name: 'lang',  label: 'Language'},

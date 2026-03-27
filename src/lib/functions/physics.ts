@@ -18,7 +18,7 @@ export function physics(objects: ITreeObject[], centerX: number, centerY: number
             const dy = centerY1 - centerY2;
             const dist = Math.sqrt(dx * dx + dy * dy);
             
-            const desiredDist = (obj1.size + obj2.size) * 0.75; // Процент тут
+            const desiredDist = (obj1.size + obj2.size) * 0.8; // Процент тут
             
             if (dist < desiredDist && dist > 0.01) {
                 const compression = 1 - (dist / desiredDist);

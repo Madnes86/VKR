@@ -1,13 +1,16 @@
 <script lang="ts">
     import { Icon, LightText } from "$lib/components";
     import { searchStore } from "$lib/stores/search.svelte";
+	import type { Snippet } from "svelte";
 
     let {
         name,
         size,
+        children,
     } : {
         name: string;
         size: number;
+        children?: Snippet;
     } = $props();
 
     let hover: boolean = $state(false);
@@ -36,7 +39,7 @@
         {onmouseleave}
         role="presentation"
         class="flex left-1/2 -translate-x-1/2 text-center absolute bottom-full text-border">
-        <div>
+        <div class="flex items-center gap-2">
             {#if read}
                     <input 
                     autofocus
@@ -53,7 +56,7 @@
                 <button 
                     onmousedown={(e) => toggle(e)} 
                     style="font-size: {size / 5}px; height: {size / 4}px; line-height: {size / 4}px;" 
-                    class="click whitespace-nowrap select-none">
+                    class="click whitespace-nowrap select-none text-border">
                     <LightText text={name} />
                 </button>
                 {#if hover}
@@ -66,5 +69,6 @@
                     </button>
                 {/if}
             {/if}
+            {@render children?.()}
         </div>
     </div>

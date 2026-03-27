@@ -39,15 +39,9 @@
     let ey = $derived(y2 - unitY * r2);
     let midX: number = $derived((sx + ex) / 2);
     let midY: number = $derived((sy + ey) / 2);
-    function onclick() {
-        selectedStore.set('selected', data);
-    }
-    function onmouseenter() {
-        selectedStore.set('hover', data);
-    }
-    function onmouseleave() {
-        selectedStore.clear('hover');
-    }
+    function onclick() { selectedStore.set('selected', data) }
+    function onmouseenter() { selectedStore.set('hover', data) }
+    function onmouseleave() { selectedStore.clear('hover') }
 
 
 </script>
@@ -56,6 +50,7 @@
     <svg class="absolute top-0 left-0 size-full">
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
+
         <line 
             {onmouseenter} 
             {onmouseleave} 
@@ -74,8 +69,14 @@
         {onmouseenter}
         {onmouseleave}
         {onclick} 
-        style="left: {midX}px; top: {midY}px; font-size: {size / 7}px" 
-        class={`${false ? 'text-accent' : 'text-border'} click absolute text-border z-3 -translate-1/2`}>
-        <Name {name} size={size * 0.7} />
+        style="left: {midX}px; top: {midY}px; font-size: {size / 8}px" 
+        class={`${false ? 'text-accent' : 'text-border'} absolute text-border z-3 -translate-1/2`}>
+        <Name {name} size={size * 0.7}>
+            {#if hover}
+                <button style="font-size: {size / 8}px; border-radius: {size / 32}px" class="px-1 bg-gray-glass">3</button>
+                <input maxlength="1" style="font-size: {size / 8}px; border-radius: {size / 32}px" type="number" class="border-none w-18 px-2 py-1 rounded-sm bg-gray-glass">
+                <button style="font-size: {size / 8}px;" class="px-1 rounded-sm bg-gray-glass">3</button>
+            {/if}
+        </Name>
     </button>
 </div>

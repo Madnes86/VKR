@@ -4,7 +4,7 @@ class Side {
         { pos: 'l', width: 300, main: true },
         { pos: 'r', width: 300, main: false}
     ]);
-    i = $state(2);
+    i = $state(null);
 
     get v() { return this.#d }
     update(key: 'pos' | 'width' | 'main', v: never, i: number) {
@@ -22,7 +22,7 @@ class Side {
         const i = this.#d.findIndex(e => !e.main) 
         if (i !== -1) {
             this.#d.splice(i, 1);
-            this.i = 0;
+            this.i = null;
         }
     }
 }

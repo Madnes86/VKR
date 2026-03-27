@@ -3,6 +3,8 @@
     import { side } from "$lib/stores/other.svelte";
 
     const tabs: string[] = ['graph', 'entity', 'editor', 'alert', 'settings'];
+    const sections = [Tree, Entityes, Editor, Alerts, Settings];
+
     let {
         pos = 'r',
         width,
@@ -14,21 +16,18 @@
         main: boolean
         i: number
     } = $props();
+
+    let selectedTab: string = $state('graph');
+    let ref: number | null = $state(null);
+    let isDrag: boolean = $state(false);
+    let show: boolean = $state(true);
+    let hover: boolean = $state(false);
     let right: boolean = $derived(pos === 'r');
     let posClass: string = $derived.by(() => {
         if (pos === 'l') return 'left-0';
         if (pos === 'r') return 'right-0';
         return 'left-0';
     });
-
-    const sections = [Tree, Entityes, Editor, Alerts, Settings];
-    let selectedTab: string = $state('graph');
-    let ref: number | null = $state(null);
-    let isDrag: boolean = $state(false);
-    // let show: boolean = $derived(ref > 800);
-    let show: boolean = $state(true);
-
-    let hover: boolean = $state(false);
 
     const onmousedown = () => isDrag = true;
     const onmouseup   = () => isDrag = false;

@@ -17,7 +17,7 @@
     <Canvas />
     <Modal show={true} />
     <!-- <SideBar pos="r" width={300} main={false} /> -->
-    <Window />
+    <!-- <Window /> -->
     {#each notifications as {icon, title, type} (title)}
         <Notification {icon} {title} {type} />
     {/each}

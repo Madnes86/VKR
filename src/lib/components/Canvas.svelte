@@ -10,7 +10,12 @@
 
     let width: number = $state(0);
     let height: number = $state(0);
-    let centerX: number = $derived((width + side.v[0].width) / 2);
+    let centerX = $derived.by(() => {
+        const leftWidth = side.v[0]?.width ?? 0;
+        const rightWidth = side.v[1]?.width ?? 0;
+
+        return (leftWidth + width - rightWidth) / 2;
+    });
     let centerY: number = $derived(height / 2);
     let id: number | null = $state(treeStore.all.id ?? null);
     let objects: ITreeObject[] = $state([]);

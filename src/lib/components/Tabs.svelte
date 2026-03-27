@@ -1,12 +1,15 @@
 <script lang="ts">
-    import { Flex, Icon } from "$lib/components";
+    import { Flex, Icon, Spacer } from "$lib/components";
+	import type { Snippet } from "svelte";
 
     let {
         tabs,
-        selectedTab = $bindable()
+        selectedTab = $bindable(),
+        children
     } : {
         tabs: string[]
         selectedTab?: string
+        children: Snippet
     } = $props();
 
     function ondragstart(e: DragEvent, tab: string) {
@@ -29,4 +32,6 @@
             </button>
         {/if}
     {/each}
+    <Spacer />
+    {@render children?.()}
 </Flex>

@@ -5,12 +5,12 @@
     import { dragStore } from "$lib/stores/drag.svelte";
     import { physics, resizeObjects } from "$lib/functions/physics";
     import { contextStore } from "$lib/stores/context.svelte";
-    import { sideWidth } from "$lib/stores/other.svelte";
+    import { side } from "$lib/stores/other.svelte";
     import type { ITreeObject, ILink } from "$lib/interface";
 
     let width: number = $state(0);
     let height: number = $state(0);
-    let centerX: number = $derived((width + sideWidth.v) / 2);
+    let centerX: number = $derived((width + side.v[0].width) / 2);
     let centerY: number = $derived(height / 2);
     let id: number | null = $state(treeStore.all.id ?? null);
     let objects: ITreeObject[] = $state([]);

@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { Name } from "$lib/components";
     import { selectedStore } from "$lib/stores/objects.svelte";
     import type { ILink } from "$lib/interface";
-	import Name from "./Name.svelte";
 
     let {
         id,
@@ -45,7 +45,7 @@
 
 
 </script>
-
+<!-- TODO: fix link hover -->
 <div>
     <svg class="absolute top-0 left-0 size-full">
         <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -75,7 +75,7 @@
             {#if hover}
                 <button style="font-size: {size / 8}px; border-radius: {size / 32}px" class="px-1 bg-gray-glass">3</button>
                 <input maxlength="1" style="font-size: {size / 8}px; border-radius: {size / 32}px" type="number" class="border-none w-18 px-2 py-1 rounded-sm bg-gray-glass">
-                <button style="font-size: {size / 8}px;" class="px-1 rounded-sm bg-gray-glass">3</button>
+                <button style="font-size: {size / 8}px; border-radius: {size / 32}px" class="px-1 rounded-sm bg-gray-glass">3</button>
             {/if}
         </Name>
     </button>

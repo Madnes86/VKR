@@ -6,7 +6,7 @@
     import { selectedStore, viewStore } from "$lib/stores/objects.svelte";
 
     const TEXT = 'тестовый текст что бы проверить как это работает! new';
-    let text: string = $state(getText(objects, links));
+    let text: string = $state(getText(objects));
 
     let ref: HTMLTextAreaElement | undefined = $state();
     

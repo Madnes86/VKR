@@ -2,9 +2,8 @@
 class Side {
     #d = $state([
         { pos: 'l', width: 300, main: true },
-        { pos: 'r', width: 300, main: false}
     ]);
-    i = $state(null);
+    i: number | null = $state(null);
 
     get v() { return this.#d }
     update(key: 'pos' | 'width' | 'main', v: never, i: number) {

@@ -31,3 +31,6 @@ export { default as Search } from "./Search.svelte";
 export { default as DropDownMore } from "./DropDownMore.svelte";
 export { default as Name } from "./Name.svelte";
 export { default as LightText } from "./LightText.svelte";
+export { default as Wrapper } from "./Wrapper.svelte";
+export { default as Logo } from "./Logo.svelte";
+export { default as Footer } from "./Footer.svelte";

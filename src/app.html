@@ -28,6 +28,7 @@
     body {
         color: white;
         font-family: 'Nunito', sans-serif;
+        /* overflow-y: hidden; */
     }
     .click:active {
         filter: brightness(0.5);
@@ -92,4 +93,14 @@
             opacity: 0;
         }
     }
+    
+    html, body {
+        scrollbar-width: none; /* Firefox */
+    }
+
+    body::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+
+
 </style>

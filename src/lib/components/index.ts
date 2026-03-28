@@ -34,3 +34,4 @@ export { default as LightText } from "./LightText.svelte";
 export { default as Wrapper } from "./Wrapper.svelte";
 export { default as Logo } from "./Logo.svelte";
 export { default as Footer } from "./Footer.svelte";
+export { default as Card } from "./Card.svelte";

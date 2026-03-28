@@ -7,14 +7,14 @@ export type IFlatObject = {
 export type ITreeObject ={
     id: number;
     name: string;
-    type: string;
+    type?: string;
     x: number;
     y: number;
     size: number;
     mass?: number;
     parent?: number | null;
-    objects: ITreeObject[];
-    links: ILink[];
+    objects?: ITreeObject[];
+    links?: ILink[];
     selParent?: boolean;
 };
 export type IFlatLink = {

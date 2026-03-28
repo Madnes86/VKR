@@ -9,7 +9,7 @@
     let {
         id,
         name,
-        type,
+        type = 'default',
         x = 300,    
         y = 300,
         size = 100,

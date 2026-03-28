@@ -11,6 +11,6 @@
 
 </script>
 
-<div class="p-10 max-w-400 m-auto {className}">
+<div class="flex flex-col p-4 gap-4 w-180 rounded-md border border-gray bg-gray-glass {className}">
     {@render children()}
 </div>

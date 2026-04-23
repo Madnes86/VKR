@@ -98,7 +98,7 @@
     }
 </script>
 
-<div class="size-full h-screen flex flex-col">
+<div class="size-full h-screen flex flex-col border-l-2 border-gray">
     <div class="flex items-center gap-2 pr-2">
         <div class="flex-1">
             <Search onSearch={runSearch} />
@@ -114,6 +114,7 @@
                 <textarea
                     bind:value={text}
                     spellcheck="false"
+                    aria-label="global-editor"
                     class="absolute inset-0 size-full p-3 bg-zinc-950 text-transparent caret-accent resize-none outline-none rounded-md whitespace-pre-wrap break-words"
                 ></textarea>
             {/if}
@@ -139,7 +140,7 @@
             </div>
         </div>
     </div>
-    <div class="flex gap-4 px-3 py-1 text-xs text-zinc-400 font-mono select-none">
+    <div class="flex gap-4 px-3 py-1 my-2 text-xs text-zinc-400 font-mono select-none">
         <span>{i18n.t('global.stats.objects')}: <span class="text-white">{items.length}</span></span>
         <span>{i18n.t('global.stats.links')}: <span class="text-white">{linkItems.length}</span></span>
         <span>{i18n.t('global.stats.unsynced')}: <span class={unsyncedCount > 0 ? 'text-accent' : 'text-white'}>{unsyncedCount}</span></span>

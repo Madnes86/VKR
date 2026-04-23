@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Icon } from "$lib/components";
     import GlobalEditor from "$lib/components/GlobalEditor.svelte";
+    import GlobalCanvas from "$lib/components/GlobalCanvas.svelte";
     import { i18n } from "$lib/i18n";
 
     let collapsed: 'graph' | 'editor' | null = $state(null);
@@ -19,8 +20,8 @@
     );
 </script>
 
-<div class="flex size-screen">
-    <section class="{graphClass} relative h-full border-r-2 border-gray transition-[width] duration-200 overflow-hidden">
+<div class="flex w-screen h-screen">
+    <section class="{graphClass} relative h-screen border-r-2 border-gray transition-[width] duration-200 overflow-hidden">
         {#if collapsed === 'graph'}
             <button
                 onclick={() => toggle('graph')}
@@ -35,13 +36,11 @@
                     <Icon name="side-l-close" />
                 </button>
             </div>
-            <div class="size-full flex items-center justify-center text-zinc-500 select-none">
-                {i18n.t('global.graph')}
-            </div>
+            <GlobalCanvas />
         {/if}
     </section>
 
-    <section class="{editorClass} relative h-full transition-[width] duration-200 overflow-hidden">
+    <section class="{editorClass} relative h-screen transition-[width] duration-200 overflow-hidden">
         {#if collapsed === 'editor'}
             <button
                 onclick={() => toggle('editor')}

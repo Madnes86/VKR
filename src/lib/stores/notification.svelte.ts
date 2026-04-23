@@ -1,4 +1,6 @@
 // lib/stores/notification.svelte.ts
+import { i18n } from "$lib/i18n";
+
 interface Notification {
     id: string;
     icon: string;
@@ -9,7 +11,7 @@ interface Notification {
 
 class NotificationStore {
     private notifications = $state<Notification[]>([
-        {id: '0', icon: 'check', title: 'Welcom to have a good mood ', type: 'success', duration: 3000}
+        {id: '0', icon: 'check', title: i18n.t('notification.welcome'), type: 'success', duration: 3000}
     ]);
     
     get all() {

@@ -61,7 +61,7 @@
         e.preventDefault();
         const index = tabs.findIndex(i => i === e.dataTransfer?.getData("text/plain"));
         hover = false;
-        side.add({pos: 'r', width: 300, main: false}, index);
+        side.add({pos: right ? 'l' : 'r', width: 300, main: false}, index);
     };
     $effect(() => {
         800 > ref ? closing() : showing();
@@ -105,7 +105,7 @@
         <span {onmousedown} class="hover:bg-accent cursor-col-resize h-screen w-0.5 bg-gray"></span>
     </div>
     {#if 2 > side.v.length}
-        <div {ondrop} {ondragover} {ondragleave} class="{hover && 'bg-gray-glass'} {right ? 'left-0' : 'right-0'} fixed top-0 h-screen w-20 z-10"></div>
+        <div {ondrop} {ondragover} {ondragleave} class="{hover ? 'bg-gray-glass border-accent' : 'border-transparent'} {right ? 'left-0 border-r-2' : 'right-0 border-l-2'} border-dashed fixed top-0 h-screen w-40 z-10"></div>
     {/if}
 {:else}
     <div class="{posClass} p-1 flex z-1 absolute top-0 backdrop-blur-xs">

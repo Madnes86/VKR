@@ -2,6 +2,7 @@
     import { Icon } from "$lib/components";
     import { contextStore } from "$lib/stores/context.svelte";
 	import { objects } from "$lib/stores/objects.svelte";
+    import { i18n } from "$lib/i18n";
 
     let x: number = $derived(contextStore.x - 15);
     let y: number = $derived(contextStore.y - 15);
@@ -43,20 +44,20 @@
 
 {#if contextStore.isOpen}
     <div bind:this={menu} style="left: {x}px; top: {y}px" class="flex items-start border border-white flex-col gap-2 fixed p-2 rounded-lg backdrop-blur-[4px] bg-gray-glass z-1000">
-        {@render button('add', 'Add object', create)}
+        {@render button('add', i18n.t('context.addObject'), create)}
         {#if id > 0}
             {#if type !== 'default'}
-                {@render button('object', 'default type', defaultType)}
+                {@render button('object', i18n.t('context.defaultType'), defaultType)}
             {/if}
             {#if type !== 'interface'}
-                {@render button('interface', 'interface type', interfaceType)}
+                {@render button('interface', i18n.t('context.interfaceType'), interfaceType)}
             {/if}
             {#if type !== 'optional'}
-                {@render button('optional', 'optonal type', optionalType)}
+                {@render button('optional', i18n.t('context.optionalType'), optionalType)}
             {/if}
-            {@render button('up', 'up object', up)}
-            {@render button('down', 'down object', down)}
-            {@render button('delete', 'remove', remove, 'red')}
+            {@render button('up', i18n.t('context.up'), up)}
+            {@render button('down', i18n.t('context.down'), down)}
+            {@render button('delete', i18n.t('context.remove'), remove, 'red')}
         {/if}
     </div>
 {/if}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
     import { Icon } from "$lib/components";
+    import { i18n } from "$lib/i18n";
 
     let {
         children,
@@ -34,7 +35,7 @@
                         <input bind:checked={item.check} aria-label={item.name} type="checkbox" class="click size-3.5 text-accent rounded-xs border-none">
                         <button onclick={() => item.check = !item.check} class="click flex gap-1 items-center ">
                             <Icon name={item.icon} />
-                            <p class="w-full text-sm">{item.name}</p>
+                            <p class="w-full text-sm">{i18n.t('category.' + item.name)}</p>
                         </button>
                     </div>
                 {/each}

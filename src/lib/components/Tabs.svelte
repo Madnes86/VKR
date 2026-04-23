@@ -25,11 +25,11 @@
     {#each tabs as tab, i}
         {#if side.i !== i}
             {#if tab == selectedTab}
-                <div draggable="true" class="rounded-sm p-1 hover:bg-gray">
+                <div ondragstart={(e) => ondragstart(e, tab)} draggable="true" class="rounded-sm p-1 hover:bg-gray [&_svg]:pointer-events-none">
                     <Icon name={tab} stroke="#835CFD" />
                 </div>
             {:else}
-                <button onclick={() => selectedTab = tab} ondragstart={(e) => ondragstart(e, tab)} draggable="true" class="click rounded-sm p-1 hover:bg-gray">
+                <button onclick={() => selectedTab = tab} ondragstart={(e) => ondragstart(e, tab)} draggable="true" class="click rounded-sm p-1 hover:bg-gray [&_svg]:pointer-events-none">
                     <Icon name={tab} />
                 </button>
             {/if}

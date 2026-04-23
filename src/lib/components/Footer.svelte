@@ -1,11 +1,12 @@
 <script lang="ts">
     import { Icon, Wrapper } from "$lib/components";
+    import { i18n } from "$lib/i18n";
 
     const links = [
-        { href: '/docs', text: 'Документация' },
-        { href: '/support', text: 'Поддержать проект' },
-        { href: '/', text: 'Правовая информация' },
-        { href: '/bag', text: 'Баг-репорт' },
+        { href: '/docs', key: 'footer.docs' },
+        { href: '/support', key: 'footer.donate' },
+        { href: '/', key: 'footer.legal' },
+        { href: '/bag', key: 'footer.bug' },
     ];
     const currentYear = new Date().getFullYear();
 </script>
@@ -14,8 +15,8 @@
     <Wrapper className="m-0!">
         <div class="flex gap-2 justify-between w-full">
             <div class="flex flex-col gap-2">
-                {#each links as {href, text}}
-                    <a {href} class="click">{text}</a>
+                {#each links as {href, key}}
+                    <a {href} class="click">{i18n.t(key)}</a>
                 {/each}
             </div>
             <div class="flex flex-col gap-2">

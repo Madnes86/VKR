@@ -1,12 +1,19 @@
 <script lang="ts">
     import { Logo, Wrapper, DropDown, Icon } from "$lib/components";
+    import { i18n, type Lang } from "$lib/i18n";
+
     const navs = [
-        { href: "/app", label: "App"},
-        { href: "/docs", label: "Docs"},
-        { href: "/support", label: "Support"}
+        { href: "/app", key: "nav.app" },
+        { href: "/docs", key: "nav.docs" },
+        { href: "/support", key: "nav.support" }
     ];
-    const items = ['RU', 'EU'];
-    let selectedItem = $state('RU');
+    const items: string[] = ['RU', 'EN'];
+    let selectedItem = $state(i18n.lang.toUpperCase());
+
+    $effect(() => {
+        const lang = selectedItem.toLowerCase() as Lang;
+        if (lang !== i18n.lang) i18n.set(lang);
+    });
 
 </script>
 
@@ -17,8 +24,8 @@
                 <Logo />
             </a>
             <nav class="flex gap-4 px-4">
-                {#each navs as {href, label}}
-                    <a {href} class="click">{label}</a>
+                {#each navs as {href, key}}
+                    <a {href} class="click">{i18n.t(key)}</a>
                 {/each}
                 <DropDown {items} bind:selectedItem={selectedItem}>
                     <div class="flex gap-1">

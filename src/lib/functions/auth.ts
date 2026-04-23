@@ -1,15 +1,16 @@
 import { notificationStore } from "$lib/stores/notification.svelte";
 import { modalStore } from "$lib/stores/modal.svelte";
+import { i18n } from "$lib/i18n";
 
-// TODO: create ENV faile 
+// TODO: create ENV faile
 const BASE_URL: string = 'http://127.0.0.1:8000';
 
 export async function updateMe(data: object) { // Надобы интерфейс добавить
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
         console.error("No token found");
-        notificationStore.error("No token found", 'error');
+        notificationStore.error(i18n.t('auth.noToken'), 'error');
     }
 
     const response = await fetch(`${BASE_URL}/users/me`, {
@@ -22,7 +23,7 @@ export async function updateMe(data: object) { // Надобы интерфей�
     });
 
     if (response.ok) {
-        notificationStore.success('Profile updated!', 'check');
+        notificationStore.success(i18n.t('auth.profileUpdated'), 'check');
     } else {
         const error = await response.json();
         notificationStore.error(error.detail, 'error');
@@ -43,7 +44,7 @@ export async function login(email: string, password: string) {
 
     if (response.ok) {
         const data = await response.json();
-        notificationStore.success('Success login', 'check');
+        notificationStore.success(i18n.t('auth.loginSuccess'), 'check');
         console.log(data);
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('name', data.user.name);
@@ -70,7 +71,7 @@ export async function register(name: string, email: string, password: string) {
 
     if (response.ok) {
         const data = await response.json();
-        notificationStore.success('Success register', 'check');
+        notificationStore.success(i18n.t('auth.registerSuccess'), 'check');
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('name', data.user.name);
         localStorage.setItem('email', data.user.email);

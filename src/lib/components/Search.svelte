@@ -6,20 +6,27 @@
     import { notificationStore } from "$lib/stores/notification.svelte";
     import type { ICategory } from "$lib/interface";
 	import DropDownMore from "./DropDownMore.svelte";
+    import { i18n } from "$lib/i18n";
+
+    let {
+        onSearch
+    }: {
+        onSearch?: () => void;
+    } = $props();
 
     let v: string = $state('');
     let cats: ICategory[] = $state(categoryes);
     let global: boolean = $derived(cats[0].check);
     let stroke = $derived(global ? 'var(--color-accent)' : '#FFF');
     let selected: Omit<ICategory, 'icon'>[] = $derived(cats.filter(c => c.check).map(({ name, check }) => ({ name, check })));
-    const placeholder = 'Search';
+    let placeholder = $derived(i18n.t('search.placeholder'));
     const MAX_LENGTH = 64;
 
     $effect(() => {
         const newV = objectValidation(v);
 
         if (newV.length > 64) {
-            notificationStore.error('Не корректное значение поиска', 'error');
+            notificationStore.error(i18n.t('search.invalid'), 'error');
         } else {
             searchStore.set(newV, selected);
         }
@@ -28,13 +35,10 @@
     function search() {
         const newV = objectValidation(v);
 
-        if (3  > newV.length) return notificationStore.error('Не корректное значение поиска', 'error');
-        if (newV.length > 64) return notificationStore.error('Не корректное значение поиска', 'error');
-
-        // const selected = cats.filter(c => c.check).map(({ name, check }) => ({ name, check }));
-        // console.log(selected);
+        if (newV.length > 64) return notificationStore.error(i18n.t('search.invalid'), 'error');
 
         searchStore.set(newV, selected);
+        onSearch?.();
     }
     function clear() {
         v = '';

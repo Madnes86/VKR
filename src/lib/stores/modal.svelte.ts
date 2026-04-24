@@ -2,7 +2,7 @@
 import { SvelteMap } from 'svelte/reactivity';
 
 // Типы для разных модальных окон
-export type ModalType = 'login' | 'registration' | 'logout' | 'confirm';
+export type ModalType = 'login' | 'registration' | 'logout' | 'confirm' | 'password' | 'resetRequest';
 
 // Интерфейс состояния модального окна
 interface ModalState {

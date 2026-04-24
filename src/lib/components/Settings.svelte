@@ -1,6 +1,9 @@
 <script lang="ts">
     import { Icon, Form, Toggle, Button, DropDown } from "$lib/components";
     import { modalStore } from "$lib/stores/modal.svelte";
+    import { userStore } from "$lib/stores/user.svelte";
+    import { updateMe } from "$lib/functions/auth";
+    import { emailRule, userRule } from "$lib/functions/validators";
     import { i18n, type Lang } from "$lib/i18n";
 
     let toggles = $derived([
@@ -19,34 +22,43 @@
         if (l !== i18n.lang) i18n.set(l);
     });
 
-    let auth: boolean = $state(false);
-    let show: boolean = $state(false);
+    let isAuth = $derived(userStore.isAuthenticated);
+    let displayName = $derived(userStore.displayName);
+    let email = $derived(userStore.email ?? '');
 
-    let name: string = $derived(localStorage.getItem('name') ?? i18n.t('settings.anonim'));
-    let email: string = $derived(localStorage.getItem('email') ?? '');
-
-    function login() {
+    function openLogin() {
         modalStore.open('login');
-        auth = true;
     }
-    function logout() {
+    function openLogout() {
         modalStore.open('logout');
-        auth = false;
+    }
+    function openPasswordChange() {
+        modalStore.open('password');
+    }
+
+    async function saveName(newName: string): Promise<boolean> {
+        return await updateMe({ name: newName });
+    }
+    async function saveEmail(newEmail: string): Promise<boolean> {
+        return await updateMe({ email: newEmail });
     }
 </script>
 
 <div class="flex w-full items-center gap-2 flex-col p-2">
-    {#if auth}
-        <Form icon="user" text={name} />
-        <Form icon="mail" text={email} />
-        <Form icon="password" text={i18n.t('common.password')}/>
-        <Button onclick={logout} className="flex gap-2 p-1 m-1 text-red w-full hover:bg-gray rounded-md">
+    {#if isAuth}
+        <Form icon="user" text={displayName} validate={userRule} onsave={saveName} />
+        <Form icon="mail" text={email} validate={emailRule} onsave={saveEmail} />
+        <Button onclick={openPasswordChange} className="flex gap-2 p-1 m-1 w-full hover:bg-gray rounded-md">
+            <Icon name="password" stroke="red"/>
+            <p class="text-red">{i18n.t('settings.changePassword')}</p>
+        </Button>
+        <Button onclick={openLogout} className="flex gap-2 p-1 m-1 text-red w-full hover:bg-gray rounded-md">
             <Icon name="exit" />
             <p>{i18n.t('settings.exit')}</p>
         </Button>
     {:else}
-        <Form icon="user" text={i18n.t('settings.anonim')}/>
-        <Button onclick={login} className="flex gap-2 p-1 m-1 text-accent w-full hover:bg-gray rounded-md">
+        <Form icon="user" text={displayName} />
+        <Button onclick={openLogin} className="flex gap-2 p-1 m-1 text-accent w-full hover:bg-gray rounded-md">
             <Icon name="login" />
             <p>{i18n.t('settings.login')}</p>
         </Button>

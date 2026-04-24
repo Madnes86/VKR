@@ -37,8 +37,8 @@
         p: 'landing.test.p'
     }];
 
-    function login() {
-        modalStore.open('login');
+    function signup() {
+        modalStore.open('registration');
     }
 
 </script>
@@ -58,7 +58,7 @@
                 <p>{i18n.t(p)}</p>
                 <div class="flex gap-4 -1">
                     <a href="/app" class="click px-2 text-lg rounded-sm border border-accent">{i18n.t('landing.hero.try')}</a>
-                    <button onclick={login} class="animate-pulse click px-2 text-lg rounded-sm bg-accent">{i18n.t('landing.hero.signup')}</button>
+                    <button onclick={signup} class="animate-pulse click px-2 text-lg rounded-sm bg-accent">{i18n.t('landing.hero.signup')}</button>
                 </div>
             </Card>
         {/each}
@@ -95,7 +95,7 @@
                     <b>{i18n.t(b)}</b>
                     <p>{i18n.t(p)}</p>
                     <div class="flex gap-4">
-                        <button onclick={login} class="click px-2 text-lg rounded-sm border text-yellow border-yellow">{i18n.t('landing.hero.signup')}</button>
+                        <button onclick={signup} class="click px-2 text-lg rounded-sm border text-yellow border-yellow">{i18n.t('landing.hero.signup')}</button>
                         <button class="animate-pulse click px-2 text-lg rounded-sm text-black bg-yellow ">{i18n.t('landing.test.test')}</button>
                     </div>
                 </div>

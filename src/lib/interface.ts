@@ -3,6 +3,7 @@ export type IFlatObject = {
     name: string,
     type: string,
     parent: number | null,
+    content?: Record<string, unknown> | null,
 };
 export type ITreeObject ={
     id: number;

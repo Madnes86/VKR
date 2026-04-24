@@ -16,20 +16,18 @@
             contextStore.close();
         }
     }
-    // TODO: fix move object with push
     function create() {
-        objects.add({
-            id: Math.random(),
+        // id=0 — клиентский sentinel «корень», на сервере его не бывает.
+        const p = contextStore.data?.id;
+        objects.create({
             name: 'test',
             type: 'default',
-            parent: contextStore.data?.id ?? 0
+            parent: p && p > 0 ? p : null,
         });
     }
     const defaultType = () => objects.updateType(id, 'default');
     const interfaceType = () => objects.updateType(id, 'interface');
     const optionalType = () => objects.updateType(id, 'optional');
-    const up = () => objects.up(id);
-    const down = () => objects.down(id);
     const remove = () => objects.remove(id);
 </script>
 
@@ -55,8 +53,6 @@
             {#if type !== 'optional'}
                 {@render button('optional', i18n.t('context.optionalType'), optionalType)}
             {/if}
-            {@render button('up', i18n.t('context.up'), up)}
-            {@render button('down', i18n.t('context.down'), down)}
             {@render button('delete', i18n.t('context.remove'), remove, 'red')}
         {/if}
     </div>

@@ -37,3 +37,4 @@ export { default as Footer } from "./Footer.svelte";
 export { default as Card } from "./Card.svelte";
 export { default as BgGraph } from "./BgGraph.svelte";
 export { default as BgSpace } from "./BgSpace.svelte";
+export { default as DemoCanvas } from "./DemoCanvas.svelte";

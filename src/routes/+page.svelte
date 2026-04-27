@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Header, Wrapper, Icon, Footer, Logo, Card, Modal } from "$lib/components";
+    import { Header, Wrapper, Icon, Footer, Logo, Card, Modal, BgGraph, BgSpace, DemoCanvas } from "$lib/components";
     import { modalStore } from "$lib/stores/modal.svelte";
     import { i18n } from "$lib/i18n";
 
@@ -44,9 +44,12 @@
 </script>
 
 <Header />
-<Modal show={true} />
+<Modal />
 
-<Wrapper>
+<div class="relative isolate">
+    <BgSpace />
+    <BgGraph />
+    <Wrapper>
     <section class="flex h-100 justify-center items-center">
         {#each hero as {h, b, p}}
             <Card>
@@ -77,8 +80,12 @@
                         </div>
                     {/each}
                 </Card>
-                <div>
-                    <img src="src/lib/img/{img}.gif" alt="dsds">
+                <div class="flex justify-center">
+                    {#if i === 0}
+                        <DemoCanvas />
+                    {:else}
+                        <img src="src/lib/img/{img}.gif" alt="dsds">
+                    {/if}
                 </div>
             </div>
         {/each}
@@ -102,6 +109,7 @@
             </Card>
         {/each}
     </section>
-</Wrapper>
+    </Wrapper>
+</div>
 
 <Footer />

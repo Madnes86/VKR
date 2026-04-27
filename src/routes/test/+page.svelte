@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Header, Wrapper, Icon, Footer, Logo, Card, Modal, BgGraph } from "$lib/components";
+    import { Header, Wrapper, Icon, Footer, Logo, Card, Modal, BgGraph, BgSpace } from "$lib/components";
     import { modalStore } from "$lib/stores/modal.svelte";
     import { i18n } from "$lib/i18n";
 
@@ -46,6 +46,7 @@
 <Modal />
 
 <div class="relative isolate">
+    <BgSpace />
     <BgGraph />
     <Wrapper>
         <section class="flex h-100 justify-center items-center relative">

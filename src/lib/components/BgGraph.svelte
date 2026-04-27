@@ -14,7 +14,7 @@
         const count = mobile ? Math.max(10, Math.round(density * 0.45)) : density;
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-        type Node = { x: number; y: number; vx: number; vy: number; r: number; box: boolean; opt: boolean };
+        type Node = { x: number; y: number; vx: number; vy: number; r: number };
         let nodes: Node[] = [];
         let w = 0;
         let h = 0;
@@ -35,9 +35,7 @@
                 y: Math.random() * h,
                 vx: (Math.random() - 0.5) * 0.25,
                 vy: (Math.random() - 0.5) * 0.25,
-                r: 5 + Math.random() * 7,
-                box: Math.random() > 0.45,
-                opt: Math.random() > 0.8
+                r: 4 + Math.random() * 6
             }));
         }
 
@@ -65,27 +63,21 @@
         document.addEventListener('visibilitychange', onVis);
 
         function drawNode(n: Node) {
-            const fill = n.opt ? 'rgba(255, 247, 0, 0.55)' : 'rgba(131, 92, 253, 0.65)';
-            const stroke = n.opt ? 'rgba(255, 247, 0, 0.9)' : 'rgba(131, 92, 253, 0.9)';
-            ctx!.fillStyle = fill;
-            ctx!.strokeStyle = stroke;
-            ctx!.lineWidth = 1.2;
-            if (n.box) {
-                const s = n.r * 1.8;
-                ctx!.beginPath();
-                if ('roundRect' in ctx!) {
-                    (ctx as CanvasRenderingContext2D & { roundRect: (x: number, y: number, w: number, h: number, r: number) => void }).roundRect(n.x - s / 2, n.y - s / 2, s, s, 3);
-                } else {
-                    ctx!.rect(n.x - s / 2, n.y - s / 2, s, s);
-                }
-                ctx!.fill();
-                ctx!.stroke();
-            } else {
-                ctx!.beginPath();
-                ctx!.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-                ctx!.fill();
-                ctx!.stroke();
-            }
+            const glow = ctx!.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 3);
+            glow.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+            glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx!.fillStyle = glow;
+            ctx!.beginPath();
+            ctx!.arc(n.x, n.y, n.r * 3, 0, Math.PI * 2);
+            ctx!.fill();
+
+            ctx!.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx!.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx!.lineWidth = 1;
+            ctx!.beginPath();
+            ctx!.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+            ctx!.fill();
+            ctx!.stroke();
         }
 
         function loop() {
@@ -100,8 +92,8 @@
                     const dy = a.y - b.y;
                     const d = Math.hypot(dx, dy);
                     if (d < link) {
-                        const alpha = (1 - d / link) * 0.4;
-                        ctx.strokeStyle = `rgba(131, 92, 253, ${alpha.toFixed(3)})`;
+                        const alpha = (1 - d / link) * 0.55;
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
                         ctx.lineWidth = 1;
                         ctx.beginPath();
                         ctx.moveTo(a.x, a.y);

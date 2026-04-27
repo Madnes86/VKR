@@ -35,3 +35,5 @@ export { default as Wrapper } from "./Wrapper.svelte";
 export { default as Logo } from "./Logo.svelte";
 export { default as Footer } from "./Footer.svelte";
 export { default as Card } from "./Card.svelte";
+export { default as BgGraph } from "./BgGraph.svelte";
+export { default as BgSpace } from "./BgSpace.svelte";

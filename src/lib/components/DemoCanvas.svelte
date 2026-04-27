@@ -106,7 +106,7 @@
     });
 </script>
 
-<div bind:this={container} class="relative w-full max-w-100 aspect-square rounded-md border border-gray bg-black/40 overflow-hidden select-none">
+<div bind:this={container} class="relative w-100 h-100 shrink-0 rounded-md border border-gray bg-black/40 overflow-hidden select-none">
     {#each objects as o (o.id)}
         <Object id={o.id} name={o.name} type={o.type} x={o.x} y={o.y} size={o.size} objects={o.objects ?? []} links={o.links ?? []} selParent={false} />
     {/each}

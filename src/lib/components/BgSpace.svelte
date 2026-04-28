@@ -157,7 +157,7 @@
     });
 </script>
 
-<div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+<div class="absolute inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden="true">
     <div class="absolute inset-0 nebula"></div>
     <canvas bind:this={canvas} class="absolute inset-0 w-full h-full"></canvas>
 </div>

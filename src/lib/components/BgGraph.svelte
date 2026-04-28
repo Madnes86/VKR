@@ -99,11 +99,9 @@
 
         function drawNode(n: Node, hovered: boolean) {
             if (hovered) {
-                ctx!.fillStyle = '#835CFD';
                 ctx!.strokeStyle = '#835CFD';
-                ctx!.lineWidth = 1.5;
+                ctx!.lineWidth = 1;
             } else {
-                ctx!.fillStyle = '#000';
                 ctx!.strokeStyle = 'rgba(255, 255, 255, 0.9)';
                 ctx!.lineWidth = 1;
             }
@@ -111,20 +109,6 @@
             ctx!.arc(n.x, n.y, n.r, 0, Math.PI * 2);
             ctx!.fill();
             ctx!.stroke();
-
-            if (!hovered) {
-                ctx!.strokeStyle = 'rgba(0, 0, 0, 0.9)';
-                ctx!.lineWidth = 1;
-                ctx!.beginPath();
-                ctx!.arc(n.x, n.y, n.r + 1.5, 0, Math.PI * 2);
-                ctx!.stroke();
-            } else {
-                ctx!.strokeStyle = 'rgba(131, 92, 253, 0.45)';
-                ctx!.lineWidth = 4;
-                ctx!.beginPath();
-                ctx!.arc(n.x, n.y, n.r + 4, 0, Math.PI * 2);
-                ctx!.stroke();
-            }
         }
 
         function loop() {
@@ -208,7 +192,7 @@
     });
 </script>
 
-<div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+<div class="absolute inset-0 -z-10 pointer-events-none" aria-hidden="true">
     <canvas bind:this={canvas} class="absolute inset-0 w-full h-full"></canvas>
     {#if showName}
         <div

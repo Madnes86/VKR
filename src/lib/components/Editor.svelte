@@ -6,7 +6,7 @@
      * и создаём новое через syncQueue, сервер сам обработает.
      */
     import { projectStore } from "$lib/stores/project.svelte";
-    import { extractSyntax } from "$lib/functions/llm";
+    import { extractSyntax, type ExtractMode } from "$lib/functions/llm";
     import { objects, links } from "$lib/stores/objects.svelte";
     import { Icon } from "$lib/components";
 
@@ -14,6 +14,18 @@
     let dirty: boolean = $state(false);
     let generating: boolean = $state(false);
     let status: string = $state('');
+
+    // Тоггл «семантический анализ»: пользователь сам решает, ждать ли
+    // дополнительный голос LLM. Состояние persisted, чтобы между сессиями
+    // не сбрасывалось.
+    const SEMANTIC_KEY = 'editor.useSemantic';
+    let useSemantic: boolean = $state(
+        typeof localStorage !== 'undefined' && localStorage.getItem(SEMANTIC_KEY) === '1'
+    );
+    $effect(() => {
+        if (typeof localStorage === 'undefined') return;
+        localStorage.setItem(SEMANTIC_KEY, useSemantic ? '1' : '0');
+    });
 
     // Пока пользователь не правил — draft следует за сохранённым текстом.
     $effect(() => {
@@ -31,9 +43,12 @@
     async function onExtract() {
         if (!draft.trim() || generating) return;
         generating = true;
-        status = 'разбираю текст…';
+        const mode: ExtractMode = useSemantic ? 'semantic' : 'fast';
+        status = mode === 'semantic'
+            ? 'разбираю текст + LLM-семантика (это дольше)…'
+            : 'разбираю текст…';
         try {
-            const res = await extractSyntax(draft);
+            const res = await extractSyntax(draft, mode);
             if (!res) { status = 'failed'; return; }
             if (res.objects.length === 0) {
                 status = 'spacy ничего не извлёк';
@@ -83,6 +98,18 @@
                 Отмена
             </button>
         {/if}
+        <label
+            class="ml-2 flex items-center gap-1.5 text-xs select-none cursor-pointer opacity-80 hover:opacity-100 transition"
+            title="Дополнительный проход через локальный LLM. Точнее восстанавливает иерархию на длинных текстах, но добавляет 5–30 секунд."
+        >
+            <input
+                type="checkbox"
+                bind:checked={useSemantic}
+                disabled={generating}
+                class="cursor-pointer"
+            />
+            <span>LLM-семантика</span>
+        </label>
         <span class="ml-auto text-xs text-zinc-400">{status}</span>
     </div>
 

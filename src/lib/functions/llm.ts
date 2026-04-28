@@ -27,12 +27,19 @@ export type SyntaxResult = {
     _quota?: { used: number; limit: number };
 };
 
+export type ExtractMode = 'fast' | 'semantic';
+
 /**
  * Синтаксический разбор: spacy сразу возвращает граф объектов в формате
- * фронта. Без LLM, без TS-промежутка. Существительные → узлы, прилагательные
- * → дочерние узлы-листы, глаголы/родительный падеж → связи.
+ * фронта. mode='fast' — только синтаксический парент-ранкер (~1с,
+ * default). mode='semantic' — добавляет голос локального LLM (Ollama),
+ * 5–30с в зависимости от длины текста и cold-start модели; точнее
+ * восстанавливает иерархию на длинных текстах.
  */
-export async function extractSyntax(text: string): Promise<SyntaxResult | null> {
+export async function extractSyntax(
+    text: string,
+    mode: ExtractMode = 'fast',
+): Promise<SyntaxResult | null> {
     if (!text.trim()) return null;
 
     const token = localStorage.getItem('token');
@@ -42,7 +49,7 @@ export async function extractSyntax(text: string): Promise<SyntaxResult | null> 
     const res = await apiFetch(`${BACKEND_URL}/llm/extract-syntax`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, mode }),
     });
     if (!res) return null;
     if (res.ok) return await res.json();

@@ -61,11 +61,12 @@
             </button>
         {/snippet}
         {@render button("global", () => cats[0].check = !cats[0].check, stroke)}
-        <input 
-            bind:value={v} 
+        <input
+            bind:value={v}
             {placeholder}
-            type="text" 
+            type="text"
             maxlength={MAX_LENGTH}
+            onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); search(); } }}
             class="w-full text-lg p-0 border-none bg-transparent">
         {#if v.length > 2}
             {@render button("cross", clear)}

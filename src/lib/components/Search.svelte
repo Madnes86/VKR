@@ -37,13 +37,19 @@
 
         if (newV.length > 64) return notificationStore.error(i18n.t('search.invalid'), 'error');
 
+        // searchStore.set уже выставит applied=false если строка изменилась.
+        // apply() переключает store в режим фильтра — узлы не матчащие
+        // запрос исчезнут из Tree/Entityes/Canvas.
         searchStore.set(newV, selected);
+        searchStore.apply();
         onSearch?.();
     }
     function clear() {
         v = '';
-        // const selected = cats.filter(c => c.check).map(({ name, check }) => ({ name, check }));
-        searchStore.set(v, selected);
+        // Полный сброс: и query, и applied. После clear все элементы
+        // снова видны без подсветки.
+        searchStore.clear();
+        searchStore.set('', selected);
     }
     
 </script>

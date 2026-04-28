@@ -1,12 +1,12 @@
 <script lang="ts">
     /**
-     * Entityes — пул компонентов проекта. Сюда попадают узлы с
-     * type === 'component': либо помеченные NLP-сервисом (лемма встретилась
-     * в тексте ≥2 раз и не входит в стоп-лист общих существительных), либо
-     * вручную пользователем. Графовая вкладка по-прежнему показывает все
-     * объекты — компоненты там тоже видны как отдельные узлы. Когда
-     * появится ref-тип, ссылки в графе будут указывать на каноничную
-     * сущность отсюда.
+     * Entityes — пул компонентов проекта (объекты с type==='component').
+     * Поиск работает в двух режимах:
+     *   - applied=false: список не урезается, LightText в TreeForm
+     *     подсвечивает совпадения по подстроке.
+     *   - applied=true: список схлопывается до элементов, имя которых
+     *     матчит запрос. Без applied кнопка поиска ничего не делает,
+     *     это и есть режим «найти, не отрезая контекст».
      */
     import { TreeForm } from "$lib/components";
     import { objects } from "$lib/stores/objects.svelte";
@@ -14,9 +14,12 @@
 
     const components = $derived(objects.all.filter(o => o.type === 'component'));
 
-    // Простая подсветка по поиску — для компонентов не используем
-    // optional/Local-категории, у этого пула другая семантика.
     const query = $derived(searchStore.get().toLowerCase().trim());
+
+    const visibleComponents = $derived.by(() => {
+        if (!searchStore.applied || !query) return components;
+        return components.filter(c => (c.name ?? '').toLowerCase().includes(query));
+    });
 </script>
 
 <div class="p-1 flex flex-col w-full gap-1">
@@ -24,8 +27,12 @@
         <p class="p-2 text-sm opacity-60">
             Пул пуст. Компонентом становится сущность, упомянутая в тексте больше одного раза, либо помеченная вручную.
         </p>
+    {:else if visibleComponents.length === 0}
+        <p class="p-2 text-sm opacity-60">
+            Ничего не найдено по запросу «{searchStore.get()}». Сбросьте поиск, чтобы вернуть полный список.
+        </p>
     {:else}
-        {#each components as c (c.id)}
+        {#each visibleComponents as c (c.id)}
             <TreeForm id={c.id} name={c.name} type='o' more={false} {query} />
         {/each}
     {/if}

@@ -1,11 +1,13 @@
 <script lang="ts">
     import { Object, Link } from "$lib/components";
-    import { treeStore } from "$lib/stores/objects.svelte";
+    import { treeStore, objects as flatObjects } from "$lib/stores/objects.svelte";
     import { scaleStore } from "$lib/stores/scale.svelte";
     import { dragStore } from "$lib/stores/drag.svelte";
     import { physics, resizeObjects } from "$lib/functions/physics";
     import { contextStore } from "$lib/stores/context.svelte";
+    import { searchStore } from "$lib/stores/search.svelte";
     import { side } from "$lib/stores/other.svelte";
+    import { computeSearchVisibility } from "$lib/functions/search";
     import type { ITreeObject, ILink } from "$lib/interface";
 
     let width: number = $state(0);
@@ -42,12 +44,24 @@
         e.stopPropagation();
         contextStore.set(e, id);
     }
+    // Подсчёт visibility — не делаем spread, чтобы оригинальные ITreeObject
+    // (на которые мутирует physics x/y) сохранились между переключениями
+    // фильтра. Filter возвращает массив с теми же refs.
+    let visibility: Set<number> | null = $derived.by(() => {
+        const q = searchStore.get().trim();
+        if (!searchStore.applied || !q) return null;
+        return computeSearchVisibility(flatObjects.all, q);
+    });
+
     $effect(() => {
         const data = treeStore.all;
+        const v = visibility;
         if (data && data.objects) {
-
-            objects = data.objects; 
-            links = data.links;
+            const baseLinks = data.links ?? [];
+            objects = v ? data.objects.filter(o => v.has(o.id)) : data.objects;
+            links = v
+                ? baseLinks.filter(l => v.has(l.is) && v.has(l.to))
+                : baseLinks;
         }
     });
     $effect(() => {

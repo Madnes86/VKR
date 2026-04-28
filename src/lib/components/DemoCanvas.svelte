@@ -108,13 +108,13 @@
 
 <div bind:this={container} class="relative w-100 h-100 shrink-0 rounded-md overflow-hidden select-none">
     {#each objects as o (o.id)}
-        <Object id={o.id} name={o.name} type={o.type} x={o.x} y={o.y} size={o.size} objects={o.objects ?? []} links={o.links ?? []} selParent={false} />
+        <Object id={o.id} name={o.name} type={o.type} x={o.x} y={o.y} size={o.size} objects={o.objects ?? []} links={o.links ?? []} selParent={false} noArrows />
     {/each}
     {#each topLinks as l (l.id)}
         {@const isObj = objects.find(o => o.id === l.is)}
         {@const toObj = objects.find(o => o.id === l.to)}
         {#if isObj && toObj}
-            <Link id={l.id} name={l.name} type={l.type} is={isObj} to={toObj} />
+            <Link id={l.id} name={l.name} type={l.type} is={isObj} to={toObj} isValue={false} toValue={false} />
         {/if}
     {/each}
 </div>

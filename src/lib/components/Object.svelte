@@ -10,13 +10,14 @@
         id,
         name,
         type = 'default',
-        x = 300,    
+        x = 300,
         y = 300,
         size = 100,
         objects = [],
         links = [],
-        selParent
-    } : ITreeObject = $props();
+        selParent,
+        noArrows = false
+    } : ITreeObject & { noArrows?: boolean } = $props();
 
     let ref: HTMLElement | undefined = $state(undefined);
     let data = $derived(`o + ${id}`);
@@ -103,7 +104,7 @@
             style="border: {size / 100}px {border} {selParent ? 'black' : 'white'}; outline: {size / 100}px {border} black; transition-duration: {size}ms"
             class={`${selected && 'bg-accent! border-none!'} ${hover && 'outline-accent! border-0!'} transition-all rounded-full size-full bg-black`}>
             {#each objects as {id, name, type, x, y, size, objects, links}, i}
-                <Object {id} {name} {type} {x} {y} {size} {objects} {links} selParent={selected ? true : false} />
+                <Object {id} {name} {type} {x} {y} {size} {objects} {links} {noArrows} selParent={selected ? true : false} />
             {/each}
             {#each links as l}
                 {@const self = { x: 0, y: 0, size }}
@@ -111,7 +112,15 @@
                 {@const to = l.to === id ? self : objects.find(o => o.id === l.to)}
 
                 {#if is && to}
-                    <Link id={l.id} name={l.name} type={l.type} {is} {to} />
+                    <Link
+                        id={l.id}
+                        name={l.name}
+                        type={l.type}
+                        {is}
+                        {to}
+                        isValue={false}
+                        toValue={!noArrows}
+                    />
                 {/if}
             {/each}
         </div>

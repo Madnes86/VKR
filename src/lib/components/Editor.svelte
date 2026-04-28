@@ -24,6 +24,8 @@
     import { projectStore } from "$lib/stores/project.svelte";
     import { extractSyntax, type ExtractMode } from "$lib/functions/llm";
     import { objects, links } from "$lib/stores/objects.svelte";
+    import { validationStore } from "$lib/stores/validation.svelte";
+    import { notificationStore } from "$lib/stores/notification.svelte";
     import {
         parseProjectText,
         blocksToPlainText,
@@ -220,7 +222,22 @@
             objects.setAll(res.objects);
             links.setAll(res.links);
 
-            status = `извлечено: ${res.objects.length} объектов, ${res.links.length} связей`;
+            // Прогоняем валидацию по свежему графу: если что-то найдено —
+            // notification + список в Alerts; объекты/связи окрасятся
+            // через validationStore.severityForObject/Link.
+            const issues = validationStore.run();
+            const errs = validationStore.errors.length;
+            const warns = validationStore.warnings.length;
+            if (errs > 0) {
+                notificationStore.error(`Проверка: ${errs} ошибок, ${warns} предупреждений`);
+            } else if (warns > 0) {
+                notificationStore.show({
+                    icon: 'alert',
+                    title: `Проверка: ${warns} предупреждений`,
+                    type: 'warning',
+                });
+            }
+            status = `извлечено: ${res.objects.length} объектов, ${res.links.length} связей · issues: ${issues.length}`;
         } finally {
             generating = false;
         }

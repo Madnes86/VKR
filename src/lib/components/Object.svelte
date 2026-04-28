@@ -1,9 +1,10 @@
 <script lang="ts">
     import { Object, Link, Name } from "$lib/components";
     import { physics } from "$lib/functions/physics";
-    import { dragStore } from "$lib/stores/drag.svelte";  
+    import { dragStore } from "$lib/stores/drag.svelte";
     import { viewStore, selectedStore } from "$lib/stores/objects.svelte";
     import { contextStore } from "$lib/stores/context.svelte";
+    import { validationStore } from "$lib/stores/validation.svelte";
     import type { ITreeObject } from "$lib/interface";
 
     let {
@@ -23,6 +24,12 @@
     let data = $derived(`o + ${id}`);
     let selected: boolean = $derived(selectedStore.selected === data);
     let hover: boolean = $derived(selectedStore.hover === data);
+    let validationColor: string = $derived.by(() => {
+        const sev = validationStore.severityForObject(id);
+        if (sev === 'error')   return 'var(--color-red)';
+        if (sev === 'warning') return 'var(--color-yellow)';
+        return 'white';
+    });
     const centerX:  number = $derived(size / 2);
     const centerY:  number = $derived(size / 2);
     const border:   string = $derived(type === 'default' ? 'solid' : 'dashed');
@@ -101,7 +108,7 @@
             {oncontextmenu}
             {onmouseover}
             {onmouseleave}
-            style="border: {size / 100}px {border} {selParent ? 'black' : 'white'}; outline: {size / 100}px {border} black; transition-duration: {size}ms"
+            style="border: {size / 100}px {border} {selParent ? 'black' : validationColor}; outline: {size / 100}px {border} black; transition-duration: {size}ms"
             class={`${selected && 'bg-accent! border-none!'} ${hover && 'outline-accent! border-0!'} transition-all rounded-full size-full bg-black`}>
             {#each objects as {id, name, type, x, y, size, objects, links}, i}
                 <Object {id} {name} {type} {x} {y} {size} {objects} {links} {noArrows} selParent={selected ? true : false} />

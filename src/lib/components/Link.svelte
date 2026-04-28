@@ -1,5 +1,6 @@
 <script lang="ts">
     import { selectedStore, links as linksStore } from "$lib/stores/objects.svelte";
+    import { validationStore } from "$lib/stores/validation.svelte";
     import type { ILink } from "$lib/interface";
 
     let {
@@ -43,7 +44,13 @@
     // hover-цвет будет «протекать» между линиями.
     let markerStart = $derived(`arrow-s-${id}`);
     let markerEnd = $derived(`arrow-e-${id}`);
-    let strokeColor = $derived(selected || hover ? 'var(--color-accent)' : 'white');
+    let strokeColor = $derived.by(() => {
+        if (selected || hover) return 'var(--color-accent)';
+        const sev = validationStore.severityForLink(id);
+        if (sev === 'error')   return 'var(--color-red)';
+        if (sev === 'warning') return 'var(--color-yellow)';
+        return 'white';
+    });
 
     function onclick() { selectedStore.set('selected', data) }
     function onmouseenter() { selectedStore.set('hover', data) }

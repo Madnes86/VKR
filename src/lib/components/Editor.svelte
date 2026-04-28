@@ -37,12 +37,33 @@
 
     let editorEl: HTMLDivElement | undefined = $state();
     let editor: EditorJS | undefined;
-    let editorReady = false;
+    // editorReady — РЕАКТИВНЫЙ: $effect-ы ниже проверяют этот флаг, и
+    // EditorJS взводит его асинхронно из onReady. Без $state реактивная
+    // подписка не работает, и render(data) после load() не вызывается —
+    // юзер видит пустой редактор и печатает поверх загруженного текста.
+    let editorReady: boolean = $state(false);
     let suppressOnChange = false;          // блокирует автосейв при render(...)
     let saveTimer: ReturnType<typeof setTimeout> | null = null;
     let lastSavedText: string = '';        // что мы сами в стор положили — не реагируем на это
     let lastProjectId: number | null = null;
     let lastBuiltLang: string | null = null;
+
+    // Локальный бэкап содержимого редактора. Нужен для двух случаев:
+    // 1) Гость не вызывает projectStore.load(), id остаётся null,
+    //    projectStore.save() сразу возвращает false → текст пропадал.
+    // 2) Сетевой/серверный сбой — пишем локально, синхронизуем при
+    //    следующем успешном save через performSave.
+    const LOCAL_DRAFT_KEY = 'editor.draft.v1';
+    function loadLocalDraft(): string | null {
+        if (typeof localStorage === 'undefined') return null;
+        try { return localStorage.getItem(LOCAL_DRAFT_KEY); }
+        catch { return null; }
+    }
+    function saveLocalDraft(serialized: string): void {
+        if (typeof localStorage === 'undefined') return;
+        try { localStorage.setItem(LOCAL_DRAFT_KEY, serialized); }
+        catch { /* quota — игнорируем, не валим автосейв */ }
+    }
 
     let generating: boolean = $state(false);
     let status: string = $state('');
@@ -64,9 +85,18 @@
         const serialized = serializeProjectData(data);
         if (serialized === lastSavedText) return;
         lastSavedText = serialized;
+
+        // Локальный бэкап ВСЕГДА: если сервер потом упадёт или это
+        // гость — на следующем заходе читаем отсюда.
+        saveLocalDraft(serialized);
         projectStore.setText(serialized);
-        await projectStore.save();
-        status = projectStore.saveStatus;
+
+        if (projectStore.id !== null) {
+            const ok = await projectStore.save();
+            status = ok ? projectStore.saveStatus : `только локально (${projectStore.saveStatus})`;
+        } else {
+            status = 'сохранено локально (нет аккаунта)';
+        }
     }
 
     function scheduleSave() {
@@ -171,10 +201,31 @@
         createEditor(snapshot);
     }
 
+    /** Выбирает данные для первого рендера: сначала текущий стор; если
+     * он пуст (гость, либо load() ещё не отработал) — пробуем
+     * localStorage-драфт. Это и есть восстановление текста после
+     * перезагрузки страницы для неаутентифицированного юзера. */
+    function pickInitialData(): OutputData {
+        const fromStore = parseProjectText(projectStore.text);
+        if (fromStore.blocks.length > 0) return fromStore;
+        const local = loadLocalDraft();
+        if (local) {
+            const restored = parseProjectText(local);
+            if (restored.blocks.length > 0) return restored;
+        }
+        return fromStore;
+    }
+
     onMount(() => {
-        const initialData = parseProjectText(projectStore.text);
+        const initialData = pickInitialData();
         lastSavedText = serializeProjectData(initialData);
         lastProjectId = projectStore.id;
+        // Если восстановили текст из локального драфта (и projectStore
+        // пуст) — синхронизуем стор, чтобы остальное приложение видело
+        // его как «текст проекта». save() для гостя вернёт false тихо.
+        if (initialData.blocks.length > 0 && !projectStore.text.trim()) {
+            projectStore.setText(serializeProjectData(initialData));
+        }
         createEditor(initialData);
     });
 

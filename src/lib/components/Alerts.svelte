@@ -74,10 +74,4 @@
             <Alert title={a.title} text={a.text} type={a.type} show={show === i} {query} />
         </Button>
     {/each}
-
-    {#each filterAlerts as {title, text, type}, i (`s-${title}-${i}`)}
-        <Button onclick={() => toggle(i + validationAlerts.length)} className="w-full">
-            <Alert {title} {text} {type} show={show === i + validationAlerts.length} {query} />
-        </Button>
-    {/each}
 </div>

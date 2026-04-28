@@ -52,8 +52,8 @@ export type LinkCreateDiff = {
     type?: string;
     is: number | string;
     to: number | string;
-    isValue?: number;
-    toValue?: number;
+    isValue?: boolean;
+    toValue?: boolean;
 };
 export type LinkUpdateDiff = {
     id: number;
@@ -61,8 +61,8 @@ export type LinkUpdateDiff = {
     type?: string;
     is?: number;
     to?: number;
-    isValue?: number;
-    toValue?: number;
+    isValue?: boolean;
+    toValue?: boolean;
 };
 
 export type SyncRequest = {

@@ -11,8 +11,8 @@
     const currentYear = new Date().getFullYear();
 </script>
 
-<footer class="w-full flex flex-col border-t-2 border-gray bg-gray-glass">
-    <Wrapper className="m-0!">
+<footer class="w-full flex flex-col items-center border-t-2 border-gray bg-gray-glass">
+    <Wrapper className="m-0! w-full!">
         <div class="flex gap-2 justify-between w-full">
             <div class="flex flex-col gap-2">
                 {#each links as {href, key}}

@@ -3,14 +3,14 @@
     import { SideBar, ContextMenu, Canvas, Modal, Notification } from "$lib/components";
     import { notificationStore } from "$lib/stores/notification.svelte";
     import { side } from "$lib/stores/other.svelte";
-    import { objects } from "$lib/stores/objects.svelte";
+    import { projectStore } from "$lib/stores/project.svelte";
     import { userStore } from "$lib/stores/user.svelte";
 
     let notifications = $derived(notificationStore.all);
 
     onMount(() => {
         if (userStore.isAuthenticated) {
-            objects.load();
+            void projectStore.load();
         }
     });
 </script>

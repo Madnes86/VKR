@@ -57,6 +57,9 @@
         e.preventDefault();
         hover = true;
     };
+    // Canvas слушает wheel на window (зум диаграммы). Пока курсор внутри sidebar'а —
+    // не даём событию всплыть, чтобы колесо прокручивало секцию, а не зумило диаграмму.
+    const onwheelStop = (e: WheelEvent) => e.stopPropagation();
     function ondrop(e: DragEvent) {
         e.preventDefault();
         const index = tabs.findIndex(i => i === e.dataTransfer?.getData("text/plain"));
@@ -72,7 +75,7 @@
 
 {#if show}
     <div class="{posClass} {right ? 'flex-row-reverse' : 'flex-row'} flex h-screen z-1 absolute top-0 backdrop-blur-xs">
-        <div style="width: {width}px" class="bg-gray-glass h-screen">
+        <div style="width: {width}px" class="bg-gray-glass h-screen flex flex-col">
             {#if main}
                 <Tabs {tabs} bind:selectedTab={selectedTab}>
                     <button onclick={closing} class="rounded-sm p-1 hover:bg-gray">
@@ -82,13 +85,15 @@
                 {#if selectedTab !== 'settings'}
                     <Search />
                 {/if}
-                {#each tabs as tab, i}
-                    {#if selectedTab == tab}
-                        <svelte:component this={sections[i]}/>
-                    {/if}
-                {/each}
+                <div class="flex-1 min-h-0 overflow-auto" onwheel={onwheelStop}>
+                    {#each tabs as tab, i}
+                        {#if selectedTab == tab}
+                            <svelte:component this={sections[i]}/>
+                        {/if}
+                    {/each}
+                </div>
             {:else}
-                <div>
+                <div class="flex flex-col h-full">
                     <div class="flex gap-1 p-1 border-b-2 border-gray">
                         <button onclick={closing} class="click rounded-sm p-1 hover:bg-gray">
                             <Icon name={right ? 'side-r-close' : 'side-l-close'} />
@@ -97,7 +102,9 @@
                             <Icon name="remove-square" />
                         </button>
                     </div>
-                    <svelte:component this={sections[side.i]}/>
+                    <div class="flex-1 min-h-0 overflow-auto" onwheel={onwheelStop}>
+                        <svelte:component this={sections[side.i]}/>
+                    </div>
                 </div>
             {/if}
             </div>

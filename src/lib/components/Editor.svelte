@@ -1,72 +1,96 @@
 <script lang="ts">
-    import { LightText, Name } from "$lib/components";
-    import { getText } from "$lib/functions/parser";
-	import { links } from "$lib/mocs/links";
-    import { objects } from "$lib/mocs/objects";
-    import { selectedStore, viewStore } from "$lib/stores/objects.svelte";
+    /**
+     * Editor — текстовое окно проекта. Источник истины — projectStore.text.
+     * Кнопка «Извлечь» отправляет draft в бэк и получает готовый граф
+     * {objects, links}. Граф полностью замещает текущий: удаляем всё старое
+     * и создаём новое через syncQueue, сервер сам обработает.
+     */
+    import { projectStore } from "$lib/stores/project.svelte";
+    import { extractSyntax } from "$lib/functions/llm";
+    import { objects, links } from "$lib/stores/objects.svelte";
+    import { Icon } from "$lib/components";
 
-    const TEXT = 'тестовый текст что бы проверить как это работает! new';
-    let text: string = $state(getText(objects));
+    let draft: string = $state('');
+    let dirty: boolean = $state(false);
+    let generating: boolean = $state(false);
+    let status: string = $state('');
 
-    let ref: HTMLTextAreaElement | undefined = $state();
-    
+    // Пока пользователь не правил — draft следует за сохранённым текстом.
     $effect(() => {
-        if (ref && text) {
-            ref.style.height = 'auto'; 
-            ref.style.height = ref.scrollHeight + 'px';
-        }
+        const canonical = projectStore.text;
+        if (!dirty && !generating) draft = canonical;
     });
 
-    const handleWordClick = (id: number) => {
-        const data = `o + ${id}`;
-        selectedStore.set('selected', data);
-    };
-    function hover(id: number) {
-        const data = `o + ${id}`;
-        selectedStore.set('hover', data);
+    function oninput(e: Event) {
+        const target = e.target as HTMLTextAreaElement;
+        draft = target.value;
+        dirty = true;
+        status = 'modified — нажмите «Извлечь»';
     }
-    function onmouseleave(id: number) {
-        selectedStore.clear('hover');
+
+    async function onExtract() {
+        if (!draft.trim() || generating) return;
+        generating = true;
+        status = 'разбираю текст…';
+        try {
+            const res = await extractSyntax(draft);
+            if (!res) { status = 'failed'; return; }
+            if (res.objects.length === 0) {
+                status = 'spacy ничего не извлёк';
+                return;
+            }
+
+            // Замещаем граф одним setAll. Не идём через syncQueue/diff, чтобы
+            // ребилд treeStore не пересчитал x/y и не сломал drag — позиции
+            // узлов задаются физикой и сохраняются между кадрами.
+            objects.setAll(res.objects);
+            links.setAll(res.links);
+
+            projectStore.setText(draft);
+            await projectStore.save();
+            dirty = false;
+            status = `извлечено: ${res.objects.length} объектов, ${res.links.length} связей`;
+        } finally {
+            generating = false;
+        }
     }
-    
+
+    function onReset() {
+        dirty = false;
+        status = '';
+    }
 </script>
 
-<div class="relative w-full font-mono text-base leading-relaxed">
-    <textarea 
-        bind:this={ref}
-        bind:value={text}
-        spellcheck="false"
-        class="absolute inset-0 w-full h-full p-3 bg-zinc-950 text-transparent caret-accent resize-none outline-none border border-zinc-800 rounded-md whitespace-pre-wrap break-words z-10"
-    ></textarea>
-
-    <div class="absolute inset-0 p-3 whitespace-pre-wrap break- pointer-events-none z-20">
-        {#each objects as {id, name, type, parent}, i}
-            {#if name.trim().length > 0}
-
-                <!-- svelte-ignore a11y_click_events_have_key_events -->
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
-                <span
-                    class="pointer-events-auto cursor-pointer px-1 -mx-1 text-zinc-400 hover:text-white hover:bg-accent rounded-sm transition-colors"
-                    onmouseenter={() => hover(id)}
-                    onmouseleave={() => onmouseleave(id)}
-                    onclick={() => handleWordClick(id)}>
-                    <LightText text={name} />
-                </span>
-                {#if i < objects.length - 1}
-                    <span> </span> 
-                {/if}
+<div class="flex flex-col h-full p-2 gap-2">
+    <div class="flex items-center gap-2">
+        <button
+            type="button"
+            onclick={() => void onExtract()}
+            disabled={generating || !draft.trim()}
+            title="Превратить текст в граф объектов: существительные → объекты, прилагательные → дочерние объекты, глаголы → связи."
+            class="px-2 py-1 flex gap-2 items-center text-sm rounded-md bg-accent text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent/90 transition"
+        >
+            {generating ? 'Извлекаю…' : 'Извлечь'}
+            {#if generating}
+                <Icon name="load" className="animate-spin" />
             {:else}
-                {name}
+                <Icon name="diagramm" />
             {/if}
-        {/each}
+        </button>
+        {#if dirty && !generating}
+            <button type="button" onclick={onReset}
+                class="px-2 py-1 text-sm rounded-md border border-gray hover:bg-gray-glass transition">
+                Отмена
+            </button>
+        {/if}
+        <span class="ml-auto text-xs text-zinc-400">{status}</span>
     </div>
+
+    <textarea
+        class="flex-1 w-full p-3 font-sans text-sm leading-relaxed bg-zinc-950 text-zinc-200 border border-zinc-800 rounded-md resize-none outline-none"
+        placeholder="Опишите объекты, их свойства и действия. Нажмите «Извлечь» — текст превратится в граф."
+        value={draft}
+        {oninput}
+        disabled={generating}
+    ></textarea>
 </div>
-
-
-<style>
-    /* Дополнительная калибровка для идеального совпадения */
-    textarea {
-        line-height: inherit;
-        font-family: inherit;
-    }
-</style>

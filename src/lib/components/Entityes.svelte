@@ -1,38 +1,46 @@
 <script lang="ts">
-    import { objects, treeStore } from "$lib/stores/objects.svelte";
+    /**
+     * Entityes — вкладка со списком классов проекта, отрисовывается как дерево
+     * наследования (parent = extends). Переиспользует TreeItem/TreeForm, чтобы
+     * визуально согласоваться с вкладкой "graph", и питается из того же
+     * treeStore (derived от buildTree над objects/links).
+     */
+    import { TreeItem } from "$lib/components";
+    import { treeStore, objects } from "$lib/stores/objects.svelte";
     import { searchStore } from "$lib/stores/search.svelte";
-    import { TreeForm, Search } from "$lib/components";
     import { flatTree } from "$lib/functions/other";
 
-    let query = $derived(searchStore.get());
-    let entityes = $derived.by(() => {
-        const all = objects.all
-        const cats = searchStore.cats
+    const root = $derived(treeStore.all.id);
+    const currentObj = $derived(treeStore.all.objects ?? []);
+    const links = $derived(treeStore.all.links ?? []);
+
+    // Подсветка по поиску и категориям — как в Tree.svelte (optional / Local).
+    let highlightedIds = $derived.by(() => {
+        const query = searchStore.get().toLowerCase().trim();
+        const cats = searchStore.cats;
+        const all = objects.all;
+
         const isWeak = cats.find(c => c.name === 'optional')?.check;
         const isLocal = cats.find(c => c.name === 'Local search')?.check;
         const local = flatTree(treeStore.all);
 
-        return all.filter(e => {
-            const result = !query || e.name.toLowerCase().includes(query);
+        if (!query && !isWeak && !isLocal) {
+            return { ids: new Set<number>(), query: '' };
+        }
 
-            let matchesCategory = true;
-
-            if (isWeak && isLocal) matchesCategory = e.type === 'optional' && local.has(e.id);
-            else if (isWeak) matchesCategory = e.type === 'optional';
-            else if (isLocal) matchesCategory = local.has(e.id);
-
-            return result && matchesCategory;
+        const filtered = all.filter(e => {
+            const matchesQuery = !query || e.name.toLowerCase().includes(query);
+            let matchesCat = true;
+            if (isWeak && isLocal) matchesCat = e.type === 'optional' && local.has(e.id);
+            else if (isWeak) matchesCat = e.type === 'optional';
+            else if (isLocal) matchesCat = local.has(e.id);
+            return matchesQuery && matchesCat;
         });
-    });
 
+        return { ids: new Set(filtered.map(e => e.id)), query };
+    });
 </script>
 
-    <div class="flex flex-col p-1 gap-2 items-start w-full">
-        {#each entityes as {id, name, type, parent}}
-            {@const more = parent !== null ? true : false}
-
-            <div class="w-full flex">
-                <TreeForm {id} {name} type='o' {more} {query} />
-            </div>
-        {/each}
-    </div>
+<div class="p-1 flex flex-col w-full">
+    <TreeItem id={root} objects={currentObj} {links} {highlightedIds} />
+</div>

@@ -19,9 +19,11 @@ export function buildTree(visible: number, objects: ObjectsStore, links: LinksSt
             if (children.length > 0) {
                 node.objects = children.map(child => build(child, current + 1));
                 node.mass += node.objects.reduce((sum, child) => sum + child.mass, 0);
-                const childIds = new Set(children.map(i => i.id));
+                // Включаем сам узел — чтобы связи «родитель → ребёнок» тоже рендерились
+                // внутри этого контейнера (одним концом — центр самого o, другим — child).
+                const subtreeIds = new Set<number>([o.id, ...children.map(i => i.id)]);
                 node.links = Array.from(cacheLinks.values()).filter(e =>
-                    childIds.has(e.is) && childIds.has(e.to)
+                    subtreeIds.has(e.is) && subtreeIds.has(e.to)
                 );
             }
         }

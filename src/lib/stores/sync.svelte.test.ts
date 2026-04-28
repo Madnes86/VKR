@@ -72,7 +72,7 @@ describe('syncQueue — формат запроса', () => {
         syncQueue.enqueueObjectUpdate(7, { name: 'new' });
         syncQueue.enqueueObjectDelete(8);
         syncQueue.enqueueLinkCreate(-2, { name: 'l', type: 'default', is: -1, to: 7 });
-        syncQueue.enqueueLinkUpdate(9, { isValue: 3 });
+        syncQueue.enqueueLinkUpdate(9, { isValue: true });
         syncQueue.enqueueLinkDelete(10);
         await syncQueue.flush();
 
@@ -84,7 +84,7 @@ describe('syncQueue — формат запроса', () => {
         // tmp-ссылка на -1 → строка "-1", реальный id 7 → число 7
         expect(req.links.create[0].is).toBe('-1');
         expect(req.links.create[0].to).toBe(7);
-        expect(req.links.update).toEqual([{ id: 9, isValue: 3 }]);
+        expect(req.links.update).toEqual([{ id: 9, isValue: true }]);
         expect(req.links.delete).toEqual([10]);
     });
 

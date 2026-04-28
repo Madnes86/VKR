@@ -84,7 +84,7 @@ export class LinksStore {
     get(id: number) { return this.#links.find(l => l.id === id) }
     clear() { this.#links = []; this.#tmpCounter = -1; }
 
-    create(data: { name: string; type?: string; is: number; to: number; isValue?: number; toValue?: number }): number {
+    create(data: { name: string; type?: string; is: number; to: number; isValue?: boolean; toValue?: boolean }): number {
         const id = this.#tmpCounter--;
         const link: IFlatLink = {
             id,
@@ -92,8 +92,8 @@ export class LinksStore {
             type: data.type ?? 'default',
             is: data.is,
             to: data.to,
-            isValue: data.isValue ?? 1,
-            toValue: data.toValue ?? 1,
+            isValue: data.isValue ?? false,
+            toValue: data.toValue ?? true,
         };
         this.#links.push(link);
         syncQueue.enqueueLinkCreate(id, {

@@ -1,49 +1,53 @@
 import { notificationStore } from "$lib/stores/notification.svelte";
-import { objects as objectsStore, links as linksStore } from "$lib/stores/objects.svelte";
-import type { IFlatObject, IFlatLink } from "$lib/interface";
 import { apiFetch } from "$lib/functions/http";
+import type { IFlatObject, IFlatLink } from "$lib/interface";
 
-const LLM_URL: string = 'http://127.0.0.1:8001';
+// Бэк проксирует в VKR-LLM, применяет дневные квоты.
+const BACKEND_URL: string = 'http://127.0.0.1:8000';
 
-export type ExtractResult = {
-    objects: IFlatObject[];
-    links: IFlatLink[];
-    _meta?: { lang: string; model: string; sentences: number };
+export type LlmHealth = {
+    upstream_ok: boolean;
+    daily_limit: number;
+    used_today: number;
+    authenticated: boolean;
 };
 
-export async function extractDiagram(
-    text: string,
-    paragraphIdx?: number
-): Promise<ExtractResult | null> {
+export async function llmHealth(): Promise<LlmHealth | null> {
+    const token = localStorage.getItem('token');
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await apiFetch(`${BACKEND_URL}/llm/health`, { headers });
+    if (!res || !res.ok) return null;
+    return await res.json();
+}
+
+export type SyntaxResult = {
+    objects: IFlatObject[];
+    links: IFlatLink[];
+    _quota?: { used: number; limit: number };
+};
+
+/**
+ * Синтаксический разбор: spacy сразу возвращает граф объектов в формате
+ * фронта. Без LLM, без TS-промежутка. Существительные → узлы, прилагательные
+ * → дочерние узлы-листы, глаголы/родительный падеж → связи.
+ */
+export async function extractSyntax(text: string): Promise<SyntaxResult | null> {
     if (!text.trim()) return null;
 
     const token = localStorage.getItem('token');
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await apiFetch(`${LLM_URL}/extract`, {
+    const res = await apiFetch(`${BACKEND_URL}/llm/extract-syntax`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ text, paragraph_idx: paragraphIdx ?? null })
+        body: JSON.stringify({ text }),
     });
-    if (!res) return null;  // сервис недоступен — уведомление уже показано
-
+    if (!res) return null;
     if (res.ok) return await res.json();
 
     const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }));
-    notificationStore.error(err.detail ?? 'extract failed', 'error');
+    notificationStore.error(err.detail ?? 'extract-syntax failed', 'error');
     return null;
-}
-
-export async function extractAndLoad(text: string, paragraphIdx?: number): Promise<boolean> {
-    const result = await extractDiagram(text, paragraphIdx);
-    if (!result) return false;
-    objectsStore.setAll(result.objects);
-    linksStore.setAll(result.links);
-    return true;
-}
-
-export async function llmHealth(): Promise<boolean> {
-    const res = await apiFetch(`${LLM_URL}/health`);
-    return res?.ok ?? false;
 }

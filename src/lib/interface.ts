@@ -24,8 +24,10 @@ export type IFlatLink = {
     type: string;
     is: number;
     to: number;
-    isValue: number;
-    toValue: number;
+    // Стрелка-наконечник на каждом конце. true — рисуем, false — нет.
+    // Для синтаксической связи по умолчанию: isValue=false, toValue=true.
+    isValue: boolean;
+    toValue: boolean;
 };
 export type ILink = {
     id: number;

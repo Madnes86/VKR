@@ -106,8 +106,9 @@
                 <Object {id} {name} {type} {x} {y} {size} {objects} {links} selParent={selected ? true : false} />
             {/each}
             {#each links as l}
-                {@const is = objects.find(o => o.id === l.is)}
-                {@const to = objects.find(o => o.id === l.to)}
+                {@const self = { x: 0, y: 0, size }}
+                {@const is = l.is === id ? self : objects.find(o => o.id === l.is)}
+                {@const to = l.to === id ? self : objects.find(o => o.id === l.to)}
 
                 {#if is && to}
                     <Link id={l.id} name={l.name} type={l.type} {is} {to} />

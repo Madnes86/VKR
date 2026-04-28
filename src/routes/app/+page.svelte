@@ -22,7 +22,15 @@
     <ContextMenu />
     <Canvas />
     <Modal show={true} />
-    {#each notifications as {icon, title, type} (title)}
-        <Notification {icon} {title} {type} />
-    {/each}
+    <!-- Стек уведомлений: контейнер закреплён за нижний правый угол.
+         flex-col укладывает детей сверху вниз; новые приходят последними
+         в массиве store-а, поэтому отображаются внизу, а контейнер
+         растёт вверх — старые уведомления автоматически сдвигаются. -->
+    <div class="fixed bottom-4 right-4 z-4 flex flex-col gap-2 items-end pointer-events-none">
+        {#each notifications as {icon, title, type} (title)}
+            <div class="pointer-events-auto">
+                <Notification {icon} {title} {type} />
+            </div>
+        {/each}
+    </div>
 </div>

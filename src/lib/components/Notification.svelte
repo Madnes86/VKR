@@ -47,12 +47,15 @@
 </script>
 
 {#if visible}
-    <div class="{isHiding ? 'hide' : 'show'} {color[type] || 'bg-white'} z-4 border-l-3 flex gap-4 p-4 fixed bottom-4 right-4 items-center bg-gray-glass">
-        <div class="size-5">
+    <!-- Позиционирование (fixed/bottom/right) задаётся контейнером-стеком
+         в +page.svelte, чтобы несколько уведомлений могли уживаться
+         друг над другом, а не накладываться в одной точке. -->
+    <div class="{isHiding ? 'hide' : 'show'} {color[type] || 'bg-white'} border-l-3 flex gap-4 p-4 items-center bg-gray-glass min-w-72 max-w-96 shadow-lg">
+        <div class="size-5 shrink-0">
             <Icon name={icon} />
         </div>
         <h3 class="w-full">{title}</h3>
-        <button {onclick} class="click hover:bg-gray rounded-sm p-2">
+        <button {onclick} class="click hover:bg-gray rounded-sm p-2 shrink-0">
             <Icon name="cross" />
         </button>
     </div>

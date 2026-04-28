@@ -10,11 +10,20 @@
 
     let query: string = $derived(searchStore.get());
 
+    // Сравнение регистронезависимое: и текст, и запрос lowercase-им
+    // ОДНОВРЕМЕННО. Раньше lowercase-был только text — пользователь,
+    // печатающий «Сер» и ожидающий найти «Сервис», получал промах,
+    // потому что "сервис".includes("Сер") === false. Индексы в
+    // lowercase-строке совпадают с оригинальными (toLowerCase
+    // сохраняет длину для русских букв и базовой латиницы), поэтому
+    // их можно использовать для подсветки исходных символов в шаблоне.
     let match = $derived.by(() => {
+        const q = (query ?? '').toLowerCase();
+        if (!q) return { start: -1, end: -1 };
         const n = text.toLowerCase();
-        if (!query || !n.includes(query)) return { start: -1, end: -1 };
-        const start = n.indexOf(query);
-        return { start, end: start + query.length };
+        const start = n.indexOf(q);
+        if (start < 0) return { start: -1, end: -1 };
+        return { start, end: start + q.length };
     });
 
 </script>

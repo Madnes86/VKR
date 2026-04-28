@@ -100,6 +100,9 @@ export const ru = {
     'docs.hero.support': 'Перейти в поддержку',
 
     'docs.toc.title': 'Содержание',
+    'docs.cat.basics': 'Основы',
+    'docs.cat.advanced': 'Возможности',
+    'docs.cat.support': 'Аккаунт и помощь',
 
     'docs.start.title': 'Быстрый старт',
     'docs.start.intro': 'Создайте первый проект и соберите простую структурную диаграмму за несколько минут. Аккаунт не обязателен — базовый редактор работает анонимно.',
@@ -357,6 +360,9 @@ export const en: Record<Key, string> = {
     'docs.hero.support': 'Go to support',
 
     'docs.toc.title': 'Contents',
+    'docs.cat.basics': 'Basics',
+    'docs.cat.advanced': 'Features',
+    'docs.cat.support': 'Account & help',
 
     'docs.start.title': 'Quick start',
     'docs.start.intro': 'Create your first project and build a simple structural diagram in a few minutes. An account is not required — the basic editor works anonymously.',

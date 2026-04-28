@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { Header, Wrapper, Footer, Card, Icon, Logo, BgGraph, BgSpace } from "$lib/components";
+    import { Header, Wrapper, Footer, Card, Icon, Logo, BgGraph, BgSpace, DocsNav } from "$lib/components";
+    import type { DocsNavNode } from "$lib/components/DocsNav.svelte";
     import { i18n } from "$lib/i18n";
 
     type Section = {
@@ -8,6 +9,13 @@
         title: string;
         intro: string;
         points: { icon?: string; title: string; desc: string }[];
+    };
+
+    type Category = {
+        id: string;
+        icon: string;
+        title: string;
+        sectionIds: string[];
     };
 
     const sections: Section[] = [
@@ -79,6 +87,26 @@
             ]
         },
     ];
+
+    const categories: Category[] = [
+        { id: 'basics',   icon: 'category', title: 'docs.cat.basics',   sectionIds: ['start', 'diagram'] },
+        { id: 'advanced', icon: 'category', title: 'docs.cat.advanced', sectionIds: ['components', 'ai'] },
+        { id: 'support',  icon: 'category', title: 'docs.cat.support',  sectionIds: ['account', 'bug'] },
+    ];
+
+    const sectionsById = new Map(sections.map(s => [s.id, s]));
+    const navNodes: DocsNavNode[] = $derived(categories.map(cat => ({
+        title: i18n.t(cat.title),
+        icon: cat.icon,
+        children: cat.sectionIds
+            .map(sid => sectionsById.get(sid))
+            .filter((s): s is Section => !!s)
+            .map(s => ({
+                title: i18n.t(s.title),
+                icon: s.icon,
+                href: `#${s.id}`,
+            })),
+    })));
 </script>
 
 <Header />
@@ -107,43 +135,47 @@
     </section>
 
     <section class="flex flex-col lg:flex-row gap-6 py-6 items-start">
-        <aside class="w-full lg:w-60 lg:sticky lg:top-4">
+        <aside class="w-full lg:w-72 lg:sticky lg:top-4">
             <Card className="w-full!">
                 <b>{i18n.t('docs.toc.title')}</b>
-                <nav class="flex flex-col gap-2">
-                    {#each sections as {id, icon, title}}
-                        <a href="#{id}" class="click flex items-center gap-2">
-                            <Icon name={icon} />
-                            <span>{i18n.t(title)}</span>
-                        </a>
-                    {/each}
-                </nav>
+                <DocsNav nodes={navNodes} />
             </Card>
         </aside>
 
-        <div class="flex flex-col gap-6 flex-1 w-full">
-            {#each sections as {id, icon, title, intro, points}}
-                <Card className="w-full!">
-                    <div id={id} class="flex gap-2 items-center scroll-mt-4">
-                        <Icon name={icon} />
-                        <h2>{i18n.t(title)}</h2>
+        <div class="flex flex-col gap-8 flex-1 w-full">
+            {#each categories as cat}
+                <div class="flex flex-col gap-4">
+                    <div id={cat.id} class="flex gap-2 items-center scroll-mt-4">
+                        <Icon name={cat.icon} />
+                        <h2>{i18n.t(cat.title)}</h2>
                     </div>
-                    <p class="text-justify">{i18n.t(intro)}</p>
-                    <ol class="flex flex-col gap-3 list-decimal pl-5">
-                        {#each points as {icon, title, desc}}
-                            <li>
-                                <div class="flex gap-2 items-start">
-                                    {#if icon}
-                                        <div class="shrink-0">
-                                            <Icon name={icon} />
-                                        </div>
-                                    {/if}
-                                    <p class="text-justify"><b>{i18n.t(title)}</b> — {i18n.t(desc)}</p>
+                    {#each cat.sectionIds as sid}
+                        {@const s = sectionsById.get(sid)}
+                        {#if s}
+                            <Card className="w-full!">
+                                <div id={s.id} class="flex gap-2 items-center scroll-mt-4">
+                                    <Icon name={s.icon} />
+                                    <h3>{i18n.t(s.title)}</h3>
                                 </div>
-                            </li>
-                        {/each}
-                    </ol>
-                </Card>
+                                <p class="text-justify">{i18n.t(s.intro)}</p>
+                                <ol class="flex flex-col gap-3 list-decimal pl-5">
+                                    {#each s.points as {icon, title, desc}}
+                                        <li>
+                                            <div class="flex gap-2 items-start">
+                                                {#if icon}
+                                                    <div class="shrink-0">
+                                                        <Icon name={icon} />
+                                                    </div>
+                                                {/if}
+                                                <p class="text-justify"><b>{i18n.t(title)}</b> — {i18n.t(desc)}</p>
+                                            </div>
+                                        </li>
+                                    {/each}
+                                </ol>
+                            </Card>
+                        {/if}
+                    {/each}
+                </div>
             {/each}
         </div>
     </section>

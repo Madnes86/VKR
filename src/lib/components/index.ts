@@ -38,3 +38,4 @@ export { default as Card } from "./Card.svelte";
 export { default as BgGraph } from "./BgGraph.svelte";
 export { default as BgSpace } from "./BgSpace.svelte";
 export { default as DemoCanvas } from "./DemoCanvas.svelte";
+export { default as DocsNav } from "./DocsNav.svelte";

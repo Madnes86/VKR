@@ -4,6 +4,7 @@
     import { notificationStore } from "$lib/stores/notification.svelte";
     import { side } from "$lib/stores/other.svelte";
     import { projectStore } from "$lib/stores/project.svelte";
+    import { bootstrapDiagram } from "$lib/stores/objects.svelte";
     import { userStore } from "$lib/stores/user.svelte";
 
     let notifications = $derived(notificationStore.all);
@@ -12,6 +13,10 @@
         if (userStore.isAuthenticated) {
             void projectStore.load();
         }
+        // Диаграмма всегда поднимается через bootstrap: server-first для
+        // залогиненных, localStorage-fallback для гостей и при сетевых
+        // сбоях. Без этого гость терял objects/links при перезагрузке.
+        void bootstrapDiagram();
     });
 </script>
 

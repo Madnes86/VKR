@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Header, Wrapper, Footer, Card, Icon, Logo } from "$lib/components";
+    import { Header, Wrapper, Footer, Card, Icon, Logo, BgGraph, BgSpace } from "$lib/components";
     import { i18n } from "$lib/i18n";
 
     type Section = {
@@ -83,7 +83,10 @@
 
 <Header />
 
-<Wrapper>
+<div class="relative isolate">
+    <BgSpace />
+    <BgGraph />
+    <Wrapper>
     <section class="flex justify-center items-center py-10">
         <Card className="w-full! max-w-180!">
             <div class="flex gap-2 items-center flex-wrap">
@@ -162,6 +165,7 @@
             </div>
         </Card>
     </section>
-</Wrapper>
+    </Wrapper>
+</div>
 
 <Footer />

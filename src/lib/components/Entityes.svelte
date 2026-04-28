@@ -1,46 +1,32 @@
 <script lang="ts">
     /**
-     * Entityes — вкладка со списком классов проекта, отрисовывается как дерево
-     * наследования (parent = extends). Переиспользует TreeItem/TreeForm, чтобы
-     * визуально согласоваться с вкладкой "graph", и питается из того же
-     * treeStore (derived от buildTree над objects/links).
+     * Entityes — пул компонентов проекта. Сюда попадают узлы с
+     * type === 'component': либо помеченные NLP-сервисом (лемма встретилась
+     * в тексте ≥2 раз и не входит в стоп-лист общих существительных), либо
+     * вручную пользователем. Графовая вкладка по-прежнему показывает все
+     * объекты — компоненты там тоже видны как отдельные узлы. Когда
+     * появится ref-тип, ссылки в графе будут указывать на каноничную
+     * сущность отсюда.
      */
-    import { TreeItem } from "$lib/components";
-    import { treeStore, objects } from "$lib/stores/objects.svelte";
+    import { TreeForm } from "$lib/components";
+    import { objects } from "$lib/stores/objects.svelte";
     import { searchStore } from "$lib/stores/search.svelte";
-    import { flatTree } from "$lib/functions/other";
 
-    const root = $derived(treeStore.all.id);
-    const currentObj = $derived(treeStore.all.objects ?? []);
-    const links = $derived(treeStore.all.links ?? []);
+    const components = $derived(objects.all.filter(o => o.type === 'component'));
 
-    // Подсветка по поиску и категориям — как в Tree.svelte (optional / Local).
-    let highlightedIds = $derived.by(() => {
-        const query = searchStore.get().toLowerCase().trim();
-        const cats = searchStore.cats;
-        const all = objects.all;
-
-        const isWeak = cats.find(c => c.name === 'optional')?.check;
-        const isLocal = cats.find(c => c.name === 'Local search')?.check;
-        const local = flatTree(treeStore.all);
-
-        if (!query && !isWeak && !isLocal) {
-            return { ids: new Set<number>(), query: '' };
-        }
-
-        const filtered = all.filter(e => {
-            const matchesQuery = !query || e.name.toLowerCase().includes(query);
-            let matchesCat = true;
-            if (isWeak && isLocal) matchesCat = e.type === 'optional' && local.has(e.id);
-            else if (isWeak) matchesCat = e.type === 'optional';
-            else if (isLocal) matchesCat = local.has(e.id);
-            return matchesQuery && matchesCat;
-        });
-
-        return { ids: new Set(filtered.map(e => e.id)), query };
-    });
+    // Простая подсветка по поиску — для компонентов не используем
+    // optional/Local-категории, у этого пула другая семантика.
+    const query = $derived(searchStore.get().toLowerCase().trim());
 </script>
 
-<div class="p-1 flex flex-col w-full">
-    <TreeItem id={root} objects={currentObj} {links} {highlightedIds} />
+<div class="p-1 flex flex-col w-full gap-1">
+    {#if components.length === 0}
+        <p class="p-2 text-sm opacity-60">
+            Пул пуст. Компонентом становится сущность, упомянутая в тексте больше одного раза, либо помеченная вручную.
+        </p>
+    {:else}
+        {#each components as c (c.id)}
+            <TreeForm id={c.id} name={c.name} type='o' more={false} {query} />
+        {/each}
+    {/if}
 </div>

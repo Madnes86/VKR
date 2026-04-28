@@ -11,8 +11,10 @@
      * - Кнопка «Извлечь» отправляет плоский текст блоков в LLM-сервис.
      * - Тоггл «LLM-семантика» — opt-in на дополнительный проход через
      *   локальный Ollama (см. parent_semantic).
+     * - Локализация UI EditorJS берётся из проектного i18n; смена языка
+     *   пересоздаёт инстанс редактора с сохранением содержимого.
      */
-    import { onMount, onDestroy } from "svelte";
+    import { onMount, onDestroy, untrack } from "svelte";
     import EditorJS, { type API, type OutputData } from "@editorjs/editorjs";
     import Header from "@editorjs/header";
     import List from "@editorjs/list";
@@ -27,6 +29,8 @@
         blocksToPlainText,
         serializeProjectData,
     } from "$lib/functions/editorJsConvert";
+    import { buildEditorI18n } from "$lib/functions/editorJsI18n";
+    import { i18n } from "$lib/i18n";
     import { Icon, Toggle } from "$lib/components";
 
     let editorEl: HTMLDivElement | undefined = $state();
@@ -36,6 +40,7 @@
     let saveTimer: ReturnType<typeof setTimeout> | null = null;
     let lastSavedText: string = '';        // что мы сами в стор положили — не реагируем на это
     let lastProjectId: number | null = null;
+    let lastBuiltLang: string | null = null;
 
     let generating: boolean = $state(false);
     let status: string = $state('');
@@ -78,35 +83,18 @@
         }, AUTOSAVE_DEBOUNCE_MS);
     }
 
-    /** Реакция на смену проекта: перерисовываем содержимое EditorJS,
-     * не дёргая autosave. Внутри проекта (тот же id) ничего не делаем —
-     * пользователь сам владеет содержимым. */
-    $effect(() => {
-        const id = projectStore.id;
-        const text = projectStore.text;
-        if (!editor || !editorReady) return;
-        if (id === lastProjectId) return;
-        lastProjectId = id;
-        suppressOnChange = true;
-        const data = parseProjectText(text);
-        lastSavedText = serializeProjectData(data);
-        editor.render(data).finally(() => {
-            // микрозадержка нужна, потому что EditorJS успевает дёрнуть
-            // onChange после render до следующего тика
-            setTimeout(() => { suppressOnChange = false; }, 0);
-        });
-    });
-
-    onMount(() => {
+    /** Создаёт инстанс EditorJS с текущей i18n. Используется и при
+     * первом маунте, и при смене языка. */
+    function createEditor(initialData: OutputData) {
         if (!editorEl) return;
-        const initialData = parseProjectText(projectStore.text);
-        lastSavedText = serializeProjectData(initialData);
-        lastProjectId = projectStore.id;
-
+        lastBuiltLang = i18n.lang;
+        editorReady = false;
+        suppressOnChange = true;
         editor = new EditorJS({
             holder: editorEl,
             data: initialData,
-            placeholder: 'Опишите систему: компоненты, их свойства, связи. EditorJS поддерживает заголовки, списки, выделение и inline-код. Автосохранение каждые ~1.2 секунды.',
+            placeholder: i18n.t('editor.placeholder'),
+            i18n: buildEditorI18n((k) => i18n.t(k)) as any,
             tools: {
                 header: {
                     class: Header as any,
@@ -125,8 +113,67 @@
             },
             onReady: () => {
                 editorReady = true;
+                // Снимаем suppress только когда редактор готов — иначе
+                // его initial render тригернёт ложный autosave.
+                setTimeout(() => { suppressOnChange = false; }, 0);
             },
         });
+    }
+
+    /** Реакция на смену проекта: перерисовываем содержимое EditorJS,
+     * не дёргая autosave. Внутри проекта (тот же id) ничего не делаем —
+     * пользователь сам владеет содержимым. */
+    $effect(() => {
+        const id = projectStore.id;
+        const text = projectStore.text;
+        if (!editor || !editorReady) return;
+        if (id === lastProjectId) return;
+        lastProjectId = id;
+        suppressOnChange = true;
+        const data = parseProjectText(text);
+        lastSavedText = serializeProjectData(data);
+        editor.render(data).finally(() => {
+            setTimeout(() => { suppressOnChange = false; }, 0);
+        });
+    });
+
+    /** Реакция на смену языка: пересоздаём инстанс с новым i18n,
+     * но сохраняем текущие блоки. EditorJS не переключает локаль на
+     * лету — требуется destroy + new EditorJS. */
+    $effect(() => {
+        const lang = i18n.lang;
+        if (!editor || !editorReady) return;
+        if (lang === lastBuiltLang) return;
+        // untrack: внутри асинхронной перестройки не хотим, чтобы
+        // дополнительные обращения к store-ам триггерили этот же effect.
+        untrack(() => rebuildForLanguage());
+    });
+
+    async function rebuildForLanguage() {
+        if (!editor) return;
+        // Финализируем pending-сейв, чтобы не потерять последние правки.
+        if (saveTimer) {
+            clearTimeout(saveTimer);
+            saveTimer = null;
+        }
+        let snapshot: OutputData;
+        try {
+            snapshot = await editor.save();
+        } catch {
+            snapshot = parseProjectText(projectStore.text);
+        }
+        editor.destroy?.();
+        editor = undefined;
+        // Дать DOM-у освободиться перед созданием нового инстанса.
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+        createEditor(snapshot);
+    }
+
+    onMount(() => {
+        const initialData = parseProjectText(projectStore.text);
+        lastSavedText = serializeProjectData(initialData);
+        lastProjectId = projectStore.id;
+        createEditor(initialData);
     });
 
     onDestroy(() => {
@@ -206,45 +253,142 @@
 
     <div
         bind:this={editorEl}
-        class="flex-1 w-full p-3 font-sans text-sm leading-relaxed bg-zinc-950 text-zinc-200 border border-zinc-800 rounded-md overflow-auto"
+        class="editor-host flex-1 w-full p-3 font-sans text-lg leading-relaxed text-white rounded-md overflow-auto"
     ></div>
 </div>
 
 <style>
     /* EditorJS впрыскивает свои элементы внутри holder — поправим под
        тёмную тему приложения. Глобальные селекторы потому, что EditorJS
-       создаёт DOM в рантайме, и Svelte его не сканирует. */
-    :global(.codex-editor) {
+       создаёт DOM в рантайме, и Svelte его не сканирует.
+       Используем переменные EditorJS (--color-*) где они есть; иначе
+       переопределяем селекторы напрямую. */
+    :global(.editor-host) {
+        --color-text-primary: rgb(244 244 245);
+        --color-text-secondary: rgb(161 161 170);
+        --color-line-gray: rgb(63 63 70);
+        --color-active-icon: rgb(244 244 245);
+        --color-light-gray: rgb(39 39 42);
+        --color-gray: rgb(63 63 70);
+        --color-dark: rgb(244 244 245);
+        --color-border: rgb(63 63 70);
+        --selectionColor: rgba(131, 92, 253, 0.25);
+    }
+
+    :global(.codex-editor),
+    :global(.codex-editor__redactor) {
         color: rgb(228 228 231);
     }
     :global(.codex-editor__redactor) {
         padding-bottom: 100px !important;
     }
+
+    /* Плейсхолдер пустого блока */
+    :global(.ce-paragraph[data-placeholder]:empty::before),
+    :global(.ce-block--empty .ce-paragraph::before),
+    :global(.codex-editor--empty .ce-block:first-child .ce-paragraph::before) {
+        color: rgb(113 113 122);
+        opacity: 1;
+    }
+
+    /* Plus-кнопка слева и шестерёнка-настройки */
     :global(.ce-toolbar__plus),
     :global(.ce-toolbar__settings-btn) {
         color: rgb(228 228 231);
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgb(63 63 70);
     }
+    :global(.ce-toolbar__plus:hover),
+    :global(.ce-toolbar__settings-btn:hover) {
+        background: rgba(131, 92, 253, 0.18);
+        color: rgb(244 244 245);
+    }
+
+    /* Выделение текущего блока */
     :global(.ce-block--selected .ce-block__content) {
-        background: rgba(131, 92, 253, 0.1);
+        background: rgba(131, 92, 253, 0.12);
+        border-radius: 4px;
     }
-    :global(.ce-popover) {
+
+    /* Поповер «добавить блок» / «превратить в…» */
+    :global(.ce-popover),
+    :global(.ce-popover__container) {
         background: rgb(24 24 27);
         color: rgb(228 228 231);
         border: 1px solid rgb(63 63 70);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
     }
-    :global(.ce-popover-item:hover) {
-        background: rgba(131, 92, 253, 0.2);
+    :global(.ce-popover-item__icon) {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgb(228 228 231);
+        border: 1px solid rgb(63 63 70);
     }
+    :global(.ce-popover-item__title),
+    :global(.ce-popover-item__secondary-title) {
+        color: rgb(228 228 231);
+    }
+    :global(.ce-popover-item:hover),
+    :global(.ce-popover-item--focused) {
+        background: rgba(131, 92, 253, 0.20);
+    }
+    :global(.ce-popover-item:hover .ce-popover-item__icon),
+    :global(.ce-popover-item--focused .ce-popover-item__icon) {
+        background: rgba(131, 92, 253, 0.40);
+    }
+    :global(.ce-popover__search) {
+        background: rgb(39 39 42);
+        color: rgb(228 228 231);
+        border: 1px solid rgb(63 63 70);
+        border-radius: 4px;
+    }
+    :global(.ce-popover__nothing-found-message) {
+        color: rgb(161 161 170);
+    }
+
+    /* Inline-toolbar (B/I/код/конвертация/marker) */
     :global(.ce-inline-toolbar) {
         background: rgb(24 24 27);
         color: rgb(228 228 231);
         border: 1px solid rgb(63 63 70);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+    :global(.ce-inline-tool),
+    :global(.ce-inline-toolbar__dropdown) {
+        color: rgb(228 228 231);
     }
     :global(.ce-inline-tool:hover),
     :global(.ce-inline-toolbar__dropdown:hover) {
-        background: rgba(131, 92, 253, 0.2);
+        background: rgba(131, 92, 253, 0.20);
     }
+    :global(.ce-inline-tool--active) {
+        color: rgb(167, 139, 250);
+        background: rgba(131, 92, 253, 0.18);
+    }
+    :global(.ce-inline-tool-input) {
+        background: rgb(39 39 42);
+        color: rgb(228 228 231);
+        border: 1px solid rgb(63 63 70);
+    }
+    :global(.ce-conversion-toolbar) {
+        background: rgb(24 24 27);
+        color: rgb(228 228 231);
+        border: 1px solid rgb(63 63 70);
+    }
+    :global(.ce-conversion-tool:hover) {
+        background: rgba(131, 92, 253, 0.20);
+    }
+
+    /* Settings (delete / move) */
+    :global(.ce-settings) {
+        background: rgb(24 24 27);
+        color: rgb(228 228 231);
+        border: 1px solid rgb(63 63 70);
+    }
+    :global(.cdx-settings-button:hover) {
+        background: rgba(131, 92, 253, 0.20);
+    }
+
+    /* Inline-плагины: marker, inline-code */
     :global(.cdx-marker) {
         background: rgba(255, 247, 0, 0.35);
         color: inherit;
@@ -256,5 +400,15 @@
         padding: 1px 4px;
         border-radius: 3px;
         font-family: ui-monospace, SFMono-Regular, monospace;
+    }
+
+    /* Список */
+    :global(.cdx-list) {
+        color: rgb(228 228 231);
+    }
+
+    /* Селекшен внутри редактора — accent-фиолетовый */
+    :global(.codex-editor) ::selection {
+        background: rgba(131, 92, 253, 0.35);
     }
 </style>

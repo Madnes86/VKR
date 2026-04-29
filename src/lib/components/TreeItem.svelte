@@ -37,7 +37,7 @@
         </div>
     {/if}
     {#if show || !name}
-        <div class={`${isObjects && 'ml-10!'}`}>
+        <div class={`${name && isObjects && 'ml-10!'}`}>
             {#each objects as {id, name, objects, links}}
                 <TreeItem {id} {name} {objects} {links} {highlightedIds} />
             {/each}

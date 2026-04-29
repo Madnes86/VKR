@@ -275,6 +275,10 @@ export const ru = {
     'editor.tune.moveUp': 'Вверх',
     'editor.tune.moveDown': 'Вниз',
     'editor.placeholder': 'Опишите систему: компоненты, их свойства, связи. Поддерживаются заголовки, списки, выделение и inline-код. Автосохранение каждые ~1.2 секунды.',
+
+    'diagram.duplicate.on': 'Распутать связи',
+    'diagram.duplicate.off': 'Связи: исходно',
+    'diagram.duplicate.title': 'Дублировать дальние эндпоинты рядом с источником',
 } as const;
 
 export type Key = keyof typeof ru;
@@ -556,6 +560,10 @@ export const en: Record<Key, string> = {
     'editor.tune.moveUp': 'Move up',
     'editor.tune.moveDown': 'Move down',
     'editor.placeholder': 'Describe the system: components, their properties and relations. Headings, lists, marker and inline-code are supported. Autosave runs every ~1.2 seconds.',
+
+    'diagram.duplicate.on': 'Untangle links',
+    'diagram.duplicate.off': 'Links: original',
+    'diagram.duplicate.title': 'Duplicate distant endpoints near their source',
 };
 
 export const dict = { ru, en };

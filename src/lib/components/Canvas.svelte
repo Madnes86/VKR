@@ -9,7 +9,7 @@
     import { searchStore } from "$lib/stores/search.svelte";
     import { side } from "$lib/stores/other.svelte";
     import { computeSearchVisibility } from "$lib/functions/search";
-    import { computeAppearanceOrder, REVEAL_DELAY } from "$lib/functions/appearance";
+    import { computeAppearanceOrder, getRevealDelay } from "$lib/functions/appearance";
     import { appearanceStore } from "$lib/stores/appearance.svelte";
     import type { ITreeObject, ILink } from "$lib/interface";
 
@@ -71,10 +71,13 @@
         links = targetLinks;
 
         // Собираем все ID в дереве (рекурсивно), чтобы appearanceStore
-        // знал актуальный набор и забыл устаревшие.
+        // знал актуальный набор и забыл устаревшие. Заодно строим
+        // карту id→объект для последующего поиска массы.
         const allIds = new Set<number>();
+        const idToObj = new Map<number, ITreeObject>();
         function walk(o: ITreeObject) {
             allIds.add(o.id);
+            idToObj.set(o.id, o);
             for (const c of o.objects ?? []) walk(c);
         }
         for (const o of targetObjects) walk(o);
@@ -94,8 +97,14 @@
 
         function reveal() {
             if (cancelled || i >= toReveal.length) return;
-            appearanceStore.reveal(toReveal[i++]);
-            if (i < toReveal.length) timer = setTimeout(reveal, REVEAL_DELAY);
+            const id = toReveal[i++];
+            appearanceStore.reveal(id);
+            if (i < toReveal.length) {
+                // Задержка перед СЛЕДУЮЩИМ объектом масштабируется по
+                // массе только что показанного — тяжёлые держат паузу.
+                const mass = idToObj.get(id)?.mass ?? 1;
+                timer = setTimeout(reveal, getRevealDelay(mass));
+            }
         }
 
         if (toReveal.length > 0) reveal();

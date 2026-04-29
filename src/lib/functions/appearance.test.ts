@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeAppearanceOrder, REVEAL_DELAY } from './appearance';
+import { computeAppearanceOrder, BASE_REVEAL_DELAY, getRevealDelay } from './appearance';
 import type { ITreeObject, ILink } from '$lib/interface';
 
 function obj(id: number, mass: number): ITreeObject {
@@ -85,8 +85,19 @@ describe('computeAppearanceOrder', () => {
         expect(new Set(order)).toEqual(new Set([1, 2, 3, 4]));
     });
 
-    it('REVEAL_DELAY = 300мс по требованию', () => {
-        expect(REVEAL_DELAY).toBe(300);
+    it('BASE_REVEAL_DELAY = 100мс по требованию', () => {
+        expect(BASE_REVEAL_DELAY).toBe(100);
+    });
+
+    it('getRevealDelay масштабируется линейно по массе', () => {
+        expect(getRevealDelay(1)).toBe(100);
+        expect(getRevealDelay(3)).toBe(300);
+        expect(getRevealDelay(10)).toBe(1000);
+    });
+
+    it('getRevealDelay даёт минимум одну базовую задержку для лёгких', () => {
+        expect(getRevealDelay(0)).toBe(100);
+        expect(getRevealDelay(0.5)).toBe(100);
     });
 
     it('Рекурсивно проходит вложенные дети', () => {

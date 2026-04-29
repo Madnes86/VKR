@@ -39,18 +39,6 @@
         physicsNudge++;
     }
 
-    // Любая правка пользовательских настроек диаграммы — будим
-    // физический цикл (и заодно вызываем resizeObjects через
-    // зависимость), чтобы изменения применялись на лету.
-    $effect(() => {
-        diagramSettings.spring;
-        diagramSettings.gravity;
-        diagramSettings.repulsion;
-        diagramSettings.baseSize;
-        diagramSettings.restThreshold;
-        physicsNudge++;
-    });
-
     function onwheel(e: WheelEvent) {
         scaleStore.value = e.deltaY > 0 ? scaleStore.value -= 1.01 : scaleStore.value += 1.01;
         resizeObjects(objects, scaleStore.value);
@@ -142,6 +130,13 @@
     $effect(() => {
         if (objects.length === 0) return;
         physicsNudge; // dependency — пробуждает цикл после untangle
+        // Зависимости от настроек диаграммы — чтобы любая правка
+        // слайдера в Settings перезапустила цикл с новыми параметрами.
+        diagramSettings.spring;
+        diagramSettings.gravity;
+        diagramSettings.repulsion;
+        diagramSettings.baseSize;
+        diagramSettings.restThreshold;
 
         resizeObjects(objects, scaleStore.value);
         return runPhysicsLoop({

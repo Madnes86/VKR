@@ -1,8 +1,9 @@
 import type { ITreeObject, ILink } from "$lib/interface";
+import { diagramSettings, DIAGRAM_DEFAULTS } from "$lib/stores/diagram.svelte";
 
-// Если длина связи превышает rest × LONG_LINK_RATIO — связь считается
-// «дальней» и подлежит перенесению лёгкого эндпоинта к тяжёлому.
-export const LONG_LINK_RATIO = 2.5;
+// Default-порог в виде константы (для тестов). Реальный ран-таймовый
+// при вызове без override — diagramSettings.longLinkRatio.
+export const LONG_LINK_RATIO = DIAGRAM_DEFAULTS.longLinkRatio;
 
 // Та же база, что у пружины — желаемая дистанция между центрами.
 const REST_FACTOR = 0.6;
@@ -20,7 +21,7 @@ const REST_FACTOR = 0.6;
 export function untangleLinks(
     objects: ITreeObject[],
     links: ILink[],
-    longRatio: number = LONG_LINK_RATIO
+    longRatio: number = diagramSettings.longLinkRatio
 ): number {
     const idToObj = new Map<number, ITreeObject>();
     function walk(o: ITreeObject) {

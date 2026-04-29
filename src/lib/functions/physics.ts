@@ -1,10 +1,6 @@
 import type { ITreeObject, ILink } from "$lib/interface";
+import { diagramSettings, DIAGRAM_DEFAULTS } from "$lib/stores/diagram.svelte";
 
-// Сила пружины вдоль связей. Слабее коллизий (350) на два порядка,
-// но сильнее гравитации (~0.0005 × mass²) на дистанциях > restLength —
-// связанные объекты стягиваются друг к другу, длинные линии через
-// весь холст не образуются.
-const SPRING_STRENGTH = 0.003;
 // Желаемая дистанция между центрами связанных объектов в долях суммы
 // размеров. 0.6 даёт лёгкое перекрытие радиусов — связь компактна,
 // но коллизия не даёт объектам слиться.
@@ -19,6 +15,9 @@ export function physics(
     centerY: number,
     links: ILink[] = []
 ): number {
+    const repulsion = diagramSettings.repulsion;
+    const gravity = diagramSettings.gravity;
+    const spring = diagramSettings.spring;
     const forces = objects.map(() => ({ fx: 0, fy: 0 }));
 
     // Приоритет #1: Коллизии. Импульс распределяется обратно
@@ -44,7 +43,7 @@ export function physics(
 
             if (dist < desiredDist && dist > 0.01) {
                 const compression = 1 - (dist / desiredDist);
-                const strength = Math.pow(compression, 2) * 350;
+                const strength = Math.pow(compression, 2) * repulsion;
                 const nx = dx / dist;
                 const ny = dy / dist;
 
@@ -75,7 +74,7 @@ export function physics(
 
         if (dist > 1) {
             const test = Math.max(dist / 50, 1);
-            const strength = 0.0005 * m * m * test;
+            const strength = gravity * m * m * test;
 
             forces[i].fx += dx * strength;
             forces[i].fy += dy * strength;
@@ -113,7 +112,7 @@ export function physics(
             if (dist <= restLength) continue;
 
             const extension = dist - restLength;
-            const f = SPRING_STRENGTH * extension;
+            const f = spring * extension;
             const nx = dx / dist;
             const ny = dy / dist;
             const mA = a.mass ?? 1;
@@ -144,10 +143,9 @@ export function physics(
     }
     return maxDisplacement;
 }
-// Порог «покоя»: смещение в пикселях за кадр, ниже которого
-// объект считается замершим. 0.05 px/кадр ≈ 3 px/сек при 60fps —
-// засыпаем только когда движение действительно почти исчезло.
-export const REST_THRESHOLD = 0.05;
+// Default-порог покоя в виде константы (для тестов и legacy-импортов).
+// Реальный пороговый ран-таймовый — diagramSettings.restThreshold.
+export const REST_THRESHOLD = DIAGRAM_DEFAULTS.restThreshold;
 // Сколько подряд кадров с низким смещением требуется для засыпания.
 // 60 кадров ≈ 1 секунда непрерывного покоя.
 export const REST_FRAMES = 60;
@@ -187,7 +185,7 @@ export function runPhysicsLoop(opts: LoopOptions): () => void {
                 const c = opts.getCenter();
                 const links = opts.getLinks?.() ?? [];
                 const maxMove = physics(objects, c.x, c.y, links);
-                if (maxMove < REST_THRESHOLD) {
+                if (maxMove < diagramSettings.restThreshold) {
                     lowFrames++;
                     if (lowFrames >= REST_FRAMES) {
                         sleeping = true;
@@ -212,8 +210,9 @@ export function runPhysicsLoop(opts: LoopOptions): () => void {
 }
 
 export function resizeObjects(objects: ITreeObject[], scale: number) {
+    const baseSize = diagramSettings.baseSize;
     objects.forEach(e => {
-        e.size = 100 * (e.mass ?? 1) * scale;
+        e.size = baseSize * (e.mass ?? 1) * scale;
         if (e.objects && e.objects.length > 0) {
             resizeObjects(e.objects, scale);
         }

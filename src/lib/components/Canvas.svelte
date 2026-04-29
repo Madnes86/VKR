@@ -12,6 +12,7 @@
     import { computeAppearanceOrder, getRevealDelay } from "$lib/functions/appearance";
     import { appearanceStore } from "$lib/stores/appearance.svelte";
     import { untangleLinks } from "$lib/functions/untangle";
+    import { diagramSettings } from "$lib/stores/diagram.svelte";
     import { i18n } from "$lib/i18n";
     import type { ITreeObject, ILink } from "$lib/interface";
 
@@ -37,6 +38,18 @@
         untangleLinks(objects, links);
         physicsNudge++;
     }
+
+    // Любая правка пользовательских настроек диаграммы — будим
+    // физический цикл (и заодно вызываем resizeObjects через
+    // зависимость), чтобы изменения применялись на лету.
+    $effect(() => {
+        diagramSettings.spring;
+        diagramSettings.gravity;
+        diagramSettings.repulsion;
+        diagramSettings.baseSize;
+        diagramSettings.restThreshold;
+        physicsNudge++;
+    });
 
     function onwheel(e: WheelEvent) {
         scaleStore.value = e.deltaY > 0 ? scaleStore.value -= 1.01 : scaleStore.value += 1.01;

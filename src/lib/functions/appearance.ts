@@ -1,15 +1,15 @@
 import type { ITreeObject, ILink } from "$lib/interface";
+import { diagramSettings, DIAGRAM_DEFAULTS } from "$lib/stores/diagram.svelte";
 
-// Базовая задержка между появлением соседних объектов в миллисекундах.
-// Реальная задержка масштабируется по массе только что показанного:
-// после тяжёлого корня пауза дольше, после лёгкого листа — короче.
-export const BASE_REVEAL_DELAY = 100;
+// Default-базис в виде константы (для тестов). Реальный ран-таймовый —
+// diagramSettings.revealDelay.
+export const BASE_REVEAL_DELAY = DIAGRAM_DEFAULTS.revealDelay;
 
 // Сколько миллисекунд ждать перед появлением следующего объекта,
 // если предыдущий имеет массу `mass`. Масса < 1 трактуется как 1
 // (минимум одна базовая задержка).
 export function getRevealDelay(mass: number): number {
-    return BASE_REVEAL_DELAY * Math.max(1, mass);
+    return diagramSettings.revealDelay * Math.max(1, mass);
 }
 
 // Возвращает ID объектов в порядке появления на холсте.

@@ -154,7 +154,7 @@
         {@const to = objects.find(o => o.id === l.to)}
 
         {#if is && to && appearanceStore.has(l.is) && appearanceStore.has(l.to)}
-            <Link id={l.id} name={l.name} type={l.type} {is} {to} />
+            <Link id={l.id} name={l.name} type={l.type} {is} {to} isValue={l.isValue} toValue={l.toValue} />
         {/if}
     {/each}
 </div>

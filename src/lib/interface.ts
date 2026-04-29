@@ -35,7 +35,8 @@ export type ILink = {
     type: string;
     is: any;
     to: any;
-
+    isValue?: boolean;
+    toValue?: boolean;
 }
 export type IObject = {
     id: number;

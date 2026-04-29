@@ -133,8 +133,8 @@
                         type={l.type}
                         {is}
                         {to}
-                        isValue={false}
-                        toValue={!noArrows}
+                        isValue={noArrows ? false : (l.isValue ?? false)}
+                        toValue={noArrows ? false : (l.toValue ?? true)}
                     />
                 {/if}
             {/each}

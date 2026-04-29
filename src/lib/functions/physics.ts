@@ -57,7 +57,7 @@ export function physics(objects: ITreeObject[], centerX: number, centerY: number
 
         if (dist > 1) {
             const test = Math.max(dist / 50, 1);
-            const strength = 0.00005 * m * m * test;
+            const strength = 0.0005 * m * m * test;
 
             forces[i].fx += dx * strength;
             forces[i].fy += dy * strength;

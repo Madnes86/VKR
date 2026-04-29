@@ -86,6 +86,7 @@
         if (objects.length === 0) return;
         return runPhysicsLoop({
             getObjects: () => objects,
+            getLinks: () => links,
             getCenter: () => ({ x: centerX, y: centerY }),
             isPaused: () => dragStore.hasValue(),
             onWakeSignal: (wake) => dragStore.subscribe(() => wake()),

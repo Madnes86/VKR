@@ -1,9 +1,24 @@
-import type { ITreeObject } from "$lib/interface";
+import type { ITreeObject, ILink } from "$lib/interface";
+
+// Сила пружины вдоль связей. Слабее коллизий (350) на два порядка,
+// но сильнее гравитации (~0.0005 × mass²) на дистанциях > restLength —
+// связанные объекты стягиваются друг к другу, длинные линии через
+// весь холст не образуются.
+const SPRING_STRENGTH = 0.003;
+// Желаемая дистанция между центрами связанных объектов в долях суммы
+// размеров. 0.6 даёт лёгкое перекрытие радиусов — связь компактна,
+// но коллизия не даёт объектам слиться.
+const SPRING_REST_FACTOR = 0.6;
 
 // Возвращает максимальное смещение в текущем кадре. Вызывающая сторона
 // использует это значение, чтобы определить состояние покоя и приостановить
 // RAF-цикл — при равновесии диаграмма «засыпает» и не жжёт CPU.
-export function physics(objects: ITreeObject[], centerX: number, centerY: number): number {
+export function physics(
+    objects: ITreeObject[],
+    centerX: number,
+    centerY: number,
+    links: ILink[] = []
+): number {
     const forces = objects.map(() => ({ fx: 0, fy: 0 }));
 
     // Приоритет #1: Коллизии. Импульс распределяется обратно
@@ -67,6 +82,53 @@ export function physics(objects: ITreeObject[], centerX: number, centerY: number
         }
     }
 
+    // Приоритет #3: Пружинные силы вдоль связей. Импульс распределяется
+    // обратно пропорционально массе — тяжёлый эндпоинт почти не сдвигается,
+    // лёгкий притягивается к нему. Сила действует только при растяжении
+    // (dist > restLength), сжатие обрабатывают коллизии.
+    if (links.length > 0) {
+        const idToIndex = new Map<number, number>();
+        for (let i = 0; i < objects.length; i++) idToIndex.set(objects[i].id, i);
+
+        for (const l of links) {
+            const idA = typeof l.is === 'object' && l.is !== null ? l.is.id : l.is;
+            const idB = typeof l.to === 'object' && l.to !== null ? l.to.id : l.to;
+            if (typeof idA !== 'number' || typeof idB !== 'number') continue;
+            const ia = idToIndex.get(idA);
+            const ib = idToIndex.get(idB);
+            if (ia === undefined || ib === undefined) continue;
+
+            const a = objects[ia];
+            const b = objects[ib];
+            const cax = a.x + a.size / 2;
+            const cay = a.y + a.size / 2;
+            const cbx = b.x + b.size / 2;
+            const cby = b.y + b.size / 2;
+            const dx = cbx - cax;
+            const dy = cby - cay;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 0.01) continue;
+
+            const restLength = (a.size + b.size) * SPRING_REST_FACTOR;
+            if (dist <= restLength) continue;
+
+            const extension = dist - restLength;
+            const f = SPRING_STRENGTH * extension;
+            const nx = dx / dist;
+            const ny = dy / dist;
+            const mA = a.mass ?? 1;
+            const mB = b.mass ?? 1;
+            const total = mA + mB;
+            const shareA = mB / total;
+            const shareB = mA / total;
+
+            forces[ia].fx += nx * f * shareA;
+            forces[ia].fy += ny * f * shareA;
+            forces[ib].fx -= nx * f * shareB;
+            forces[ib].fy -= ny * f * shareB;
+        }
+    }
+
     // Применяем силы. Демпфирование ∝ 1/√m: лёгкие реагируют быстрее,
     // тяжёлые инертнее — центральные орбиты визуально стабильнее.
     let maxDisplacement = 0;
@@ -92,6 +154,7 @@ export const REST_FRAMES = 60;
 
 type LoopOptions = {
     getObjects: () => ITreeObject[];
+    getLinks?: () => ILink[];
     getCenter: () => { x: number; y: number };
     isPaused?: () => boolean;
     onWakeSignal?: (wake: () => void) => () => void;
@@ -122,7 +185,8 @@ export function runPhysicsLoop(opts: LoopOptions): () => void {
             const objects = opts.getObjects();
             if (objects.length > 0) {
                 const c = opts.getCenter();
-                const maxMove = physics(objects, c.x, c.y);
+                const links = opts.getLinks?.() ?? [];
+                const maxMove = physics(objects, c.x, c.y, links);
                 if (maxMove < REST_THRESHOLD) {
                     lowFrames++;
                     if (lowFrames >= REST_FRAMES) {

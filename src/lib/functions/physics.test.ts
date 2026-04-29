@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { physics, resizeObjects, REST_THRESHOLD } from './physics';
-import type { ITreeObject } from '$lib/interface';
+import type { ITreeObject, ILink } from '$lib/interface';
 
 function makeObj(partial: Partial<ITreeObject> & { id: number; x: number; y: number; mass: number }): ITreeObject {
     return {
@@ -109,6 +109,91 @@ describe('physics: формирование «колец» по массе', () 
         const lightDist = distFromCenter(light, cx, cy);
 
         expect(heavyDist).toBeLessThan(lightDist);
+    });
+});
+
+describe('physics: пружинная сила вдоль связей', () => {
+    it('Связанные объекты притягиваются друг к другу', () => {
+        // Гравитация перпендикулярна оси связи, чтобы изолировать
+        // эффект пружины. Объекты на одной горизонтали, центр сверху.
+        const a = makeObj({ id: 1, x: 0, y: 1000, mass: 1 });
+        const b = makeObj({ id: 2, x: 2000, y: 1000, mass: 1 });
+        const links: ILink[] = [{ id: 100, name: 'l', type: 'default', is: 1, to: 2 }];
+
+        const initialDist = Math.abs(b.x - a.x);
+
+        for (let i = 0; i < 100; i++) physics([a, b], 1000, 1000, links);
+
+        const finalDist = Math.abs(b.x - a.x);
+        expect(finalDist).toBeLessThan(initialDist);
+    });
+
+    it('При dist <= restLength пружина не вносит вклад (сравнение с/без link)', () => {
+        // size=100 каждый → restLength = 200 * 0.6 = 120.
+        // Центры на расстоянии 100 — внутри restLength, пружина молчит.
+        const linkA = makeObj({ id: 1, x: 0, y: 0, mass: 1 });
+        const linkB = makeObj({ id: 2, x: 100, y: 0, mass: 1 });
+        const noA = makeObj({ id: 1, x: 0, y: 0, mass: 1 });
+        const noB = makeObj({ id: 2, x: 100, y: 0, mass: 1 });
+        const links: ILink[] = [{ id: 100, name: 'l', type: 'default', is: 1, to: 2 }];
+
+        physics([linkA, linkB], 1000, 1000, links);
+        physics([noA, noB], 1000, 1000, []);
+
+        // Идентичные позиции — пружина действительно не сработала.
+        expect(linkA.x).toBeCloseTo(noA.x, 5);
+        expect(linkB.x).toBeCloseTo(noB.x, 5);
+    });
+
+    it('Лёгкий конец смещается пружиной сильнее тяжёлого (изоляция пружины)', () => {
+        // Сравниваем шаг с link и без — гравитация в обоих сценариях
+        // одинакова, разница в смещении приходится только на пружину.
+        const heavy1 = makeObj({ id: 1, x: 0, y: 1000, mass: 10 });
+        const light1 = makeObj({ id: 2, x: 2000, y: 1000, mass: 1 });
+        const heavy2 = makeObj({ id: 1, x: 0, y: 1000, mass: 10 });
+        const light2 = makeObj({ id: 2, x: 2000, y: 1000, mass: 1 });
+        const links: ILink[] = [{ id: 100, name: 'l', type: 'default', is: 1, to: 2 }];
+
+        physics([heavy1, light1], 1000, 1000, links);
+        physics([heavy2, light2], 1000, 1000, []);
+
+        const heavySpringDelta = Math.abs(heavy1.x - heavy2.x);
+        const lightSpringDelta = Math.abs(light1.x - light2.x);
+
+        expect(lightSpringDelta).toBeGreaterThan(heavySpringDelta);
+    });
+
+    it('Несвязанные объекты не притягиваются пружиной', () => {
+        const a = makeObj({ id: 1, x: 0, y: 1000, mass: 1 });
+        const b = makeObj({ id: 2, x: 2000, y: 1000, mass: 1 });
+
+        const aStartX = a.x;
+        const bStartX = b.x;
+
+        // links = []: только гравитация и коллизия
+        for (let i = 0; i < 100; i++) physics([a, b], 1000, 1000, []);
+
+        const aShift = Math.abs(a.x - aStartX);
+        const bShift = Math.abs(b.x - bStartX);
+
+        // Симулируем то же со связью
+        const a2 = makeObj({ id: 1, x: 0, y: 1000, mass: 1 });
+        const b2 = makeObj({ id: 2, x: 2000, y: 1000, mass: 1 });
+        const linksOn: ILink[] = [{ id: 100, name: 'l', type: 'default', is: 1, to: 2 }];
+        for (let i = 0; i < 100; i++) physics([a2, b2], 1000, 1000, linksOn);
+        const a2Shift = Math.abs(a2.x - 0);
+        const b2Shift = Math.abs(b2.x - 2000);
+
+        expect(a2Shift).toBeGreaterThan(aShift);
+        expect(b2Shift).toBeGreaterThan(bShift);
+    });
+
+    it('Орфанная ссылка (один эндпоинт отсутствует) не ломает физику', () => {
+        const a = makeObj({ id: 1, x: 0, y: 0, mass: 1 });
+        const links: ILink[] = [{ id: 100, name: 'l', type: 'default', is: 1, to: 999 }];
+
+        physics([a], 500, 500, links);
+        expect(Number.isFinite(a.x)).toBe(true);
     });
 });
 

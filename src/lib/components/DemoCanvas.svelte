@@ -79,6 +79,7 @@
         let wakeFn: (() => void) | null = null;
         const stopLoop = runPhysicsLoop({
             getObjects: () => objects,
+            getLinks: () => topLinks,
             getCenter: () => ({ x: centerX, y: centerY }),
             isPaused: () => !visible || dragStore.hasValue(),
             onWakeSignal: (wake) => {

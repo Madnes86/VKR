@@ -120,6 +120,7 @@
         resizeObjects(objects, scaleStore.value);
         return runPhysicsLoop({
             getObjects: () => objects,
+            getLinks: () => links,
             getCenter: () => ({ x: centerX, y: centerY }),
             isPaused: () => dragStore.hasValue(),
             onWakeSignal: (wake) => dragStore.subscribe(() => wake()),

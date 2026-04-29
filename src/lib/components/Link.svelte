@@ -1,6 +1,7 @@
 <script lang="ts">
     import { selectedStore, links as linksStore } from "$lib/stores/objects.svelte";
     import { validationStore } from "$lib/stores/validation.svelte";
+    import { LightText } from "$lib/components";
     import type { ILink } from "$lib/interface";
 
     let {
@@ -118,8 +119,8 @@
         {onmouseleave}
         {onclick}
         ondblclick={startEdit}
-        style="left: {midX}px; top: {midY}px; font-size: {size / 8}px"
-        class="absolute z-3 -translate-1/2 flex items-center gap-1 text-border"
+        style="left: {midX}px; top: {midY}px; font-size: {size / 8}px; z-index: 99999999"
+        class="absolute -translate-1/2 flex items-center gap-1 text-border"
     >
         {#if editing}
             <!-- svelte-ignore a11y_autofocus -->
@@ -137,7 +138,7 @@
                 ondblclick={startEdit}
                 title="Двойной клик — переименовать"
                 class="whitespace-nowrap select-none cursor-text"
-            >{name}</button>
+            ><LightText text={name} /></button>
         {/if}
         {#if hover && !editing}
             <button

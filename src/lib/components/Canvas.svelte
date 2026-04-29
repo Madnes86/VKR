@@ -8,6 +8,7 @@
     import { searchStore } from "$lib/stores/search.svelte";
     import { side } from "$lib/stores/other.svelte";
     import { computeSearchVisibility } from "$lib/functions/search";
+    import { computeAppearanceOrder, REVEAL_DELAY } from "$lib/functions/appearance";
     import type { ITreeObject, ILink } from "$lib/interface";
 
     let width: number = $state(0);
@@ -53,16 +54,60 @@
         return computeSearchVisibility(flatObjects.all, q);
     });
 
+    // ID объектов, которые уже «появились» на холсте. Сохраняется между
+    // ре-ранами эффекта, чтобы при изменении фильтра / добавлении новых
+    // объектов уже показанные не пересобирались с задержкой заново.
+    const shownIds = new Set<number>();
+
     $effect(() => {
         const data = treeStore.all;
         const v = visibility;
-        if (data && data.objects) {
-            const baseLinks = data.links ?? [];
-            objects = v ? data.objects.filter(o => v.has(o.id)) : data.objects;
-            links = v
-                ? baseLinks.filter(l => v.has(l.is) && v.has(l.to))
-                : baseLinks;
+        if (!data || !data.objects) return;
+
+        const baseLinks = data.links ?? [];
+        const targetObjects = v ? data.objects.filter(o => v.has(o.id)) : data.objects;
+        const targetLinks = v
+            ? baseLinks.filter(l => v.has(l.is) && v.has(l.to))
+            : baseLinks;
+
+        const targetIds = new Set(targetObjects.map(o => o.id));
+        // Удаляем из shownIds то, что больше не должно быть видимым.
+        for (const id of [...shownIds]) if (!targetIds.has(id)) shownIds.delete(id);
+
+        // Уже показанные оставляем мгновенно, новые ставим в очередь по
+        // приоритету (масса ↓, связи с показанными ↓).
+        const alreadyShown = targetObjects.filter(o => shownIds.has(o.id));
+        const toReveal = targetObjects.filter(o => !shownIds.has(o.id));
+        const order = computeAppearanceOrder(toReveal, targetLinks);
+
+        objects = alreadyShown;
+        links = targetLinks.filter(l => shownIds.has(l.is) && shownIds.has(l.to));
+
+        let cancelled = false;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        let i = 0;
+
+        function reveal() {
+            if (cancelled || i >= order.length) return;
+            const nextId = order[i++];
+            const obj = toReveal.find(o => o.id === nextId);
+            if (obj) {
+                shownIds.add(obj.id);
+                objects = [...objects, obj];
+                links = targetLinks.filter(l => shownIds.has(l.is) && shownIds.has(l.to));
+            }
+            if (i < order.length) timer = setTimeout(reveal, REVEAL_DELAY);
         }
+
+        if (order.length > 0) {
+            // Первый — сразу, дальнейшие — с задержкой.
+            reveal();
+        }
+
+        return () => {
+            cancelled = true;
+            if (timer !== undefined) clearTimeout(timer);
+        };
     });
     $effect(() => {
         if (objects.length === 0) return;

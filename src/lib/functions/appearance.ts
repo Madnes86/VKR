@@ -3,31 +3,56 @@ import type { ITreeObject, ILink } from "$lib/interface";
 // Задержка между появлением соседних объектов в миллисекундах.
 export const REVEAL_DELAY = 300;
 
-// Возвращает ID объектов в порядке появления на холсте:
-//   1) тяжёлые объекты (высокая mass) идут первыми — они якорятся в центре,
-//   2) среди равной массы предпочтение тем, что связаны с уже показанными,
-//   3) лёгкие листья (низкая mass, без связей) появляются последними.
+// Возвращает ID объектов в порядке появления на холсте.
+// Дерево раскрывается ПОЛНОСТЬЮ — функция рекурсивно проходит вложенные
+// objects, чтобы потомки тоже появлялись постепенно (а не пачкой при
+// рендере родителя).
 //
-// Алгоритм — жадный: на каждой итерации выбирается лучший кандидат по
-// (число связей с показанными ↓, mass ↓). На первой итерации связей
-// ещё нет, поэтому первым всегда станет самый массивный объект.
+// Приоритет:
+//   1) тяжёлые объекты (высокая mass) — они якорятся в центре и идут
+//      первыми;
+//   2) среди равной массы предпочтение тем, кто связан с уже показанными
+//      (через явный link или через родитель-ребёнок), чтобы дерево
+//      «разворачивалось» от центра, а не появлялось вразнобой;
+//   3) лёгкие изолированные листья — последними.
 export function computeAppearanceOrder(objects: ITreeObject[], links: ILink[]): number[] {
-    if (objects.length <= 1) return objects.map(o => o.id);
-
+    const flat: ITreeObject[] = [];
     const adj = new Map<number, Set<number>>();
-    for (const l of links) {
-        const a = typeof l.is === 'object' && l.is !== null ? l.is.id : l.is;
-        const b = typeof l.to === 'object' && l.to !== null ? l.to.id : l.to;
-        if (typeof a !== 'number' || typeof b !== 'number') continue;
-        if (!adj.has(a)) adj.set(a, new Set());
-        if (!adj.has(b)) adj.set(b, new Set());
+
+    function ensure(id: number) {
+        if (!adj.has(id)) adj.set(id, new Set());
+    }
+    function addEdge(a: number, b: number) {
+        ensure(a); ensure(b);
         adj.get(a)!.add(b);
         adj.get(b)!.add(a);
     }
+    function walk(o: ITreeObject) {
+        flat.push(o);
+        const kids = o.objects ?? [];
+        for (const child of kids) {
+            addEdge(o.id, child.id);
+            walk(child);
+        }
+        for (const l of o.links ?? []) {
+            const a = typeof l.is === 'object' && l.is !== null ? l.is.id : l.is;
+            const b = typeof l.to === 'object' && l.to !== null ? l.to.id : l.to;
+            if (typeof a === 'number' && typeof b === 'number') addEdge(a, b);
+        }
+    }
+    for (const o of objects) walk(o);
+
+    for (const l of links) {
+        const a = typeof l.is === 'object' && l.is !== null ? l.is.id : l.is;
+        const b = typeof l.to === 'object' && l.to !== null ? l.to.id : l.to;
+        if (typeof a === 'number' && typeof b === 'number') addEdge(a, b);
+    }
+
+    if (flat.length <= 1) return flat.map(o => o.id);
 
     const result: number[] = [];
     const revealed = new Set<number>();
-    const remaining = new Map(objects.map(o => [o.id, o]));
+    const remaining = new Map(flat.map(o => [o.id, o]));
 
     while (remaining.size > 0) {
         let best: ITreeObject | null = null;

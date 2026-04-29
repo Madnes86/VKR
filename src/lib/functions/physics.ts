@@ -83,10 +83,12 @@ export function physics(objects: ITreeObject[], centerX: number, centerY: number
     return maxDisplacement;
 }
 // Порог «покоя»: смещение в пикселях за кадр, ниже которого
-// объект считается замершим. 0.2 px/кадр ≈ 12 px/сек при 60fps.
-export const REST_THRESHOLD = 0.2;
+// объект считается замершим. 0.05 px/кадр ≈ 3 px/сек при 60fps —
+// засыпаем только когда движение действительно почти исчезло.
+export const REST_THRESHOLD = 0.05;
 // Сколько подряд кадров с низким смещением требуется для засыпания.
-export const REST_FRAMES = 30;
+// 60 кадров ≈ 1 секунда непрерывного покоя.
+export const REST_FRAMES = 60;
 
 type LoopOptions = {
     getObjects: () => ITreeObject[];

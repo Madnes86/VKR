@@ -9,6 +9,7 @@
     import { side } from "$lib/stores/other.svelte";
     import { computeSearchVisibility } from "$lib/functions/search";
     import { computeAppearanceOrder, REVEAL_DELAY } from "$lib/functions/appearance";
+    import { appearanceStore } from "$lib/stores/appearance.svelte";
     import type { ITreeObject, ILink } from "$lib/interface";
 
     let width: number = $state(0);
@@ -54,11 +55,6 @@
         return computeSearchVisibility(flatObjects.all, q);
     });
 
-    // ID объектов, которые уже «появились» на холсте. Сохраняется между
-    // ре-ранами эффекта, чтобы при изменении фильтра / добавлении новых
-    // объектов уже показанные не пересобирались с задержкой заново.
-    const shownIds = new Set<number>();
-
     $effect(() => {
         const data = treeStore.all;
         const v = visibility;
@@ -70,39 +66,35 @@
             ? baseLinks.filter(l => v.has(l.is) && v.has(l.to))
             : baseLinks;
 
-        const targetIds = new Set(targetObjects.map(o => o.id));
-        // Удаляем из shownIds то, что больше не должно быть видимым.
-        for (const id of [...shownIds]) if (!targetIds.has(id)) shownIds.delete(id);
+        objects = targetObjects;
+        links = targetLinks;
 
-        // Уже показанные оставляем мгновенно, новые ставим в очередь по
-        // приоритету (масса ↓, связи с показанными ↓).
-        const alreadyShown = targetObjects.filter(o => shownIds.has(o.id));
-        const toReveal = targetObjects.filter(o => !shownIds.has(o.id));
-        const order = computeAppearanceOrder(toReveal, targetLinks);
+        // Собираем все ID в дереве (рекурсивно), чтобы appearanceStore
+        // знал актуальный набор и забыл устаревшие.
+        const allIds = new Set<number>();
+        function walk(o: ITreeObject) {
+            allIds.add(o.id);
+            for (const c of o.objects ?? []) walk(c);
+        }
+        for (const o of targetObjects) walk(o);
+        appearanceStore.forget(allIds);
 
-        objects = alreadyShown;
-        links = targetLinks.filter(l => shownIds.has(l.is) && shownIds.has(l.to));
+        // Полный порядок появления (включая вложенных потомков).
+        // Уже показанные пропускаем — анимация только для новых ID.
+        const order = computeAppearanceOrder(targetObjects, targetLinks);
+        const toReveal = order.filter(id => !appearanceStore.has(id));
 
         let cancelled = false;
         let timer: ReturnType<typeof setTimeout> | undefined;
         let i = 0;
 
         function reveal() {
-            if (cancelled || i >= order.length) return;
-            const nextId = order[i++];
-            const obj = toReveal.find(o => o.id === nextId);
-            if (obj) {
-                shownIds.add(obj.id);
-                objects = [...objects, obj];
-                links = targetLinks.filter(l => shownIds.has(l.is) && shownIds.has(l.to));
-            }
-            if (i < order.length) timer = setTimeout(reveal, REVEAL_DELAY);
+            if (cancelled || i >= toReveal.length) return;
+            appearanceStore.reveal(toReveal[i++]);
+            if (i < toReveal.length) timer = setTimeout(reveal, REVEAL_DELAY);
         }
 
-        if (order.length > 0) {
-            // Первый — сразу, дальнейшие — с задержкой.
-            reveal();
-        }
+        if (toReveal.length > 0) reveal();
 
         return () => {
             cancelled = true;
@@ -126,13 +118,15 @@
 
 <div class="fixed top-0 left-0 size-full z-0">
     {#each objects as {id, name, type, x, y, size, objects, links}, i}
-        <Object {id} {name} {type} {x} {y} {size} {objects} {links} selParent={false}/>
+        {#if appearanceStore.has(id)}
+            <Object {id} {name} {type} {x} {y} {size} {objects} {links} selParent={false}/>
+        {/if}
     {/each}
     {#each links as l}
         {@const is = objects.find(o => o.id === l.is)}
         {@const to = objects.find(o => o.id === l.to)}
 
-        {#if is && to}
+        {#if is && to && appearanceStore.has(l.is) && appearanceStore.has(l.to)}
             <Link id={l.id} name={l.name} type={l.type} {is} {to} />
         {/if}
     {/each}

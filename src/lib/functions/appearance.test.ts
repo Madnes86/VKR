@@ -88,4 +88,36 @@ describe('computeAppearanceOrder', () => {
     it('REVEAL_DELAY = 300мс по требованию', () => {
         expect(REVEAL_DELAY).toBe(300);
     });
+
+    it('Рекурсивно проходит вложенные дети', () => {
+        // Дерево:
+        //   1 (mass 10) — корень
+        //     2 (mass 3) — ребёнок 1
+        //     3 (mass 2) — ребёнок 1
+        // Результат должен включать всех трёх.
+        const child2 = obj(2, 3);
+        const child3 = obj(3, 2);
+        const root = { ...obj(1, 10), objects: [child2, child3] };
+
+        const order = computeAppearanceOrder([root], []);
+
+        expect(order).toEqual([1, 2, 3]);
+    });
+
+    it('Родитель-ребёнок считается связью: дети идут раньше изолированного', () => {
+        // Корень 1 (mass 10) с детьми 2 (mass 1) и 3 (mass 1).
+        // Изолированный 4 (mass 5) — без связей и без родителя.
+        // Хотя 4 тяжелее детей, дети должны появиться раньше из-за
+        // связи с уже показанным родителем 1.
+        const child2 = obj(2, 1);
+        const child3 = obj(3, 1);
+        const root = { ...obj(1, 10), objects: [child2, child3] };
+        const isolated = obj(4, 5);
+
+        const order = computeAppearanceOrder([root, isolated], []);
+
+        expect(order[0]).toBe(1);
+        expect(order.slice(1, 3).sort()).toEqual([2, 3]);
+        expect(order[3]).toBe(4);
+    });
 });

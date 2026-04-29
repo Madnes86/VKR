@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Object, Link, Name } from "$lib/components";
     import { runPhysicsLoop } from "$lib/functions/physics";
+    import { appearanceStore } from "$lib/stores/appearance.svelte";
     import { dragStore } from "$lib/stores/drag.svelte";
     import { viewStore, selectedStore } from "$lib/stores/objects.svelte";
     import { contextStore } from "$lib/stores/context.svelte";
@@ -115,14 +116,16 @@
             style="border: {size / 100}px {border} {selParent ? 'black' : validationColor}; outline: {size / 100}px {border} black; transition-duration: {size}ms"
             class={`${selected && 'bg-accent! border-none!'} ${hover && 'outline-accent! border-0!'} transition-all rounded-full size-full bg-black`}>
             {#each objects as {id, name, type, x, y, size, objects, links}, i}
-                <Object {id} {name} {type} {x} {y} {size} {objects} {links} {noArrows} selParent={selected ? true : false} />
+                {#if appearanceStore.has(id)}
+                    <Object {id} {name} {type} {x} {y} {size} {objects} {links} {noArrows} selParent={selected ? true : false} />
+                {/if}
             {/each}
             {#each links as l}
                 {@const self = { x: 0, y: 0, size }}
                 {@const is = l.is === id ? self : objects.find(o => o.id === l.is)}
                 {@const to = l.to === id ? self : objects.find(o => o.id === l.to)}
 
-                {#if is && to}
+                {#if is && to && (l.is === id || appearanceStore.has(l.is)) && (l.to === id || appearanceStore.has(l.to))}
                     <Link
                         id={l.id}
                         name={l.name}

@@ -45,6 +45,10 @@
     // hover-цвет будет «протекать» между линиями.
     let markerStart = $derived(`arrow-s-${id}`);
     let markerEnd = $derived(`arrow-e-${id}`);
+    // Размер наконечника привязан к размерам эндпоинтов — как и у имени
+    // связи. Минимум 4, чтобы стрелка оставалась видимой даже на
+    // мелких объектах.
+    let markerSize: number = $derived(Math.max(4, size / 46));
     let strokeColor = $derived.by(() => {
         if (selected || hover) return 'var(--color-accent)';
         const sev = validationStore.severityForLink(id);
@@ -86,11 +90,11 @@
     <svg class="absolute top-0 left-0 size-full">
         <defs>
             <marker id={markerStart} viewBox="0 0 10 10" refX="2" refY="5"
-                    markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    markerWidth={markerSize} markerHeight={markerSize} orient="auto-start-reverse">
                 <path d="M 10 0 L 0 5 L 10 10 z" fill={strokeColor} />
             </marker>
             <marker id={markerEnd} viewBox="0 0 10 10" refX="8" refY="5"
-                    markerWidth="6" markerHeight="6" orient="auto">
+                    markerWidth={markerSize} markerHeight={markerSize} orient="auto">
                 <path d="M 0 0 L 10 5 L 0 10 z" fill={strokeColor} />
             </marker>
         </defs>

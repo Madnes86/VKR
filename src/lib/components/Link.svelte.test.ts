@@ -45,4 +45,35 @@ describe('Тестирование компонента связи', () => {
         const matched = container.querySelectorAll('.is-match');
         expect(matched.length).toBe(0);
     });
+
+    it('Размер наконечника стрелки масштабируется по размеру эндпоинтов', () => {
+        const isSmall = { id: 1, name: 'A', x: 0, y: 0, size: 100 } as any;
+        const toSmall = { id: 2, name: 'B', x: 200, y: 0, size: 100 } as any;
+        const small = render(Link, {
+            props: { id: 100, name: 'L', type: 'default', is: isSmall, to: toSmall, toValue: true },
+        });
+        const smallMarker = small.container.querySelector('marker');
+        const smallSize = parseFloat(smallMarker!.getAttribute('markerWidth')!);
+
+        const isBig = { id: 1, name: 'A', x: 0, y: 0, size: 800 } as any;
+        const toBig = { id: 2, name: 'B', x: 1000, y: 0, size: 800 } as any;
+        const big = render(Link, {
+            props: { id: 101, name: 'L', type: 'default', is: isBig, to: toBig, toValue: true },
+        });
+        const bigMarker = big.container.querySelector('marker');
+        const bigSize = parseFloat(bigMarker!.getAttribute('markerWidth')!);
+
+        expect(bigSize).toBeGreaterThan(smallSize);
+    });
+
+    it('Минимальный размер наконечника не меньше 4', () => {
+        const isTiny = { id: 1, name: 'A', x: 0, y: 0, size: 10 } as any;
+        const toTiny = { id: 2, name: 'B', x: 50, y: 0, size: 10 } as any;
+        const { container } = render(Link, {
+            props: { id: 100, name: 'L', type: 'default', is: isTiny, to: toTiny, toValue: true },
+        });
+        const marker = container.querySelector('marker');
+        const w = parseFloat(marker!.getAttribute('markerWidth')!);
+        expect(w).toBeGreaterThanOrEqual(4);
+    });
 });

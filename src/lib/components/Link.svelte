@@ -2,7 +2,6 @@
     import { selectedStore, links as linksStore } from "$lib/stores/objects.svelte";
     import { validationStore } from "$lib/stores/validation.svelte";
     import { LightText } from "$lib/components";
-    import { i18n } from "$lib/i18n";
     import type { ILink } from "$lib/interface";
 
     let {
@@ -81,18 +80,27 @@
         else if (e.key === 'Escape') { editing = false; draftName = name; }
     }
 
+    // Кнопки ◀ и ▶ работают как направленный селектор:
+    //   • клик по неактивному концу при активном противоположном —
+    //     стрелка переезжает на этот конец (направление развернулось);
+    //   • клик по активному — выключает стрелку (без направления);
+    //   • клик по неактивному при обоих выключенных — просто включает.
+    // Так направление меняется одним кликом и без отдельной кнопки-флипа.
     function toggleArrow(end: 'is' | 'to') {
-        if (end === 'is') linksStore.update(id, { isValue: !isValue });
-        else linksStore.update(id, { toValue: !toValue });
-    }
+        const myActive = end === 'is' ? isValue : toValue;
+        const otherActive = end === 'is' ? toValue : isValue;
 
-    // Семантический разворот: меняем местами is и to. Если из стрелок
-    // включён только один наконечник — он визуально переезжает на
-    // противоположный конец (потому что isValue/toValue остаются
-    // привязаны к ролям, а роли поменялись). Persistence идёт через
-    // обычный update → enqueueLinkUpdate → sync.
-    function flipDirection() {
-        linksStore.update(id, { is: to.id, to: is.id });
+        if (myActive) {
+            if (end === 'is') linksStore.update(id, { isValue: false });
+            else linksStore.update(id, { toValue: false });
+        } else if (otherActive) {
+            // Перенос стрелки на этот конец = семантический разворот.
+            if (end === 'is') linksStore.update(id, { isValue: true, toValue: false });
+            else linksStore.update(id, { toValue: true, isValue: false });
+        } else {
+            if (end === 'is') linksStore.update(id, { isValue: true });
+            else linksStore.update(id, { toValue: true });
+        }
     }
 </script>
 
@@ -156,19 +164,14 @@
         {/if}
         {#if hover && !editing}
             <button
+                data-testid="arrow-is"
                 onclick={(e) => { e.stopPropagation(); toggleArrow('is'); }}
                 title="Стрелка на конце «{is.name ?? ''}»"
                 style="font-size: {size / 10}px"
                 class="px-1 rounded-sm bg-gray-glass {isValue ? 'text-accent' : 'opacity-50'}"
             >◀</button>
             <button
-                data-testid="flip-link"
-                onclick={(e) => { e.stopPropagation(); flipDirection(); }}
-                title={i18n.t('diagram.link.flip')}
-                style="font-size: {size / 10}px"
-                class="px-1 rounded-sm bg-gray-glass hover:text-accent"
-            >⇄</button>
-            <button
+                data-testid="arrow-to"
                 onclick={(e) => { e.stopPropagation(); toggleArrow('to'); }}
                 title="Стрелка на конце «{to.name ?? ''}»"
                 style="font-size: {size / 10}px"

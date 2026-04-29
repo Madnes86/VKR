@@ -77,9 +77,30 @@ describe('Тестирование компонента связи', () => {
         expect(w).toBeGreaterThanOrEqual(4);
     });
 
-    it('Кнопка-флип меняет местами is и to через linksStore', async () => {
+    it('Клик ▶ при активном ◀ переносит стрелку — направление развёрнуто', async () => {
         const { links: linksStore } = await import('$lib/stores/objects.svelte');
-        // Подменяем update на шпион — проверяем, что вызвался с patch swap.
+        const calls: Array<{ id: number; patch: any }> = [];
+        const original = linksStore.update.bind(linksStore);
+        linksStore.update = (id: number, patch: any) => { calls.push({ id, patch }); };
+        try {
+            const is = { id: 1, name: 'A', x: 0, y: 0, size: 100 } as any;
+            const to = { id: 2, name: 'B', x: 200, y: 0, size: 100 } as any;
+            // isValue=true, toValue=false — стрелка на is. Кликаем ▶.
+            render(Link, {
+                props: { id: 100, name: 'L', type: 'default', is, to, isValue: true, toValue: false },
+            });
+            await page.getByText('L').hover();
+            await page.getByTestId('arrow-to').click();
+
+            expect(calls.length).toBe(1);
+            expect(calls[0].patch).toEqual({ toValue: true, isValue: false });
+        } finally {
+            linksStore.update = original;
+        }
+    });
+
+    it('Клик по активной стрелке выключает её (без направления)', async () => {
+        const { links: linksStore } = await import('$lib/stores/objects.svelte');
         const calls: Array<{ id: number; patch: any }> = [];
         const original = linksStore.update.bind(linksStore);
         linksStore.update = (id: number, patch: any) => { calls.push({ id, patch }); };
@@ -87,15 +108,34 @@ describe('Тестирование компонента связи', () => {
             const is = { id: 1, name: 'A', x: 0, y: 0, size: 100 } as any;
             const to = { id: 2, name: 'B', x: 200, y: 0, size: 100 } as any;
             render(Link, {
-                props: { id: 100, name: 'L', type: 'default', is, to },
+                props: { id: 100, name: 'L', type: 'default', is, to, toValue: true },
             });
-            // Hover, чтобы появились кнопки
             await page.getByText('L').hover();
-            await page.getByTestId('flip-link').click();
+            await page.getByTestId('arrow-to').click();
 
             expect(calls.length).toBe(1);
-            expect(calls[0].id).toBe(100);
-            expect(calls[0].patch).toEqual({ is: 2, to: 1 });
+            expect(calls[0].patch).toEqual({ toValue: false });
+        } finally {
+            linksStore.update = original;
+        }
+    });
+
+    it('Клик по неактивной стрелке при обоих выключенных — просто включает', async () => {
+        const { links: linksStore } = await import('$lib/stores/objects.svelte');
+        const calls: Array<{ id: number; patch: any }> = [];
+        const original = linksStore.update.bind(linksStore);
+        linksStore.update = (id: number, patch: any) => { calls.push({ id, patch }); };
+        try {
+            const is = { id: 1, name: 'A', x: 0, y: 0, size: 100 } as any;
+            const to = { id: 2, name: 'B', x: 200, y: 0, size: 100 } as any;
+            render(Link, {
+                props: { id: 100, name: 'L', type: 'default', is, to, isValue: false, toValue: false },
+            });
+            await page.getByText('L').hover();
+            await page.getByTestId('arrow-is').click();
+
+            expect(calls.length).toBe(1);
+            expect(calls[0].patch).toEqual({ isValue: true });
         } finally {
             linksStore.update = original;
         }

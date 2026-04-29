@@ -11,7 +11,7 @@
     import { computeSearchVisibility } from "$lib/functions/search";
     import { computeAppearanceOrder, getRevealDelay } from "$lib/functions/appearance";
     import { appearanceStore } from "$lib/stores/appearance.svelte";
-    import { computeGhosts } from "$lib/functions/ghosts";
+    import { untangleLinks } from "$lib/functions/untangle";
     import { i18n } from "$lib/i18n";
     import type { ITreeObject, ILink } from "$lib/interface";
 
@@ -28,11 +28,15 @@
     let objects: ITreeObject[] = $state([]);
     let links: ILink[] = $state([]);
 
-    // Режим «распутывания»: дальние связи заменяются короткими копиями
-    // объектов рядом с источником. Тени — чисто визуальные.
-    let duplicationMode: boolean = $state(false);
-    let ghosts = $derived(duplicationMode ? computeGhosts(objects, links) : []);
-    let hiddenLinkIds = $derived(new Set(ghosts.map(g => g.linkId)));
+    // Счётчик-«прод» для перезапуска физического цикла после ручных
+    // мутаций позиций (например, untangleLinks). Без него цикл может
+    // спать и не заметить, что объекты разъехались.
+    let physicsNudge: number = $state(0);
+
+    function untangle() {
+        untangleLinks(objects, links);
+        physicsNudge++;
+    }
 
     function onwheel(e: WheelEvent) {
         scaleStore.value = e.deltaY > 0 ? scaleStore.value -= 1.01 : scaleStore.value += 1.01;
@@ -124,6 +128,7 @@
     });
     $effect(() => {
         if (objects.length === 0) return;
+        physicsNudge; // dependency — пробуждает цикл после untangle
 
         resizeObjects(objects, scaleStore.value);
         return runPhysicsLoop({
@@ -148,46 +153,18 @@
         {@const is = objects.find(o => o.id === l.is)}
         {@const to = objects.find(o => o.id === l.to)}
 
-        {#if is && to && appearanceStore.has(l.is) && appearanceStore.has(l.to) && !hiddenLinkIds.has(l.id)}
+        {#if is && to && appearanceStore.has(l.is) && appearanceStore.has(l.to)}
             <Link id={l.id} name={l.name} type={l.type} {is} {to} />
-        {/if}
-    {/each}
-
-    <!-- Тени дублированных эндпоинтов и короткие ghost-связи к ним.
-         Тень рендерится как полупрозрачная капсула с именем; короткая
-         «ghost-link» соединяет тень с её якорем. Оригинальный длинный
-         link при этом скрыт через hiddenLinkIds. -->
-    {#each ghosts as g (g.linkId)}
-        {@const source = objects.find(o => o.id === g.sourceId)}
-        {#if source && appearanceStore.has(g.sourceId) && appearanceStore.has(g.originalId)}
-            {@const ghostObj = { id: g.originalId, x: g.x, y: g.y, size: g.size, name: g.name } as ITreeObject}
-            {@const origLink = links.find(l => l.id === g.linkId)}
-            {#if origLink}
-                <Link
-                    id={-g.linkId}
-                    name={origLink.name}
-                    type={origLink.type}
-                    is={source}
-                    to={ghostObj}
-                />
-            {/if}
-            <div
-                data-testid="ghost"
-                style="left: {g.x}px; top: {g.y}px; width: {g.size}px; height: {g.size}px; z-index: {g.originalId}"
-                class="absolute rounded-full bg-black opacity-50 outline outline-dashed outline-white pointer-events-none flex items-center justify-center"
-            >
-                <span class="text-border text-white" style="font-size: {g.size / 8}px">{g.name}</span>
-            </div>
         {/if}
     {/each}
 </div>
 
 <button
     type="button"
-    onclick={() => (duplicationMode = !duplicationMode)}
-    title={i18n.t('diagram.duplicate.title')}
+    onclick={untangle}
+    title={i18n.t('diagram.untangle.title')}
     class="absolute top-3 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-md bg-gray-glass text-border border border-accent hover:bg-accent transition-colors select-none"
 >
-    {duplicationMode ? i18n.t('diagram.duplicate.on') : i18n.t('diagram.duplicate.off')}
+    {i18n.t('diagram.untangle.action')}
 </button>
 

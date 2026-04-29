@@ -61,7 +61,8 @@
     ];
 </script>
 
-<div class="flex w-full items-center gap-2 flex-col p-2">
+<div class="flex w-full items-stretch gap-2 flex-col p-2">
+    <!-- ── Аватар + имя сверху ───────────────────────────────────────── -->
     <div class="flex w-full items-center gap-3 px-2 py-2">
         <Avatar src={avatarUrl} name={displayName} size={56} />
         <div class="flex flex-col min-w-0">
@@ -74,6 +75,81 @@
         </div>
     </div>
 
+    <!-- ── Язык ──────────────────────────────────────────────────────── -->
+    {#each drops as {items, name, labelKey}, i}
+        <DropDown {items} bind:selectedItem={drops[i].selected} className="w-full">
+            <div class="click flex w-full gap-3 items-center px-2 py-1 rounded-sm hover:bg-gray">
+                <Icon {name}/>
+                <p>{i18n.t(labelKey)}</p>
+                <p>{drops[i].selected}</p>
+            </div>
+        </DropDown>
+    {/each}
+
+    <!-- ── Параметры диаграммы (без сворачивания) ────────────────────── -->
+    <div class="flex items-center gap-2 px-2 pt-2 pb-1 border-b border-gray">
+        <Icon name="diagramm" />
+        <span class="font-semibold grow">{i18n.t('settings.diagram.title')}</span>
+    </div>
+    <div class="flex flex-col gap-1">
+        <Slider
+            bind:value={diagramSettings.spring}
+            min={0} max={0.05} step={0.0005}
+            label={i18n.t('settings.diagram.spring')}
+        />
+        <Slider
+            bind:value={diagramSettings.gravity}
+            min={0} max={0.005} step={0.00005}
+            label={i18n.t('settings.diagram.gravity')}
+        />
+        <Slider
+            bind:value={diagramSettings.repulsion}
+            min={0} max={2000} step={5}
+            label={i18n.t('settings.diagram.repulsion')}
+        />
+        <Slider
+            bind:value={diagramSettings.baseSize}
+            min={20} max={500} step={5}
+            label={i18n.t('settings.diagram.baseSize')}
+        />
+        <Slider
+            bind:value={diagramSettings.longLinkRatio}
+            min={1} max={10} step={0.1}
+            label={i18n.t('settings.diagram.longLinkRatio')}
+        />
+        <Slider
+            bind:value={diagramSettings.restThreshold}
+            min={0.001} max={2} step={0.001}
+            label={i18n.t('settings.diagram.restThreshold')}
+        />
+        <Slider
+            bind:value={diagramSettings.revealDelay}
+            min={0} max={1000} step={10}
+            label={i18n.t('settings.diagram.revealDelay')}
+        />
+        <Button onclick={() => diagramSettings.reset()} className="flex gap-2 p-1 m-1 w-full hover:bg-gray rounded-md text-sm opacity-80">
+            <Icon name="cross" />
+            <p>{i18n.t('settings.diagram.reset')}</p>
+        </Button>
+    </div>
+
+    <!-- ── Горячие клавиши (без сворачивания) ────────────────────────── -->
+    <div class="flex items-center gap-2 px-2 pt-2 pb-1 border-b border-gray">
+        <Icon name="mouse" />
+        <span class="font-semibold grow">{i18n.t('settings.shortcuts.title')}</span>
+    </div>
+    <div class="flex flex-col gap-1 px-2">
+        {#each shortcuts as s}
+            <div class="flex items-center justify-between gap-2 text-sm py-1">
+                <span class="opacity-80 grow">{i18n.t(s.labelKey)}</span>
+                <span class="flex gap-1">
+                    {#each s.keys as k}
+                        <kbd class="px-1.5 py-0.5 text-xs rounded border border-gray bg-gray-glass">{k}</kbd>
+                    {/each}
+                </span>
+            </div>
+        {/each}
+    </div>
     {#if isAuth}
         <Form icon="user" text={displayName} validate={userRule} onsave={saveName} />
         <Form icon="mail" text={email} validate={emailRule} onsave={saveEmail} />
@@ -91,83 +167,4 @@
             <p>{i18n.t('settings.login')}</p>
         </Button>
     {/if}
-
-    {#each drops as {items, name, labelKey}, i}
-        <DropDown {items} bind:selectedItem={drops[i].selected} className="w-full">
-            <div class="click flex w-full gap-3 items-center px-2 py-1 rounded-sm hover:bg-gray">
-                <Icon {name}/>
-                <p>{i18n.t(labelKey)}</p>
-                <p>{drops[i].selected}</p>
-            </div>
-        </DropDown>
-    {/each}
-
-    <!-- ── Параметры диаграммы ────────────────────────────────────────── -->
-    <details class="w-full mt-2 rounded-md border border-gray">
-        <summary class="px-2 py-1 cursor-pointer select-none flex items-center gap-2 hover:bg-gray rounded-md">
-            <Icon name="diagramm" />
-            <span class="grow">{i18n.t('settings.diagram.title')}</span>
-        </summary>
-        <div class="flex flex-col gap-1 p-1">
-            <Slider
-                bind:value={diagramSettings.spring}
-                min={0} max={0.05} step={0.0005}
-                label={i18n.t('settings.diagram.spring')}
-            />
-            <Slider
-                bind:value={diagramSettings.gravity}
-                min={0} max={0.005} step={0.00005}
-                label={i18n.t('settings.diagram.gravity')}
-            />
-            <Slider
-                bind:value={diagramSettings.repulsion}
-                min={0} max={2000} step={5}
-                label={i18n.t('settings.diagram.repulsion')}
-            />
-            <Slider
-                bind:value={diagramSettings.baseSize}
-                min={20} max={500} step={5}
-                label={i18n.t('settings.diagram.baseSize')}
-            />
-            <Slider
-                bind:value={diagramSettings.longLinkRatio}
-                min={1} max={10} step={0.1}
-                label={i18n.t('settings.diagram.longLinkRatio')}
-            />
-            <Slider
-                bind:value={diagramSettings.restThreshold}
-                min={0.001} max={2} step={0.001}
-                label={i18n.t('settings.diagram.restThreshold')}
-            />
-            <Slider
-                bind:value={diagramSettings.revealDelay}
-                min={0} max={1000} step={10}
-                label={i18n.t('settings.diagram.revealDelay')}
-            />
-            <Button onclick={() => diagramSettings.reset()} className="flex gap-2 p-1 m-1 w-full hover:bg-gray rounded-md text-sm opacity-80">
-                <Icon name="cross" />
-                <p>{i18n.t('settings.diagram.reset')}</p>
-            </Button>
-        </div>
-    </details>
-
-    <!-- ── Горячие клавиши ────────────────────────────────────────────── -->
-    <details class="w-full rounded-md border border-gray">
-        <summary class="px-2 py-1 cursor-pointer select-none flex items-center gap-2 hover:bg-gray rounded-md">
-            <Icon name="mouse" />
-            <span class="grow">{i18n.t('settings.shortcuts.title')}</span>
-        </summary>
-        <div class="flex flex-col gap-1 p-2">
-            {#each shortcuts as s}
-                <div class="flex items-center justify-between gap-2 text-sm py-1">
-                    <span class="opacity-80 grow">{i18n.t(s.labelKey)}</span>
-                    <span class="flex gap-1">
-                        {#each s.keys as k}
-                            <kbd class="px-1.5 py-0.5 text-xs rounded border border-gray bg-gray-glass">{k}</kbd>
-                        {/each}
-                    </span>
-                </div>
-            {/each}
-        </div>
-    </details>
 </div>

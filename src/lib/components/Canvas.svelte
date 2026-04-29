@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import { Object, Link } from "$lib/components";
     import { treeStore, objects as flatObjects } from "$lib/stores/objects.svelte";
     import { scaleStore } from "$lib/stores/scale.svelte";
@@ -77,12 +78,15 @@
             for (const c of o.objects ?? []) walk(c);
         }
         for (const o of targetObjects) walk(o);
-        appearanceStore.forget(allIds);
 
-        // Полный порядок появления (включая вложенных потомков).
-        // Уже показанные пропускаем — анимация только для новых ID.
+        // untrack: чтения/записи appearanceStore не должны делать этот
+        // эффект реактивным к нему — иначе reveal() ре-триггерит эффект
+        // и таймер обнуляется на каждой итерации, всё появляется разом.
         const order = computeAppearanceOrder(targetObjects, targetLinks);
-        const toReveal = order.filter(id => !appearanceStore.has(id));
+        const toReveal = untrack(() => {
+            appearanceStore.forget(allIds);
+            return order.filter(id => !appearanceStore.has(id));
+        });
 
         let cancelled = false;
         let timer: ReturnType<typeof setTimeout> | undefined;

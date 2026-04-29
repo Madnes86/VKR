@@ -2,7 +2,7 @@
     let {
         src = null,
         name = '',
-        size = 32,
+        size = 34,
     }: {
         src?: string | null;
         name?: string;

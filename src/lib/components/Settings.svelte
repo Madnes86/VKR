@@ -52,6 +52,18 @@
         diagramSettings.persist();
     });
 
+    // Кнопка «сбросить» имеет смысл только когда хотя бы один слайдер
+    // ушёл от дефолта — иначе она ничего не делает и захламляет UI.
+    let isModified = $derived(
+        diagramSettings.spring        !== DIAGRAM_DEFAULTS.spring        ||
+        diagramSettings.gravity       !== DIAGRAM_DEFAULTS.gravity       ||
+        diagramSettings.repulsion     !== DIAGRAM_DEFAULTS.repulsion     ||
+        diagramSettings.baseSize      !== DIAGRAM_DEFAULTS.baseSize      ||
+        diagramSettings.longLinkRatio !== DIAGRAM_DEFAULTS.longLinkRatio ||
+        diagramSettings.restThreshold !== DIAGRAM_DEFAULTS.restThreshold ||
+        diagramSettings.revealDelay   !== DIAGRAM_DEFAULTS.revealDelay
+    );
+
     const shortcuts = [
         { keys: ['Enter'],  labelKey: 'settings.shortcuts.searchEnter' },
         { keys: ['Esc'],    labelKey: 'settings.shortcuts.searchEscape' },
@@ -64,7 +76,7 @@
 <div class="flex w-full items-stretch gap-2 flex-col p-2">
     <!-- ── Аватар + имя сверху ───────────────────────────────────────── -->
     <div class="flex w-full items-center gap-3 px-2 py-2">
-        <Avatar src={avatarUrl} name={displayName} size={56} />
+        <Avatar src={avatarUrl} name={displayName} size={38} />
         <div class="flex flex-col min-w-0">
             <span class="font-semibold truncate">{displayName}</span>
             {#if isAuth}
@@ -127,10 +139,12 @@
             min={0} max={1000} step={10}
             label={i18n.t('settings.diagram.revealDelay')}
         />
-        <Button onclick={() => diagramSettings.reset()} className="flex gap-2 p-1 m-1 w-full hover:bg-gray rounded-md text-sm opacity-80">
-            <Icon name="cross" />
-            <p>{i18n.t('settings.diagram.reset')}</p>
-        </Button>
+        {#if isModified}
+            <Button onclick={() => diagramSettings.reset()} className="flex gap-2 p-1 m-1 w-full hover:bg-gray rounded-md text-sm opacity-80">
+                <Icon name="cross" />
+                <p>{i18n.t('settings.diagram.reset')}</p>
+            </Button>
+        {/if}
     </div>
 
     <!-- ── Горячие клавиши (без сворачивания) ────────────────────────── -->

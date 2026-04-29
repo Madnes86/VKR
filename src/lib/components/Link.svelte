@@ -2,6 +2,7 @@
     import { selectedStore, links as linksStore } from "$lib/stores/objects.svelte";
     import { validationStore } from "$lib/stores/validation.svelte";
     import { LightText } from "$lib/components";
+    import { i18n } from "$lib/i18n";
     import type { ILink } from "$lib/interface";
 
     let {
@@ -84,6 +85,15 @@
         if (end === 'is') linksStore.update(id, { isValue: !isValue });
         else linksStore.update(id, { toValue: !toValue });
     }
+
+    // Семантический разворот: меняем местами is и to. Если из стрелок
+    // включён только один наконечник — он визуально переезжает на
+    // противоположный конец (потому что isValue/toValue остаются
+    // привязаны к ролям, а роли поменялись). Persistence идёт через
+    // обычный update → enqueueLinkUpdate → sync.
+    function flipDirection() {
+        linksStore.update(id, { is: to.id, to: is.id });
+    }
 </script>
 
 <div>
@@ -141,7 +151,7 @@
             <button
                 ondblclick={startEdit}
                 title="Двойной клик — переименовать"
-                class="whitespace-nowrap select-none cursor-text"
+                class="whitespace-nowrap select-none cursor-text text-border"
             ><LightText text={name} /></button>
         {/if}
         {#if hover && !editing}
@@ -151,6 +161,13 @@
                 style="font-size: {size / 10}px"
                 class="px-1 rounded-sm bg-gray-glass {isValue ? 'text-accent' : 'opacity-50'}"
             >◀</button>
+            <button
+                data-testid="flip-link"
+                onclick={(e) => { e.stopPropagation(); flipDirection(); }}
+                title={i18n.t('diagram.link.flip')}
+                style="font-size: {size / 10}px"
+                class="px-1 rounded-sm bg-gray-glass hover:text-accent"
+            >⇄</button>
             <button
                 onclick={(e) => { e.stopPropagation(); toggleArrow('to'); }}
                 title="Стрелка на конце «{to.name ?? ''}»"

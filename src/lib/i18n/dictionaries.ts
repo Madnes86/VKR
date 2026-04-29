@@ -278,6 +278,7 @@ export const ru = {
 
     'diagram.untangle.action': 'Распутать связи',
     'diagram.untangle.title': 'Перенести дальние эндпоинты ближе к их источнику',
+    'diagram.link.flip': 'Развернуть направление связи',
 } as const;
 
 export type Key = keyof typeof ru;
@@ -562,6 +563,7 @@ export const en: Record<Key, string> = {
 
     'diagram.untangle.action': 'Untangle links',
     'diagram.untangle.title': 'Move distant endpoints closer to their source',
+    'diagram.link.flip': 'Flip link direction',
 };
 
 export const dict = { ru, en };

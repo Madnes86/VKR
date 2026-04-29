@@ -76,4 +76,28 @@ describe('Тестирование компонента связи', () => {
         const w = parseFloat(marker!.getAttribute('markerWidth')!);
         expect(w).toBeGreaterThanOrEqual(4);
     });
+
+    it('Кнопка-флип меняет местами is и to через linksStore', async () => {
+        const { links: linksStore } = await import('$lib/stores/objects.svelte');
+        // Подменяем update на шпион — проверяем, что вызвался с patch swap.
+        const calls: Array<{ id: number; patch: any }> = [];
+        const original = linksStore.update.bind(linksStore);
+        linksStore.update = (id: number, patch: any) => { calls.push({ id, patch }); };
+        try {
+            const is = { id: 1, name: 'A', x: 0, y: 0, size: 100 } as any;
+            const to = { id: 2, name: 'B', x: 200, y: 0, size: 100 } as any;
+            render(Link, {
+                props: { id: 100, name: 'L', type: 'default', is, to },
+            });
+            // Hover, чтобы появились кнопки
+            await page.getByText('L').hover();
+            await page.getByTestId('flip-link').click();
+
+            expect(calls.length).toBe(1);
+            expect(calls[0].id).toBe(100);
+            expect(calls[0].patch).toEqual({ is: 2, to: 1 });
+        } finally {
+            linksStore.update = original;
+        }
+    });
 });

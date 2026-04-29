@@ -1,6 +1,9 @@
 import type { ITreeObject } from "$lib/interface";
 
-export function physics(objects: ITreeObject[], centerX: number, centerY: number) {
+// Возвращает максимальное смещение в текущем кадре. Вызывающая сторона
+// использует это значение, чтобы определить состояние покоя и приостановить
+// RAF-цикл — при равновесии диаграмма «засыпает» и не жжёт CPU.
+export function physics(objects: ITreeObject[], centerX: number, centerY: number): number {
     const forces = objects.map(() => ({ fx: 0, fy: 0 }));
 
     // Приоритет #1: Коллизии. Импульс распределяется обратно
@@ -66,13 +69,82 @@ export function physics(objects: ITreeObject[], centerX: number, centerY: number
 
     // Применяем силы. Демпфирование ∝ 1/√m: лёгкие реагируют быстрее,
     // тяжёлые инертнее — центральные орбиты визуально стабильнее.
+    let maxDisplacement = 0;
     for (let i = 0; i < objects.length; i++) {
         const m = objects[i].mass ?? 1;
         const damping = 0.9 / Math.sqrt(m);
-        objects[i].x += forces[i].fx * damping;
-        objects[i].y += forces[i].fy * damping;
+        const dx = forces[i].fx * damping;
+        const dy = forces[i].fy * damping;
+        objects[i].x += dx;
+        objects[i].y += dy;
+        const mag = Math.hypot(dx, dy);
+        if (mag > maxDisplacement) maxDisplacement = mag;
     }
+    return maxDisplacement;
 }
+// Порог «покоя»: смещение в пикселях за кадр, ниже которого
+// объект считается замершим. 0.2 px/кадр ≈ 12 px/сек при 60fps.
+export const REST_THRESHOLD = 0.2;
+// Сколько подряд кадров с низким смещением требуется для засыпания.
+export const REST_FRAMES = 30;
+
+type LoopOptions = {
+    getObjects: () => ITreeObject[];
+    getCenter: () => { x: number; y: number };
+    isPaused?: () => boolean;
+    onWakeSignal?: (wake: () => void) => () => void;
+};
+
+// Запускает RAF-цикл физики с детекцией состояния покоя. Когда система
+// устаканивается — RAF не планируется, CPU не нагружается. Просыпается
+// через колбэк onWakeSignal (например, при начале drag или новых данных).
+export function runPhysicsLoop(opts: LoopOptions): () => void {
+    let frame = 0;
+    let sleeping = false;
+    let lowFrames = 0;
+
+    function wake() {
+        if (!sleeping) return;
+        sleeping = false;
+        lowFrames = 0;
+        frame = requestAnimationFrame(loop);
+    }
+
+    function loop() {
+        if (sleeping) return;
+
+        const paused = opts.isPaused?.() ?? false;
+        if (paused) {
+            lowFrames = 0;
+        } else {
+            const objects = opts.getObjects();
+            if (objects.length > 0) {
+                const c = opts.getCenter();
+                const maxMove = physics(objects, c.x, c.y);
+                if (maxMove < REST_THRESHOLD) {
+                    lowFrames++;
+                    if (lowFrames >= REST_FRAMES) {
+                        sleeping = true;
+                        return;
+                    }
+                } else {
+                    lowFrames = 0;
+                }
+            }
+        }
+
+        frame = requestAnimationFrame(loop);
+    }
+
+    const unsub = opts.onWakeSignal?.(wake);
+    frame = requestAnimationFrame(loop);
+
+    return () => {
+        cancelAnimationFrame(frame);
+        unsub?.();
+    };
+}
+
 export function resizeObjects(objects: ITreeObject[], scale: number) {
     objects.forEach(e => {
         e.size = 100 * (e.mass ?? 1) * scale;

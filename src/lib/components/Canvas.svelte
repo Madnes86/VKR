@@ -3,7 +3,7 @@
     import { treeStore, objects as flatObjects } from "$lib/stores/objects.svelte";
     import { scaleStore } from "$lib/stores/scale.svelte";
     import { dragStore } from "$lib/stores/drag.svelte";
-    import { physics, resizeObjects } from "$lib/functions/physics";
+    import { resizeObjects, runPhysicsLoop } from "$lib/functions/physics";
     import { contextStore } from "$lib/stores/context.svelte";
     import { searchStore } from "$lib/stores/search.svelte";
     import { side } from "$lib/stores/other.svelte";
@@ -68,15 +68,12 @@
         if (objects.length === 0) return;
 
         resizeObjects(objects, scaleStore.value);
-        let frame: number;
-        function loop() {
-            if (!dragStore.hasValue()) physics(objects, centerX, centerY);
-            requestAnimationFrame(loop);
-        }
-        frame = requestAnimationFrame(loop);
-        return () => {
-            cancelAnimationFrame(frame);
-        }
+        return runPhysicsLoop({
+            getObjects: () => objects,
+            getCenter: () => ({ x: centerX, y: centerY }),
+            isPaused: () => dragStore.hasValue(),
+            onWakeSignal: (wake) => dragStore.subscribe(() => wake()),
+        });
     });
 </script>
 

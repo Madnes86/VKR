@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Object, Link, Name } from "$lib/components";
-    import { physics } from "$lib/functions/physics";
+    import { runPhysicsLoop } from "$lib/functions/physics";
     import { dragStore } from "$lib/stores/drag.svelte";
     import { viewStore, selectedStore } from "$lib/stores/objects.svelte";
     import { contextStore } from "$lib/stores/context.svelte";
@@ -81,12 +81,16 @@
         e.stopPropagation();
         contextStore.set(e, id);
     }
-    function loop() {
-        if (!dragStore.hasValue()) physics(objects, centerX, centerY);
-        requestAnimationFrame(loop);
-    }
-    loop();
-    
+    $effect(() => {
+        if (objects.length === 0) return;
+        return runPhysicsLoop({
+            getObjects: () => objects,
+            getCenter: () => ({ x: centerX, y: centerY }),
+            isPaused: () => dragStore.hasValue(),
+            onWakeSignal: (wake) => dragStore.subscribe(() => wake()),
+        });
+    });
+
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->

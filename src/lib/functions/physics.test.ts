@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { physics, resizeObjects } from './physics';
+import { physics, resizeObjects, REST_THRESHOLD } from './physics';
 import type { ITreeObject } from '$lib/interface';
 
 function makeObj(partial: Partial<ITreeObject> & { id: number; x: number; y: number; mass: number }): ITreeObject {
@@ -109,6 +109,33 @@ describe('physics: формирование «колец» по массе', () 
         const lightDist = distFromCenter(light, cx, cy);
 
         expect(heavyDist).toBeLessThan(lightDist);
+    });
+});
+
+describe('physics: возврат значения и состояние покоя', () => {
+    it('Возвращает число — максимальное смещение в кадре', () => {
+        const obj = makeObj({ id: 1, x: 0, y: 0, mass: 1 });
+        const result = physics([obj], 500, 500);
+
+        expect(typeof result).toBe('number');
+        expect(result).toBeGreaterThan(0);
+    });
+
+    it('После долгой симуляции смещение падает ниже REST_THRESHOLD', () => {
+        const cx = 500;
+        const cy = 500;
+        const obj = makeObj({ id: 1, x: 100, y: 100, mass: 1 });
+
+        let last = Infinity;
+        for (let i = 0; i < 2000; i++) {
+            last = physics([obj], cx, cy);
+        }
+
+        expect(last).toBeLessThan(REST_THRESHOLD);
+    });
+
+    it('Пустой массив возвращает 0 (нет движения)', () => {
+        expect(physics([], 0, 0)).toBe(0);
     });
 });
 

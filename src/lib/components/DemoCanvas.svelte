@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { Object, Link } from "$lib/components";
     import { dragStore } from "$lib/stores/drag.svelte";
-    import { physics } from "$lib/functions/physics";
+    import { runPhysicsLoop } from "$lib/functions/physics";
     import type { ITreeObject, ILink } from "$lib/interface";
 
     const ID_A = 9_000_001;
@@ -20,7 +20,6 @@
             ],
             links: [
                 { id: 9_100_001, name: 'sync',  type: 'default',  is: ID_C, to: ID_D },
-                { id: 9_100_002, name: 'flush', type: 'optional', is: ID_D, to: ID_C },
             ]
         },
         {
@@ -30,7 +29,6 @@
     ]);
     let topLinks: ILink[] = $state([
         { id: 9_100_003, name: 'call',  type: 'default',  is: ID_A, to: ID_B },
-        { id: 9_100_004, name: 'reply', type: 'optional', is: ID_B, to: ID_A },
     ]);
 
     let container: HTMLDivElement | undefined = $state();
@@ -66,11 +64,6 @@
         width = rect.width;
         height = rect.height;
 
-        const io = new IntersectionObserver((entries) => {
-            visible = entries[0]?.isIntersecting ?? true;
-        });
-        io.observe(c);
-
         const block = (e: Event) => { e.stopPropagation(); e.preventDefault(); };
         const blockArrow = (e: MouseEvent) => {
             const t = e.target as HTMLElement | null;
@@ -83,18 +76,29 @@
         c.addEventListener('contextmenu', block, true);
         c.addEventListener('click', blockArrow, true);
 
-        let raf = 0;
-        function loop() {
-            if (visible && !dragStore.hasValue()) physics(objects, centerX, centerY);
-            raf = requestAnimationFrame(loop);
-        }
-        raf = requestAnimationFrame(loop);
+        let wakeFn: (() => void) | null = null;
+        const stopLoop = runPhysicsLoop({
+            getObjects: () => objects,
+            getCenter: () => ({ x: centerX, y: centerY }),
+            isPaused: () => !visible || dragStore.hasValue(),
+            onWakeSignal: (wake) => {
+                wakeFn = wake;
+                return dragStore.subscribe(() => wake());
+            },
+        });
+
+        const io = new IntersectionObserver((entries) => {
+            const wasVisible = visible;
+            visible = entries[0]?.isIntersecting ?? true;
+            if (!wasVisible && visible) wakeFn?.();
+        });
+        io.observe(c);
 
         window.addEventListener('mousemove', onmousemove);
         window.addEventListener('mouseup', onmouseup);
 
         return () => {
-            cancelAnimationFrame(raf);
+            stopLoop();
             ro.disconnect();
             io.disconnect();
             c.removeEventListener('dblclick', block, true);

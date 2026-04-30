@@ -22,16 +22,18 @@ export const DIAGRAM_DEFAULTS = {
 	revealDelay: 100
 } as const;
 
-export type DiagramSettingsValues = typeof DIAGRAM_DEFAULTS;
+export type DiagramSettingsValues = {
+	[K in keyof typeof DIAGRAM_DEFAULTS]: number;
+};
 
 class DiagramSettingsStore {
-	spring = $state(DIAGRAM_DEFAULTS.spring);
-	gravity = $state(DIAGRAM_DEFAULTS.gravity);
-	repulsion = $state(DIAGRAM_DEFAULTS.repulsion);
-	baseSize = $state(DIAGRAM_DEFAULTS.baseSize);
-	longLinkRatio = $state(DIAGRAM_DEFAULTS.longLinkRatio);
-	restThreshold = $state(DIAGRAM_DEFAULTS.restThreshold);
-	revealDelay = $state(DIAGRAM_DEFAULTS.revealDelay);
+	spring: number = $state(DIAGRAM_DEFAULTS.spring);
+	gravity: number = $state(DIAGRAM_DEFAULTS.gravity);
+	repulsion: number = $state(DIAGRAM_DEFAULTS.repulsion);
+	baseSize: number = $state(DIAGRAM_DEFAULTS.baseSize);
+	longLinkRatio: number = $state(DIAGRAM_DEFAULTS.longLinkRatio);
+	restThreshold: number = $state(DIAGRAM_DEFAULTS.restThreshold);
+	revealDelay: number = $state(DIAGRAM_DEFAULTS.revealDelay);
 
 	constructor() {
 		this.#load();

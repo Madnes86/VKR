@@ -325,7 +325,12 @@ export const ru = {
 		'Опишите систему: компоненты, их свойства, связи. Поддерживаются заголовки, списки, выделение и inline-код. Автосохранение каждые ~1.2 секунды.',
 
 	'diagram.untangle.action': 'Распутать связи',
-	'diagram.untangle.title': 'Перенести дальние эндпоинты ближе к их источнику'
+	'diagram.untangle.title': 'Перенести дальние эндпоинты ближе к их источнику',
+
+	'diagram.toolbar.zoom': 'Масштаб',
+	'diagram.toolbar.search': 'Поиск',
+	'diagram.toolbar.gravity.disable': 'Отключить гравитацию',
+	'diagram.toolbar.gravity.enable': 'Включить гравитацию'
 } as const;
 
 export type Key = keyof typeof ru;
@@ -658,7 +663,12 @@ export const en: Record<Key, string> = {
 		'Describe the system: components, their properties and relations. Headings, lists, marker and inline-code are supported. Autosave runs every ~1.2 seconds.',
 
 	'diagram.untangle.action': 'Untangle links',
-	'diagram.untangle.title': 'Move distant endpoints closer to their source'
+	'diagram.untangle.title': 'Move distant endpoints closer to their source',
+
+	'diagram.toolbar.zoom': 'Zoom',
+	'diagram.toolbar.search': 'Search',
+	'diagram.toolbar.gravity.disable': 'Disable gravity',
+	'diagram.toolbar.gravity.enable': 'Enable gravity'
 };
 
 export const dict = { ru, en };

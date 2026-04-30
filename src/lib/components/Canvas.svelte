@@ -13,9 +13,8 @@
 	import { appearanceStore } from '$lib/stores/appearance.svelte';
 	import { untangleLinks } from '$lib/functions/untangle';
 	import { diagramSettings } from '$lib/stores/diagram.svelte';
-	import { i18n } from '$lib/i18n';
 	import type { ITreeObject, ILink } from '$lib/interface';
-	import Search from './Search.svelte';
+	import DiagramToolbar from './DiagramToolbar.svelte';
 
 	let width: number = $state(0);
 	let height: number = $state(0);
@@ -199,17 +198,4 @@
 	{/each}
 </div>
 
-<div
-	class="absolute top-5 left-1/2 z-4 flex -translate-x-1/2 rounded-md border border-gray bg-gray-glass p-2"
->
-	<button
-		type="button"
-		onclick={untangle}
-		title={i18n.t('diagram.untangle.title')}
-		class="borde rounded-md border bg-black px-4 py-2 transition-colors select-none hover:bg-accent"
-	>
-		{i18n.t('diagram.untangle.action')}
-	</button>
-	<button>Отключить гравицию</button>
-	<Search />
-</div>
+<DiagramToolbar onUntangle={untangle} />

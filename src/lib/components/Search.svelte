@@ -76,7 +76,7 @@
 	}
 </script>
 
-<div class="flex w-full items-center gap-2 border-y-2 border-gray p-2">
+<div class="flex w-full items-center gap-2 p-2">
 	{#snippet button(name: string, onclick: () => void, stroke?: string)}
 		<button {onclick} aria-label={name} class="click size-7 rounded-md p-1.5 hover:bg-gray">
 			<Icon {name} {stroke} />

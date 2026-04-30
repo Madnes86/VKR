@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ButtonIcon from './ButtonIcon.svelte';
 	import Search from './Search.svelte';
+	import Icon from './Icon.svelte';
 	import { scaleStore } from '$lib/stores/scale.svelte';
 	import { diagramSettings, DIAGRAM_DEFAULTS } from '$lib/stores/diagram.svelte';
 	import { i18n } from '$lib/i18n';
@@ -37,18 +37,35 @@
 </script>
 
 <div
-	class="fixed top-5 left-1/2 z-4 flex w-[min(440px,90vw)] -translate-x-1/2 items-center gap-2 rounded-md border border-gray bg-gray-glass p-2"
+	class="p- fixed top-3 left-1/2 z-4 flex w-[min(440px,90vw)] -translate-x-1/2 items-center gap-2 rounded-md border border-gray bg-gray-glass"
 >
 	<span
 		title={i18n.t('diagram.toolbar.zoom')}
-		class="px-2 text-sm tabular-nums opacity-60 select-none"
+		class="ml-2 flex w-12 justify-center text-sm tabular-nums opacity-60 select-none"
 		data-testid="zoom-indicator"
 	>
 		{zoom}%
 	</span>
-	<ButtonIcon name="orbit" title={gravityTitle} active={!gravityEnabled} onclick={toggleGravity} />
-	<ButtonIcon name="line" title={i18n.t('diagram.untangle.title')} onclick={onUntangle} />
-	<div class="flex-1">
+	<div class="flex-1 border-x border-gray">
 		<Search />
 	</div>
+	<button
+		type="button"
+		onclick={toggleGravity}
+		title={gravityTitle}
+		aria-label={gravityTitle}
+		aria-pressed={!gravityEnabled}
+		class={`click rounded-sm p-1 transition-colors ${!gravityEnabled ? 'bg-gray-glass' : 'hover:bg-gray-glass'}`}
+	>
+		<Icon name="orbit" />
+	</button>
+	<button
+		type="button"
+		onclick={onUntangle}
+		title={i18n.t('diagram.untangle.title')}
+		aria-label={i18n.t('diagram.untangle.title')}
+		class="click mr-2 rounded-sm p-1 transition-colors hover:bg-gray-glass"
+	>
+		<Icon name="line" />
+	</button>
 </div>

@@ -103,9 +103,48 @@
 		};
 	});
 
-	function nodeClick(id: number) {
-		const slug = slugById.get(id);
-		if (slug) onSelect(slug);
+	// Локальный drag для overlay-узлов. Глобальный dragStore нам не
+	// подходит: он живёт в основном Canvas и поднял бы там состояние.
+	// Отслеживаем суммарное смещение от mousedown — если оно меньше
+	// CLICK_THRESHOLD, mouseup трактуется как навигация (click), иначе
+	// как завершение drag и навигация подавляется.
+	const CLICK_THRESHOLD_PX = 4;
+	let dragId: number | null = null;
+	let dragOffset: { x: number; y: number } = { x: 0, y: 0 };
+	let dragMoved = 0;
+
+	function onNodeMouseDown(e: MouseEvent, obj: ITreeObject) {
+		if (e.button !== 0) return;
+		e.preventDefault();
+		e.stopPropagation();
+		dragId = obj.id;
+		dragOffset = { x: e.clientX - obj.x, y: e.clientY - obj.y };
+		dragMoved = 0;
+		window.addEventListener('mousemove', onWindowMove);
+		window.addEventListener('mouseup', onWindowUp);
+	}
+	function onWindowMove(e: MouseEvent) {
+		if (dragId === null) return;
+		const obj = objects.find((o) => o.id === dragId);
+		if (!obj) return;
+		const nx = e.clientX - dragOffset.x;
+		const ny = e.clientY - dragOffset.y;
+		dragMoved = Math.max(dragMoved, Math.hypot(nx - obj.x, ny - obj.y));
+		obj.x = nx;
+		obj.y = ny;
+	}
+	function onWindowUp() {
+		const id = dragId;
+		const moved = dragMoved;
+		dragId = null;
+		window.removeEventListener('mousemove', onWindowMove);
+		window.removeEventListener('mouseup', onWindowUp);
+		// Короткое движение — это клик: открываем статью. Длинное —
+		// пользователь действительно тянул узел, навигация подавляется.
+		if (id !== null && moved < CLICK_THRESHOLD_PX) {
+			const slug = slugById.get(id);
+			if (slug) onSelect(slug);
+		}
 	}
 </script>
 
@@ -140,27 +179,34 @@
 	{#each objects as o (o.id)}
 		<button
 			type="button"
-			onclick={() => nodeClick(o.id)}
+			onmousedown={(e) => onNodeMouseDown(e, o)}
 			aria-label={o.name}
 			title={o.name}
 			style="left: {o.x}px; top: {o.y}px; width: {o.size}px; height: {o.size}px; z-index: {Math.max(
 				1,
 				Math.abs(o.id)
 			) + 1};"
-			class="docs-overlay absolute cursor-pointer rounded-full"
+			class="docs-overlay absolute rounded-full"
+			class:dragging={dragId === o.id}
 		></button>
 	{/each}
 </div>
 
 <style>
-	/* Overlay поверх узла — невидимый, но кликабельный. При hover слегка
-	   подсвечиваем для аффорданса. */
+	/* Overlay поверх узла — невидимый, но кликабельный/перетягиваемый.
+	   В покое — grab, при hover слегка подсвечиваем. При drag — grabbing
+	   и более яркая подсветка, чтобы пользователь видел захват. */
 	.docs-overlay {
 		background: transparent;
 		border: 0;
+		cursor: grab;
 		transition: background 0.15s;
 	}
 	.docs-overlay:hover {
 		background: rgba(131, 92, 253, 0.18);
+	}
+	.docs-overlay.dragging {
+		cursor: grabbing;
+		background: rgba(131, 92, 253, 0.3);
 	}
 </style>

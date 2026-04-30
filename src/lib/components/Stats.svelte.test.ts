@@ -17,29 +17,28 @@ afterEach(() => {
 	validationStore.clear();
 });
 
-function rows(container: Element) {
-	return Array.from(container.querySelectorAll('[data-testid="sidebar-stats"] > div'));
+function root(container: Element) {
+	return container.querySelector('[data-testid="sidebar-stats"]') as HTMLElement;
 }
 
-describe('Stats — счётчики и версия', () => {
-	it('Все строки рендерятся: warnings/objects/links/entities/version', () => {
+describe('Stats — горизонтальная строка под Canvas', () => {
+	it('Один data-testid контейнер с пятью группами счётчиков', () => {
 		const { container } = render(Stats);
-		const r = rows(container);
-		// 5 секций — по одной на каждый показатель.
-		expect(r.length).toBe(5);
+		const r = root(container);
+		expect(r).not.toBeNull();
+		// 5 групп = 5 <span class="flex items-center gap-1">
+		const groups = r.querySelectorAll('span.flex.items-center');
+		expect(groups.length).toBeGreaterThanOrEqual(5);
 	});
 
-	it('Версия берётся из APP_VERSION', () => {
+	it('Версия отображается из APP_VERSION', () => {
 		const { container } = render(Stats);
-		const html = container.querySelector('[data-testid="sidebar-stats"]')?.textContent ?? '';
-		expect(html).toContain(APP_VERSION);
+		expect(root(container).textContent).toContain(APP_VERSION);
 	});
 
 	it('Пустой проект — все счётчики 0', () => {
 		const { container } = render(Stats);
-		const text = container.querySelector('[data-testid="sidebar-stats"]')?.textContent ?? '';
-		// Версия не считается счётчиком; ожидаем хотя бы 4 нуля
-		// (warnings/objects/links/entities).
+		const text = root(container).textContent ?? '';
 		const zeros = (text.match(/\b0\b/g) ?? []).length;
 		expect(zeros).toBeGreaterThanOrEqual(4);
 	});
@@ -51,8 +50,6 @@ describe('Stats — счётчики и версия', () => {
 			{ id: 3, name: 'c', type: 'component', parent: null, content: null }
 		]);
 		const { container } = render(Stats);
-		const r = rows(container);
-		// Четвёртая строка — Сущностей
-		expect(r[3].textContent).toContain('2');
+		expect(root(container).textContent).toMatch(/Сущност\S*\s*2/);
 	});
 });

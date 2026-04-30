@@ -1,15 +1,5 @@
 <script lang="ts">
-	import {
-		Tabs,
-		Search,
-		Icon,
-		Tree,
-		Entityes,
-		Editor,
-		Alerts,
-		Settings,
-		Stats
-	} from '$lib/components';
+	import { Tabs, Search, Icon, Tree, Entityes, Editor, Alerts, Settings } from '$lib/components';
 	import { side } from '$lib/stores/other.svelte';
 
 	const tabs: string[] = ['graph', 'component', 'editor', 'alert', 'settings'];
@@ -103,10 +93,6 @@
 						{/if}
 					{/each}
 				</div>
-				<!-- Статистика проекта в самом низу: фоновые цифры (объекты,
-				     связи, issues, сущности, версия) — не отвлекают от работы,
-				     но всегда под рукой. -->
-				<Stats />
 			{:else}
 				<div class="flex h-full flex-col">
 					<div class="flex gap-1 border-b-2 border-gray p-1">

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { SideBar, ContextMenu, Canvas, Modal, Notification } from '$lib/components';
+	import { SideBar, ContextMenu, Canvas, Modal, Notification, Stats } from '$lib/components';
 	import { notificationStore } from '$lib/stores/notification.svelte';
 	import { side } from '$lib/stores/other.svelte';
 	import { projectStore } from '$lib/stores/project.svelte';
@@ -27,6 +27,7 @@
 	<ContextMenu />
 	<Canvas />
 	<Modal show={true} />
+	<Stats />
 	<!-- Стек уведомлений: контейнер закреплён за нижний правый угол.
          flex-col укладывает детей сверху вниз; новые приходят последними
          в массиве store-а, поэтому отображаются внизу, а контейнер

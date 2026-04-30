@@ -363,6 +363,8 @@ export const ru = {
 	'stats.entities': 'Сущностей',
 	'stats.version': 'Версия',
 
+	'logo.home': 'На главную',
+
 	'diagram.toolbar.zoom': 'Масштаб',
 	'diagram.toolbar.search': 'Поиск',
 	'diagram.toolbar.gravity.disable': 'Отключить гравитацию',
@@ -736,6 +738,8 @@ export const en: Record<Key, string> = {
 	'stats.links': 'Links',
 	'stats.entities': 'Entities',
 	'stats.version': 'Version',
+
+	'logo.home': 'Home',
 
 	'diagram.toolbar.zoom': 'Zoom',
 	'diagram.toolbar.search': 'Search',

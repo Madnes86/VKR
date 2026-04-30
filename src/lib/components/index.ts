@@ -3,7 +3,11 @@ export { default as Alerts } from './Alerts.svelte';
 export { default as Button } from './Button.svelte';
 export { default as ButtonIcon } from './ButtonIcon.svelte';
 export { default as ContextMenu } from './ContextMenu.svelte';
-export { default as Editor } from './Editor.svelte';
+// Editor НЕ реэкспортируем из barrel: @editorjs/editorjs использует
+// глобальный Element и падает в SSR с «Element is not defined».
+// Любая страница, импортирующая что-то из $lib/components, тянула
+// бы Editor → EditorJS, и /docs/, /support и пр. падали с 500.
+// Импортируем Editor напрямую только в SideBar (единственное место).
 export { default as Entity } from './Entityes.svelte';
 export { default as Flex } from './Flex.svelte';
 export { default as Form } from './Form.svelte';

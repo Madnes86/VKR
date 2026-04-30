@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Tabs, Search, Icon, Tree, Entityes, Editor, Alerts, Settings } from '$lib/components';
+	import { Tabs, Search, Icon, Tree, Entityes, Alerts, Settings } from '$lib/components';
+	import Editor from './Editor.svelte';
 	import { side } from '$lib/stores/other.svelte';
 
 	const tabs: string[] = ['graph', 'component', 'editor', 'alert', 'settings'];

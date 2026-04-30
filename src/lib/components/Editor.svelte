@@ -15,11 +15,35 @@
 	 *   пересоздаёт инстанс редактора с сохранением содержимого.
 	 */
 	import { onMount, onDestroy, untrack } from 'svelte';
-	import EditorJS, { type API, type OutputData } from '@editorjs/editorjs';
-	import Header from '@editorjs/header';
-	import List from '@editorjs/list';
-	import Marker from '@editorjs/marker';
-	import InlineCode from '@editorjs/inline-code';
+	// EditorJS использует глобальный Element и падает в SSR с
+	// «Element is not defined». Импортируем только типы (стираются при
+	// компиляции), а runtime-конструкторы загружаем динамически в
+	// onMount — там уже есть document/window. Это убирает 500 на всех
+	// страницах, которые косвенно тянут Editor через barrel SideBar.
+	import type EditorJSType from '@editorjs/editorjs';
+	import type { API, OutputData } from '@editorjs/editorjs';
+	type ToolCtor = unknown;
+	let EditorJSCtor: typeof EditorJSType | null = null;
+	let HeaderTool: ToolCtor = null;
+	let ListTool: ToolCtor = null;
+	let MarkerTool: ToolCtor = null;
+	let InlineCodeTool: ToolCtor = null;
+
+	async function loadEditorJS(): Promise<void> {
+		if (EditorJSCtor) return;
+		const [E, H, L, M, IC] = await Promise.all([
+			import('@editorjs/editorjs'),
+			import('@editorjs/header'),
+			import('@editorjs/list'),
+			import('@editorjs/marker'),
+			import('@editorjs/inline-code')
+		]);
+		EditorJSCtor = E.default;
+		HeaderTool = H.default;
+		ListTool = L.default;
+		MarkerTool = M.default;
+		InlineCodeTool = IC.default;
+	}
 
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { extractSyntax, type ExtractMode } from '$lib/functions/llm';
@@ -36,7 +60,7 @@
 	import { Icon, Toggle } from '$lib/components';
 
 	let editorEl: HTMLDivElement | undefined = $state();
-	let editor: EditorJS | undefined;
+	let editor: EditorJSType | undefined;
 	// editorReady — РЕАКТИВНЫЙ: $effect-ы ниже проверяют этот флаг, и
 	// EditorJS взводит его асинхронно из onReady. Без $state реактивная
 	// подписка не работает, и render(data) после load() не вызывается —
@@ -134,29 +158,33 @@
 	}
 
 	/** Создаёт инстанс EditorJS с текущей i18n. Используется и при
-	 * первом маунте, и при смене языка. */
-	function createEditor(initialData: OutputData) {
+	 * первом маунте, и при смене языка. Конструктор и tools грузим
+	 * лениво (browser-only) — иначе SSR падает на «Element is not
+	 * defined» при оценке модуля. */
+	async function createEditor(initialData: OutputData) {
 		if (!editorEl) return;
+		await loadEditorJS();
+		if (!EditorJSCtor) return;
 		lastBuiltLang = i18n.lang;
 		editorReady = false;
 		suppressOnChange = true;
-		editor = new EditorJS({
+		editor = new EditorJSCtor({
 			holder: editorEl,
 			data: initialData,
 			placeholder: i18n.t('editor.placeholder'),
 			i18n: buildEditorI18n((k) => i18n.t(k)) as any,
 			tools: {
 				header: {
-					class: Header as any,
+					class: HeaderTool as any,
 					config: { levels: [2, 3], defaultLevel: 2 },
 					inlineToolbar: true
 				},
 				list: {
-					class: List as any,
+					class: ListTool as any,
 					inlineToolbar: true
 				},
-				marker: { class: Marker as any },
-				inlineCode: { class: InlineCode as any }
+				marker: { class: MarkerTool as any },
+				inlineCode: { class: InlineCodeTool as any }
 			},
 			onChange: (_api: API) => {
 				scheduleSave();
@@ -220,7 +248,7 @@
 		editor = undefined;
 		// Дать DOM-у освободиться перед созданием нового инстанса.
 		await new Promise((r) => requestAnimationFrame(() => r(null)));
-		createEditor(snapshot);
+		await createEditor(snapshot);
 	}
 
 	/** Выбирает данные для первого рендера: сначала текущий стор; если
@@ -248,7 +276,7 @@
 		if (initialData.blocks.length > 0 && !projectStore.text.trim()) {
 			projectStore.setText(serializeProjectData(initialData));
 		}
-		createEditor(initialData);
+		void createEditor(initialData);
 	});
 
 	onDestroy(() => {

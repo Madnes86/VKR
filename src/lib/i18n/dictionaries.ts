@@ -347,6 +347,12 @@ export const ru = {
 	'alerts.clear': 'Очистить',
 	'alerts.empty': 'Замечаний не найдено',
 
+	'stats.warnings': 'Предупреждений',
+	'stats.objects': 'Объектов',
+	'stats.links': 'Связей',
+	'stats.entities': 'Сущностей',
+	'stats.version': 'Версия',
+
 	'diagram.toolbar.zoom': 'Масштаб',
 	'diagram.toolbar.search': 'Поиск',
 	'diagram.toolbar.gravity.disable': 'Отключить гравитацию',
@@ -704,6 +710,12 @@ export const en: Record<Key, string> = {
 	'alerts.title.warn': 'Warning',
 	'alerts.clear': 'Clear',
 	'alerts.empty': 'No issues found',
+
+	'stats.warnings': 'Warnings',
+	'stats.objects': 'Objects',
+	'stats.links': 'Links',
+	'stats.entities': 'Entities',
+	'stats.version': 'Version',
 
 	'diagram.toolbar.zoom': 'Zoom',
 	'diagram.toolbar.search': 'Search',

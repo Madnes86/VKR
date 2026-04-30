@@ -42,3 +42,4 @@ export { default as DocsNav } from './DocsNav.svelte';
 export { default as Slider } from './Slider.svelte';
 export { default as Avatar } from './Avatar.svelte';
 export { default as DiagramToolbar } from './DiagramToolbar.svelte';
+export { default as Stats } from './Stats.svelte';

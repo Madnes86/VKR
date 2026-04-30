@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Header, Footer, BgSpace, DocsDiagram } from '$lib/components';
+	import { Header, BgSpace, DocsDiagram } from '$lib/components';
 	import { docArticles, docLinks } from '$lib/mocs/docs';
 	import { i18n } from '$lib/i18n';
 
@@ -11,22 +11,20 @@
 
 <Header />
 
-<div class="relative isolate">
+<!-- Полноэкранная диаграмма документации: занимает весь viewport под
+     Header, fixed-overlay с Hero текстом висит сверху-слева, чтобы не
+     перекрывать узлы по центру. Footer для этой страницы не нужен —
+     навигация и так есть в Header. -->
+<div class="relative h-[calc(100vh-3.5rem)] w-full overflow-hidden">
 	<BgSpace />
-	<section class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-10">
-		<div class="flex flex-col items-center gap-2 text-center">
-			<h1>{i18n.t('docs.hero.h')}</h1>
-			<p class="max-w-2xl opacity-80">{i18n.t('docs.hero.b')}</p>
-		</div>
-		<!-- Диаграмма документации: каждая статья — узел, связи между
-		     ними показывают зависимость. Кликом на узел переходим к
-		     соответствующей статье /docs/[slug]. -->
-		<div
-			class="relative mt-2 h-[640px] w-full overflow-hidden rounded-md border border-gray bg-black/30 backdrop-blur-xs"
-		>
-			<DocsDiagram articles={docArticles} links={docLinks} onSelect={open} />
-		</div>
-	</section>
+	<div class="absolute inset-0">
+		<DocsDiagram articles={docArticles} links={docLinks} onSelect={open} />
+	</div>
+	<div
+		class="pointer-events-none absolute top-6 left-6 z-2 max-w-md rounded-md border border-gray bg-gray-glass p-4 backdrop-blur-xs"
+	>
+		<h1 class="mb-1 text-2xl">{i18n.t('docs.hero.h')}</h1>
+		<p class="text-sm opacity-80">{i18n.t('docs.hero.b')}</p>
+		<p class="mt-2 text-xs opacity-60">Кликните по статье на диаграмме, чтобы прочитать.</p>
+	</div>
 </div>
-
-<Footer />

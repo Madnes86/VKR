@@ -72,39 +72,51 @@ describe('Notification — обратный отсчёт и пауза', () => {
 		expect(parseFloat(bar.dataset.progress!)).toBeCloseTo(1, 3);
 	});
 
-	it('Стаб matches(":hover") = true ставит data-paused=true и замораживает прогресс', async () => {
+	it('mouseenter ставит data-paused=true; mouseleave — false', async () => {
+		const { container } = setup({ title: 't', duration: 7000 });
+		const card = container.querySelector('[role="status"]') as HTMLElement;
+		const bar = container.querySelector('[data-testid="countdown"]') as HTMLElement;
+
+		card.dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+		flushSync();
+		expect(bar.dataset.paused).toBe('true');
+
+		card.dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
+		flushSync();
+		expect(bar.dataset.paused).toBe('false');
+	});
+
+	it('mousemove на карточке тоже паузит — даже если mouseenter был пропущен', () => {
+		const { container } = setup({ title: 't', duration: 7000 });
+		const card = container.querySelector('[role="status"]') as HTMLElement;
+		const bar = container.querySelector('[data-testid="countdown"]') as HTMLElement;
+
+		// Сразу mousemove (без mouseenter) — пауза должна включиться.
+		card.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+		flushSync();
+		expect(bar.dataset.paused).toBe('true');
+	});
+
+	it('Прогресс уменьшается без hover, замирает на hover, идёт после ухода', async () => {
 		const { container } = setup({ title: 't', duration: 400 });
 		const card = container.querySelector('[role="status"]') as HTMLElement;
 		const bar = container.querySelector('[data-testid="countdown"]') as HTMLElement;
 
-		// Эмулируем hover: matches(':hover') опрашивается каждый tick.
-		const originalMatches = card.matches.bind(card);
-		(card as unknown as { matches: (s: string) => boolean }).matches = (s: string) =>
-			s === ':hover' ? true : originalMatches(s);
+		await new Promise((r) => setTimeout(r, 100));
+		expect(parseFloat(bar.dataset.progress!)).toBeLessThan(1);
 
-		await new Promise((r) => setTimeout(r, 80));
-		expect(bar.dataset.paused).toBe('true');
+		card.dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+		flushSync();
 		const atPause = parseFloat(bar.dataset.progress!);
-
 		await new Promise((r) => setTimeout(r, 120));
 		const stillPaused = parseFloat(bar.dataset.progress!);
-		// На паузе разница пренебрежимо мала (один тик допустим).
 		expect(Math.abs(atPause - stillPaused)).toBeLessThan(0.15);
-		expect(bar.dataset.paused).toBe('true');
 
-		// Снимаем hover.
-		(card as unknown as { matches: (s: string) => boolean }).matches = originalMatches;
-		await new Promise((r) => setTimeout(r, 80));
-		expect(bar.dataset.paused).toBe('false');
+		card.dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
+		flushSync();
+		await new Promise((r) => setTimeout(r, 120));
 		const afterResume = parseFloat(bar.dataset.progress!);
 		expect(afterResume).toBeLessThan(stillPaused);
-	});
-
-	it('Прогресс уменьшается во времени без hover', async () => {
-		const { container } = setup({ title: 't', duration: 400 });
-		const bar = container.querySelector('[data-testid="countdown"]') as HTMLElement;
-		await new Promise((r) => setTimeout(r, 120));
-		expect(parseFloat(bar.dataset.progress!)).toBeLessThan(1);
 	});
 
 	it('Клик по крестику вызывает onClose (после анимации скрытия)', async () => {

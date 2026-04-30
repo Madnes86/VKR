@@ -16,37 +16,42 @@
 		onClose?: () => void;
 	} = $props();
 
-	let ref: HTMLDivElement | undefined = $state(undefined);
 	let visible: boolean = $state(true);
 	let isHiding: boolean = $state(false);
 	let paused: boolean = $state(false);
 	// elapsed — единственный источник истины и для таймера, и для
-	// прогресс-бара: оба считают одно и то же. Раньше JS-таймер
-	// и CSS-keyframes считали независимо, и при быстрых сменах hover
-	// CSS-анимация теряла состояние play-state — пауза работала
-	// «через раз». Теперь и закрытие, и ширина бара берутся из
-	// elapsed, синхронизация автоматическая.
+	// прогресс-бара: оба считают одно и то же.
 	let elapsed: number = $state(0);
 
 	const TICK_MS = 50;
 
-	// Опрашиваем CSS :hover через matches(':hover') каждый tick, а не
-	// слушаем pointerenter/pointerleave. Pointer-события могут «теряться»
-	// при движении через дочерние элементы с собственным transition
-	// (наш крестик с hover-стилями), из-за чего пауза срабатывала через
-	// раз. matches(':hover') опирается напрямую на состояние браузера —
-	// оно одинаково для крестика, текста, бейджа и любых других детей.
 	const interval = setInterval(() => {
-		if (isHiding) return;
-		paused = ref?.matches(':hover') ?? false;
-		if (paused) return;
+		if (isHiding || paused) return;
 		elapsed += TICK_MS;
 		if (elapsed >= duration) close();
 	}, TICK_MS);
 
 	onDestroy(() => clearInterval(interval));
 
-	function close() {
+	// onmousemove на каждом тике курсора подтверждает hover. Это
+	// надёжнее одиночного onmouseenter — у которого случались пропуски
+	// при движении через дочерние элементы с собственным transition
+	// (крестик с hover-стилями). Если первый mouseenter потерялся,
+	// следующий же mousemove паузит. mouseleave срабатывает один раз
+	// при реальном выходе — и снимает паузу.
+	function pauseHover() {
+		if (isHiding || paused) return;
+		paused = true;
+	}
+	function resumeHover() {
+		if (isHiding || !paused) return;
+		paused = false;
+	}
+
+	function close(e?: Event) {
+		// Останавливаем propagation: канвас слушает mouse/wheel на window
+		// и при кликах внутри карточки не должен реагировать.
+		e?.stopPropagation();
 		if (isHiding) return;
 		isHiding = true;
 		// Даём 300мс на slide-out, затем уведомляем родителя — тот
@@ -70,9 +75,12 @@
 </script>
 
 {#if visible}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
-		bind:this={ref}
 		role="status"
+		onmouseenter={pauseHover}
+		onmousemove={pauseHover}
+		onmouseleave={resumeHover}
 		class="{isHiding
 			? 'hide'
 			: 'show'} relative flex max-w-96 min-w-72 items-center gap-3 overflow-hidden rounded-md border border-gray bg-gray-glass p-3 shadow-lg shadow-black/40 backdrop-blur-xs"

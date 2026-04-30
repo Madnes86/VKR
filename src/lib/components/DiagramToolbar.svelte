@@ -76,6 +76,14 @@
 	</button>
 	<button
 		type="button"
+		title={i18n.t('diagram.untangle.title')}
+		aria-label={i18n.t('diagram.untangle.title')}
+		class="click size-7 rounded-md p-1.5 transition-colors hover:bg-gray hover:text-yellow"
+	>
+		<Icon name="test16" />
+	</button>
+	<button
+		type="button"
 		onclick={onUntangle}
 		title={i18n.t('diagram.untangle.title')}
 		aria-label={i18n.t('diagram.untangle.title')}

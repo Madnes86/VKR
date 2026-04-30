@@ -37,7 +37,7 @@
 </script>
 
 <div
-	class="p- fixed top-3 left-1/2 z-4 flex w-[min(440px,90vw)] -translate-x-1/2 items-center gap-2 rounded-md border border-gray bg-gray-glass"
+	class="p- fixed top-3 left-1/2 z-4 flex w-[min(440px,90vw)] -translate-x-1/2 items-center gap-2 rounded-md border border-gray bg-gray-glass backdrop-blur-xs"
 >
 	<span
 		title={i18n.t('diagram.toolbar.zoom')}
@@ -57,15 +57,15 @@
 		aria-pressed={!gravityEnabled}
 		class={`click rounded-sm p-1 transition-colors ${!gravityEnabled ? 'bg-gray-glass' : 'hover:bg-gray-glass'}`}
 	>
-		<Icon name="orbit" />
+		<Icon name="center" />
 	</button>
 	<button
 		type="button"
 		onclick={onUntangle}
 		title={i18n.t('diagram.untangle.title')}
 		aria-label={i18n.t('diagram.untangle.title')}
-		class="click mr-2 rounded-sm p-1 transition-colors hover:bg-gray-glass"
+		class="click mr-2 size-7 rounded-md p-1.5 transition-colors hover:bg-gray"
 	>
-		<Icon name="line" />
+		<Icon name="al" />
 	</button>
 </div>

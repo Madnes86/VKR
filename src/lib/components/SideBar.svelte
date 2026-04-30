@@ -2,7 +2,7 @@
 	import { Tabs, Search, Icon, Tree, Entityes, Editor, Alerts, Settings } from '$lib/components';
 	import { side } from '$lib/stores/other.svelte';
 
-	const tabs: string[] = ['graph', 'entity', 'editor', 'alert', 'settings'];
+	const tabs: string[] = ['graph', 'component', 'editor', 'alert', 'settings'];
 	const sections = [Tree, Entityes, Editor, Alerts, Settings];
 
 	let {
@@ -86,10 +86,7 @@
 						<Icon name={right ? 'side-r-close' : 'side-l-close'} />
 					</button>
 				</Tabs>
-				{#if selectedTab !== 'settings'}
-					<Search />
-				{/if}
-				<div class="min-h-0 flex-1 overflow-auto" onwheel={onwheelStop}>
+				<div class="min-h-0 flex-1 overflow-auto border-t-2 border-gray" onwheel={onwheelStop}>
 					{#each tabs as tab, i}
 						{#if selectedTab == tab}
 							<svelte:component this={sections[i]} />

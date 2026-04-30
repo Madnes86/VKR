@@ -21,18 +21,26 @@
 	}
 </script>
 
-<!-- TODO: add shadow later -->
 <svelte:window {onclick} />
 
 <div bind:this={ref} class="relative">
-	<button onclick={() => toggle()} class="click rounded-sm p-1 hover:bg-gray">
+	<!--
+		size-7 p-1.5 — те же размеры, что у соседних button-snippet'ов в
+		Search. Без них кнопка получалась 24×24 (p-1 + иконка 16×16) и
+		иконка визуально не выравнивалась с остальными 28×28 кнопками,
+		хотя сам SVG не масштабируется.
+	-->
+	<button
+		onclick={() => toggle()}
+		class="click flex size-7 items-center justify-center rounded-md p-1.5 hover:bg-gray"
+	>
 		{@render children()}
 	</button>
 	{#if show}
 		<div
 			aria-label="cats-menu"
 			role="group"
-			class="absolute top-full left-0 z-3 flex flex-col rounded-sm bg-gray p-1"
+			class="absolute top-full left-0 z-3 mt-1 flex flex-col rounded-sm border border-gray bg-gray p-1 shadow-lg shadow-black/40"
 		>
 			{#each items as item, i (i)}
 				<div class="flex w-full items-center gap-2 p-1 whitespace-nowrap select-none">

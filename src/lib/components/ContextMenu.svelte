@@ -117,9 +117,14 @@
 <svelte:window {onclick} />
 
 {#snippet button(name: string, text: string, onclick: () => void, color?: string)}
-	<button {onclick} class="click flex w-full gap-2 rounded-sm p-1 hover:bg-black">
-		<Icon {name} stroke={color} />
-		<p style="color: {color}">{text}</p>
+	<button
+		{onclick}
+		class="click flex w-full items-center gap-2 rounded-sm px-2 py-1 text-left text-xs transition-colors hover:bg-gray"
+	>
+		<span class="flex size-3.5 shrink-0 items-center justify-center opacity-70">
+			<Icon {name} stroke={color} />
+		</span>
+		<span class="whitespace-nowrap" style={color ? `color: ${color}` : undefined}>{text}</span>
 	</button>
 {/snippet}
 
@@ -128,7 +133,7 @@
 		bind:this={menu}
 		role="menu"
 		style="left: {x}px; top: {y}px"
-		class="fixed z-1000 flex flex-col items-start gap-2 rounded-lg border border-white bg-gray-glass p-2 backdrop-blur-xs"
+		class="fixed z-1000 flex min-w-44 flex-col rounded-md border border-gray bg-gray-glass p-1 shadow-lg shadow-black/40 backdrop-blur-xs"
 		data-testid="context-menu"
 		data-kind={kind}
 	>
@@ -136,7 +141,10 @@
 			{@render button('add', i18n.t('context.addObject'), create)}
 		{:else if kind === 'object' && groupMode}
 			<!-- Bulk: правый клик пришёл на объект из группы выделения. -->
-			<p class="px-1 text-xs opacity-60" data-testid="group-count">
+			<p
+				class="px-2 pt-1 pb-0.5 text-[10px] tracking-wide uppercase opacity-50 select-none"
+				data-testid="group-count"
+			>
 				{i18n.t('context.groupSelected')}: {groupCount}
 			</p>
 			{@render button('delete', i18n.t('context.bulkRemove'), bulkRemove, 'red')}
@@ -154,10 +162,12 @@
 			{#if !isComponent && type !== 'optional'}
 				{@render button('optional', i18n.t('context.optionalType'), optionalType)}
 			{/if}
+			<div class="my-1 h-px bg-gray"></div>
 			{@render button('delete', i18n.t('context.remove'), removeObject, 'red')}
 		{:else if kind === 'link'}
 			{@render button('edit', i18n.t('context.linkRename'), renameLink)}
 			{@render button('forward', i18n.t('context.linkFlip'), flipLink)}
+			<div class="my-1 h-px bg-gray"></div>
 			{@render button('delete', i18n.t('context.linkRemove'), removeLink, 'red')}
 		{/if}
 	</div>

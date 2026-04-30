@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Icon } from '$lib/components';
 	import { contextStore } from '$lib/stores/context.svelte';
-	import { objects, links } from '$lib/stores/objects.svelte';
+	import { objects, links, selectedStore } from '$lib/stores/objects.svelte';
 	import { i18n } from '$lib/i18n';
 
 	let x: number = $derived(contextStore.x - 15);
@@ -13,6 +13,26 @@
 	let link = $derived(kind === 'link' ? links.get(id) : undefined);
 	let type = $derived(o?.type ?? 'default');
 	let isComponent = $derived(type === 'component');
+
+	// Если правый клик пришёл на объект, входящий в multi-выделение
+	// (>1 объект), показываем bulk-команды над всей группой.
+	let dataKey = $derived(`o + ${id}`);
+	let groupMode = $derived(
+		kind === 'object' && selectedStore.count > 1 && selectedStore.has(dataKey)
+	);
+	let groupCount = $derived(selectedStore.count);
+
+	// Извлекаем числовые id объектов из selectedStore.multi (он хранит
+	// строковые ключи вида "o + 7").
+	function selectedObjectIds(): number[] {
+		const ids: number[] = [];
+		for (const key of selectedStore.multi) {
+			if (!key.startsWith('o + ')) continue;
+			const n = Number.parseInt(key.slice(4), 10);
+			if (Number.isFinite(n)) ids.push(n);
+		}
+		return ids;
+	}
 
 	function onclick(e: MouseEvent) {
 		if (contextStore.isOpen && menu && !menu.contains(e.target as Node)) {
@@ -29,9 +49,12 @@
 
 	// ── Canvas / Object: создание и редактирование объектов ────────────────
 	const create = withClose(() => {
-		// При kind=object создаём ребёнка к этому объекту, при kind=canvas
-		// — корневой. id<=0 — клиентский sentinel, на сервере таких нет.
-		const parent = kind === 'object' && id > 0 ? id : null;
+		// При kind=object создаём ребёнка к этому объекту. id===0 — это
+		// «виртуальный корень» buildTree-а, его в реальном сторе не
+		// существует, поэтому отбрасываем именно 0. Tmp-id (отрицательные)
+		// — нормальные клиентские объекты, ребёнка к ним создаём как и к
+		// серверным.
+		const parent = kind === 'object' && id !== 0 ? id : null;
 		objects.create({ name: i18n.t('context.addObject'), type: 'default', parent });
 	});
 
@@ -85,6 +108,27 @@
 	});
 
 	const removeLink = withClose(() => links.remove(id));
+
+	// ── Bulk-команды над выделенной группой ────────────────────────────────
+	const bulkRemove = withClose(() => {
+		for (const objId of selectedObjectIds()) objects.remove(objId);
+		selectedStore.clearAll();
+	});
+
+	const bulkDuplicate = withClose(() => {
+		const suffix = i18n.t('context.duplicateSuffix');
+		for (const objId of selectedObjectIds()) {
+			const obj = objects.get(objId);
+			if (!obj) continue;
+			objects.create({
+				name: `${obj.name} ${suffix}`,
+				type: obj.type,
+				parent: obj.parent,
+				content: obj.content
+			});
+		}
+		selectedStore.clearAll();
+	});
 </script>
 
 <svelte:window {onclick} />
@@ -107,6 +151,13 @@
 	>
 		{#if kind === 'canvas'}
 			{@render button('add', i18n.t('context.addObject'), create)}
+		{:else if kind === 'object' && groupMode}
+			<!-- Bulk: правый клик пришёл на объект из группы выделения. -->
+			<p class="px-1 text-xs opacity-60" data-testid="group-count">
+				{i18n.t('context.groupSelected')}: {groupCount}
+			</p>
+			{@render button('component', i18n.t('context.bulkDuplicate'), bulkDuplicate)}
+			{@render button('delete', i18n.t('context.bulkRemove'), bulkRemove, 'red')}
 		{:else if kind === 'object'}
 			{@render button('add', i18n.t('context.addChild'), create)}
 			{@render button('edit', i18n.t('context.rename'), renameObject)}

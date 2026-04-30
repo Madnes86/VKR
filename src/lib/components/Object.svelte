@@ -23,7 +23,7 @@
 
 	let ref: HTMLElement | undefined = $state(undefined);
 	let data = $derived(`o + ${id}`);
-	let selected: boolean = $derived(selectedStore.selected === data);
+	let selected: boolean = $derived(selectedStore.selected === data || selectedStore.has(data));
 	let hover: boolean = $derived(selectedStore.hover === data);
 	let validationColor: string = $derived.by(() => {
 		// Окрашиваем только когда пользователь явно включил подсветку
@@ -43,6 +43,13 @@
 		if (!ref || e.button !== 0) return;
 		e.stopPropagation();
 		e.preventDefault();
+
+		// Shift+click — мульти-выделение. Без Shift — старый одиночный
+		// select; drag активен только в одиночном режиме.
+		if (e.shiftKey) {
+			selectedStore.toggle(data);
+			return;
+		}
 
 		dragStore.setDrag({
 			ref,

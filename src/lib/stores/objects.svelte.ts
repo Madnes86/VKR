@@ -103,7 +103,10 @@ export class ObjectsStore {
 	update(id: number, patch: Partial<IFlatObject>) {
 		const idx = this.#objects.findIndex((o) => o.id === id);
 		if (idx === -1) return;
-		this.#objects[idx] = { ...this.#objects[idx], ...patch };
+		// Полная замена массива через map — иначе $derived в treeStore
+		// не всегда подхватывал индексное присваивание, и rename/тип не
+		// доходили до DOM.
+		this.#objects = this.#objects.map((o, i) => (i === idx ? { ...o, ...patch } : o));
 
 		const { id: _ignore, ...diff } = patch;
 		syncQueue.enqueueObjectUpdate(id, diff);
@@ -210,7 +213,7 @@ export class LinksStore {
 	update(id: number, patch: Partial<IFlatLink>) {
 		const idx = this.#links.findIndex((l) => l.id === id);
 		if (idx === -1) return;
-		this.#links[idx] = { ...this.#links[idx], ...patch };
+		this.#links = this.#links.map((l, i) => (i === idx ? { ...l, ...patch } : l));
 		const { id: _ignore, ...diff } = patch;
 		syncQueue.enqueueLinkUpdate(id, diff);
 		this.#persist();
@@ -288,15 +291,56 @@ export async function bootstrapDiagram(): Promise<void> {
 	}
 }
 
+// Множественный выбор объектов:
+// - selected — текущий «главный» (последний кликнутый), для совместимости.
+// - multi — Set всех выделенных, наполняется Shift+click.
+// При обычном клике multi сбрасывается в [selected]. Так одиночный
+// клик работает по-старому, а Shift+click копит группу.
 class SelectedStore {
 	selected: string | null = $state<any>(null);
 	hover: string | null = $state<any>(null);
+	#multi: Set<string> = $state(new Set());
 
 	set(key: 'selected' | 'hover', id: string) {
 		this[key] = id;
+		if (key === 'selected') {
+			this.#multi = new Set([id]);
+		}
 	}
 	clear(key: 'selected' | 'hover') {
 		this[key] = null;
+		if (key === 'selected') this.#multi = new Set();
+	}
+	/** Тоггл вхождения id в группу. Используется Shift+click. */
+	toggle(id: string) {
+		const next = new Set(this.#multi);
+		if (next.has(id)) {
+			next.delete(id);
+		} else {
+			next.add(id);
+		}
+		this.#multi = next;
+		// «Главный» selected — последний добавленный, либо null.
+		this.selected = next.size > 0 ? id : null;
+	}
+	/** Полностью заменить группу. */
+	setMulti(ids: string[]) {
+		this.#multi = new Set(ids);
+		this.selected = ids[ids.length - 1] ?? null;
+	}
+	clearAll() {
+		this.selected = null;
+		this.hover = null;
+		this.#multi = new Set();
+	}
+	get multi(): Set<string> {
+		return this.#multi;
+	}
+	has(id: string): boolean {
+		return this.#multi.has(id);
+	}
+	get count(): number {
+		return this.#multi.size;
 	}
 }
 export const selectedStore = new SelectedStore();

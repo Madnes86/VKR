@@ -260,6 +260,9 @@ export const ru = {
 	'context.linkRename': 'Переименовать связь',
 	'context.linkRemove': 'Удалить связь',
 	'context.linkFlip': 'Развернуть направление',
+	'context.groupSelected': 'Выделено',
+	'context.bulkRemove': 'Удалить выделенные',
+	'context.bulkDuplicate': 'Дублировать выделенные',
 
 	'search.placeholder': 'Поиск',
 	'search.invalid': 'Некорректное значение поиска',
@@ -634,6 +637,9 @@ export const en: Record<Key, string> = {
 	'context.linkRename': 'Rename link',
 	'context.linkRemove': 'Delete link',
 	'context.linkFlip': 'Flip direction',
+	'context.groupSelected': 'Selected',
+	'context.bulkRemove': 'Delete selected',
+	'context.bulkDuplicate': 'Duplicate selected',
 
 	'search.placeholder': 'Search',
 	'search.invalid': 'Invalid search value',

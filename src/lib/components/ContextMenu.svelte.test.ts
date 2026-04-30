@@ -3,18 +3,20 @@ import { render } from 'vitest-browser-svelte';
 import { flushSync } from 'svelte';
 import ContextMenu from './ContextMenu.svelte';
 import { contextStore } from '$lib/stores/context.svelte';
-import { objects, links } from '$lib/stores/objects.svelte';
+import { objects, links, selectedStore } from '$lib/stores/objects.svelte';
 
 beforeEach(() => {
 	objects.clear();
 	links.clear();
 	contextStore.close();
+	selectedStore.clearAll();
 });
 
 afterEach(() => {
 	objects.clear();
 	links.clear();
 	contextStore.close();
+	selectedStore.clearAll();
 });
 
 function open(id: number, kind: 'canvas' | 'object' | 'link' = 'canvas') {
@@ -88,6 +90,27 @@ describe('ContextMenu — CRUD объектов', () => {
 		open(-1, 'object');
 		expect(btnByText(container, 'переименовать')).not.toBeNull();
 		expect(btnByText(container, 'удалить')).not.toBeNull();
+	});
+
+	it('Add child работает и для tmp-id (parent=отрицательный)', () => {
+		objects.setAll([{ id: -3, name: 'tmp parent', type: 'default', parent: null, content: null }]);
+		const { container } = render(ContextMenu);
+		open(-3, 'object');
+		btnByText(container, 'Добавить дочерний')!.click();
+		flushSync();
+		expect(objects.all.find((o) => o.parent === -3)).toBeDefined();
+	});
+
+	it('Rename: новое имя действительно появляется в стора при следующем чтении', () => {
+		objects.setAll([{ id: 30, name: 'old', type: 'default', parent: null, content: null }]);
+		const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('renamed');
+		const { container } = render(ContextMenu);
+		open(30, 'object');
+		btnByText(container, 'переименовать')!.click();
+		flushSync();
+		// objects.all — свежая ссылка после update().
+		expect(objects.all.find((o) => o.id === 30)?.name).toBe('renamed');
+		promptSpy.mockRestore();
 	});
 
 	it('Rename: prompt пишет новое имя', () => {
@@ -168,5 +191,62 @@ describe('ContextMenu — CRUD связей', () => {
 		btnByText(container, 'Удалить связь')!.click();
 		flushSync();
 		expect(links.get(22)).toBeUndefined();
+	});
+});
+
+describe('ContextMenu — групповой режим', () => {
+	function setupGroup() {
+		objects.setAll([
+			{ id: 100, name: 'A', type: 'default', parent: null, content: null },
+			{ id: 101, name: 'B', type: 'default', parent: null, content: null },
+			{ id: 102, name: 'C', type: 'default', parent: null, content: null }
+		]);
+		selectedStore.setMulti(['o + 100', 'o + 101', 'o + 102']);
+	}
+
+	it('Правый клик на объекте из группы → bulk-меню с count', () => {
+		setupGroup();
+		const { container } = render(ContextMenu);
+		open(100, 'object');
+		const indicator = container.querySelector('[data-testid="group-count"]');
+		expect(indicator?.textContent).toContain('3');
+		expect(btnByText(container, 'Дублировать выделенные')).not.toBeNull();
+		expect(btnByText(container, 'Удалить выделенные')).not.toBeNull();
+		// Single-команды в группе не показываются.
+		expect(btnByText(container, 'переименовать')).toBeNull();
+	});
+
+	it('Правый клик на объекте ВНЕ группы → одиночное меню, даже если группа есть', () => {
+		setupGroup();
+		objects.setAll([
+			...objects.all,
+			{ id: 200, name: 'outside', type: 'default', parent: null, content: null }
+		]);
+		const { container } = render(ContextMenu);
+		open(200, 'object');
+		expect(btnByText(container, 'переименовать')).not.toBeNull();
+		expect(btnByText(container, 'Удалить выделенные')).toBeNull();
+	});
+
+	it('Bulk delete удаляет все выделенные объекты и сбрасывает группу', () => {
+		setupGroup();
+		const { container } = render(ContextMenu);
+		open(100, 'object');
+		btnByText(container, 'Удалить выделенные')!.click();
+		flushSync();
+		expect(objects.get(100)).toBeUndefined();
+		expect(objects.get(101)).toBeUndefined();
+		expect(objects.get(102)).toBeUndefined();
+		expect(selectedStore.count).toBe(0);
+	});
+
+	it('Bulk duplicate создаёт копию для каждого выделенного объекта', () => {
+		setupGroup();
+		const before = objects.all.length;
+		const { container } = render(ContextMenu);
+		open(100, 'object');
+		btnByText(container, 'Дублировать выделенные')!.click();
+		flushSync();
+		expect(objects.all.length).toBe(before + 3);
 	});
 });

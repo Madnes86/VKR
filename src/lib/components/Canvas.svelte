@@ -135,9 +135,34 @@
 		const v = visibility;
 		if (!data || !data.objects) return;
 
+		// Перед заменой дерева запоминаем текущие физические позиции
+		// существующих объектов. buildTree выдаёт ITreeObject с
+		// Math.random() координатами; без восстановления каждый
+		// create/update/delete заставлял бы все объекты на холсте
+		// прыгать в случайные точки.
+		const prevPos = new Map<number, { x: number; y: number }>();
+		function snapshot(o: ITreeObject) {
+			prevPos.set(o.id, { x: o.x, y: o.y });
+			for (const c of o.objects ?? []) snapshot(c);
+		}
+		for (const o of objects) snapshot(o);
+
 		const baseLinks = data.links ?? [];
 		const targetObjects = v ? data.objects.filter((o) => v.has(o.id)) : data.objects;
 		const targetLinks = v ? baseLinks.filter((l) => v.has(l.is) && v.has(l.to)) : baseLinks;
+
+		// Восстанавливаем позиции для всех существующих объектов
+		// (включая вложенных). Новых объектов в prevPos нет — для них
+		// ниже отработает centerObjects.
+		function restore(o: ITreeObject) {
+			const prev = prevPos.get(o.id);
+			if (prev) {
+				o.x = prev.x;
+				o.y = prev.y;
+			}
+			for (const c of o.objects ?? []) restore(c);
+		}
+		for (const o of targetObjects) restore(o);
 
 		objects = targetObjects;
 		links = targetLinks;

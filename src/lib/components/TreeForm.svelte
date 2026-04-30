@@ -33,10 +33,10 @@
 	const onmouseenter = () => selectedStore.set('hover', data);
 	const onmouseleave = () => selectedStore.clear('hover');
 	function onclick(e: MouseEvent) {
-		// Shift+click — toggle вхождения в группу. parent тянем из
-		// flat-стора; для связей групповые операции не предусмотрены —
-		// фолбэк на одиночный select.
-		if (e.shiftKey && type === 'o') {
+		// Shift / Cmd / Ctrl + click — toggle вхождения в группу. parent
+		// тянем из flat-стора; для связей групповые операции не
+		// предусмотрены — фолбэк на одиночный select.
+		if ((e.shiftKey || e.metaKey || e.ctrlKey) && type === 'o') {
 			const parent = objects.get(id)?.parent ?? null;
 			selectedStore.toggleAtLevel(data, parent);
 			return;
@@ -45,18 +45,25 @@
 	}
 	const toggle = () => (state = !state);
 
-	// Drag-source. Если строка входит в multi-выделение, тянем всю
-	// группу (только объекты, связи в группе участвовать не могут).
-	// Иначе тянем единственный объект. Связи (type='l') не draggable —
-	// dragstart возвращаем без payload.
+	// Drag-source.
+	// - Если строка входит в multi-выделение → тянем всю группу
+	//   (включая саму строку);
+	// - Если строка НЕ в группе, но multi пустое или из одного → тянем
+	//   именно эту строку (не «прицепляем» постороннюю группу к чужому
+	//   объекту — это бы удивило пользователя).
+	// Связи (type='l') не draggable — dragstart возвращаем без payload.
 	function ondragstart(e: DragEvent) {
 		if (type !== 'o' || !e.dataTransfer) return;
-		const ids = selectedStore.has(data)
-			? Array.from(selectedStore.multi)
-					.filter((k) => k.startsWith('o + '))
-					.map((k) => Number.parseInt(k.slice(4), 10))
-					.filter((n) => Number.isFinite(n))
-			: [id];
+		const inGroup = selectedStore.has(data) && selectedStore.count > 1;
+		let ids: number[];
+		if (inGroup) {
+			ids = Array.from(selectedStore.multi)
+				.filter((k) => k.startsWith('o + '))
+				.map((k) => Number.parseInt(k.slice(4), 10))
+				.filter((n) => Number.isFinite(n));
+		} else {
+			ids = [id];
+		}
 		e.dataTransfer.effectAllowed = 'copy';
 		e.dataTransfer.setData('application/x-structura-objects', JSON.stringify(ids));
 	}

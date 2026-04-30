@@ -1,16 +1,5 @@
 <script lang="ts">
-	import {
-		Tabs,
-		Search,
-		Icon,
-		Tree,
-		Entityes,
-		Editor,
-		Alerts,
-		Settings,
-		Logo
-	} from '$lib/components';
-	import { i18n } from '$lib/i18n';
+	import { Tabs, Search, Icon, Tree, Entityes, Editor, Alerts, Settings } from '$lib/components';
 	import { side } from '$lib/stores/other.svelte';
 
 	const tabs: string[] = ['graph', 'component', 'editor', 'alert', 'settings'];
@@ -93,17 +82,6 @@
 		<div style="width: {width}px" class="flex h-screen flex-col bg-gray-glass">
 			{#if main}
 				<Tabs {tabs} bind:selectedTab>
-					<!-- Лого-ссылка на лендинг: маленький иконочный
-					     вариант (без текста), чтобы не отвлекать от
-					     работы и не съедать место в шапке. -->
-					<a
-						href="/"
-						title={i18n.t('logo.home')}
-						aria-label={i18n.t('logo.home')}
-						class="click flex items-center justify-center rounded-sm p-1 hover:bg-gray"
-					>
-						<Logo width={20} height={20} iconOnly />
-					</a>
 					<button onclick={closing} class="rounded-sm p-1 hover:bg-gray">
 						<Icon name={right ? 'side-r-close' : 'side-l-close'} />
 					</button>

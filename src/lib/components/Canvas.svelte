@@ -83,10 +83,12 @@
 	// иначе отменяем. Window-listener живёт только в активной фазе.
 	$effect(() => {
 		if (!linkDraft.active) return;
-		// Стартовая позиция курсора, чтобы отличать «случайный отпуск
-		// на месте» от настоящей попытки создать связь.
-		const startX = linkDraft.x;
-		const startY = linkDraft.y;
+		// Стартовая позиция курсора — фиксируем через untrack: иначе
+		// reactive-чтение linkDraft.x/y подписало бы эффект, и каждый
+		// move() перезапускал бы его, обнуляя «начало» до текущей
+		// позиции. В итоге dx/dy всегда ≈0 и уведомление не летело.
+		const startX = untrack(() => linkDraft.x);
+		const startY = untrack(() => linkDraft.y);
 		const DROP_HINT_THRESHOLD_PX = 12;
 
 		function onMove(e: MouseEvent) {

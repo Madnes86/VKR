@@ -169,7 +169,7 @@
 				class="h-6 w-full border-0 bg-transparent p-0 focus:outline-none"
 			/>
 		{:else}
-			<LightText text={displayName} />
+			<LightText text={displayName} category={type === 'o' ? 'Objects' : 'Links'} />
 		{/if}
 	</button>
 	{#if hover || editing}

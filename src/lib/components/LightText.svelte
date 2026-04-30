@@ -2,12 +2,19 @@
 	import { searchStore } from '$lib/stores/search.svelte';
 
 	let {
-		text
+		text,
+		// Категория, к которой относится этот текст (передают
+		// родители: Object→Name → 'Objects', Link → 'Links', и т.д.).
+		// Если ни одна категория не отмечена в Search — подсвечиваем
+		// все. Если отмечены конкретные — только те, что входят.
+		category
 	}: {
 		text: string;
+		category?: string;
 	} = $props();
 
 	let query: string = $derived(searchStore.get());
+	let categoryActive = $derived(category ? searchStore.matchesCategory(category) : true);
 
 	// Сравнение регистронезависимое: и текст, и запрос lowercase-им
 	// ОДНОВРЕМЕННО. Раньше lowercase-был только text — пользователь,
@@ -18,7 +25,7 @@
 	// их можно использовать для подсветки исходных символов в шаблоне.
 	let parts = $derived.by(() => {
 		const q = (query ?? '').toLowerCase();
-		if (!q) return { before: text, match: '', after: '' };
+		if (!q || !categoryActive) return { before: text, match: '', after: '' };
 		const n = text.toLowerCase();
 		const start = n.indexOf(q);
 		if (start < 0) return { before: text, match: '', after: '' };

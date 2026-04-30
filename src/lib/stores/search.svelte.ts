@@ -43,6 +43,19 @@ class SearchStore {
 		this.#data = '';
 		this.#applied = false;
 	}
+
+	/**
+	 * Активна ли категория для подсветки. Имена категорий передаются в
+	 * #cats из Search.svelte (mocs/categoryes.ts: 'Objects', 'Links',
+	 * 'optional', ...). Если ни одной категории не выбрано — подсветка
+	 * работает по всем (нет фильтра); иначе — только по тем, что в
+	 * #cats c check=true.
+	 */
+	matchesCategory(category: string): boolean {
+		const checked = this.#cats.filter((c) => c.check);
+		if (checked.length === 0) return true;
+		return checked.some((c) => c.name === category);
+	}
 }
 
 export const searchStore = new SearchStore();

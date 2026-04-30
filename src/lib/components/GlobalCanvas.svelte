@@ -344,7 +344,7 @@
 							: 'border-white'}"
 				>
 					<span class="pointer-events-none truncate px-2">
-						<LightText text={n.name} />
+						<LightText text={n.name} category="Objects" />
 					</span>
 					{#if cluster}
 						<span

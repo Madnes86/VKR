@@ -109,7 +109,7 @@
 				style="font-size: {size / 5}px; height: {size / 4}px; line-height: {size / 4}px;"
 				class="click text-border whitespace-nowrap select-none"
 			>
-				<LightText text={name} />
+				<LightText text={name} category="Objects" />
 			</button>
 			{#if hover}
 				<button

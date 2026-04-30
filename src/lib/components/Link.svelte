@@ -218,7 +218,7 @@
 				ondblclick={startEdit}
 				title="Двойной клик — переименовать"
 				class="text-border cursor-text whitespace-nowrap select-none"
-				><LightText text={name} /></button
+				><LightText text={name} category="Links" /></button
 			>
 		{/if}
 		{#if hover && !editing}

@@ -83,12 +83,6 @@
 	// иначе отменяем. Window-listener живёт только в активной фазе.
 	$effect(() => {
 		if (!linkDraft.active) return;
-		// Стартовая позиция курсора — фиксируем через untrack: иначе
-		// reactive-чтение linkDraft.x/y подписало бы эффект, и каждый
-		// move() перезапускал бы его, обнуляя «начало» до текущей
-		// позиции. В итоге dx/dy всегда ≈0 и уведомление не летело.
-		const startX = untrack(() => linkDraft.x);
-		const startY = untrack(() => linkDraft.y);
 		const DROP_HINT_THRESHOLD_PX = 12;
 
 		function onMove(e: MouseEvent) {
@@ -111,11 +105,12 @@
 				pendingNameEdit.request(newId, 'link');
 			} else if (src !== null) {
 				// Drop мимо: пользователь реально дотащил курсор далеко
-				// от старта, но не попал на другой объект. Подсказываем
-				// info-уведомлением. Кратчайшее «нажал и отпустил на
-				// месте» (drag<threshold) считаем отменой и молчим.
-				const dx = e.clientX - startX;
-				const dy = e.clientY - startY;
+				// от старта, но не попал на другой объект. linkDraft.startX/Y
+				// — нерактивные поля, фиксируются в start() и неизменны до
+				// cancel; «нажал и отпустил на месте» (drag<threshold)
+				// считаем отменой и молчим.
+				const dx = e.clientX - linkDraft.startX;
+				const dy = e.clientY - linkDraft.startY;
 				if (Math.hypot(dx, dy) > DROP_HINT_THRESHOLD_PX) {
 					notificationStore.show({
 						icon: 'alert',

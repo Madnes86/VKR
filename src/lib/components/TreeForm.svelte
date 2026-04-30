@@ -2,7 +2,6 @@
 	import { tick } from 'svelte';
 	import { Icon, LightText } from '$lib/components';
 	import { selectedStore, viewStore, objects, links } from '$lib/stores/objects.svelte';
-	import { pendingNameEdit } from '$lib/stores/pendingEdit.svelte';
 
 	let {
 		id,
@@ -41,14 +40,11 @@
 		}
 	});
 
-	// Если строка относится к свежесозданному объекту/связи — открываем
-	// inline-edit автоматически, как Name.svelte и Link.svelte.
-	$effect(() => {
-		const kind = type === 'o' ? 'object' : 'link';
-		if (pendingNameEdit.claim(id, kind)) {
-			void openEdit();
-		}
-	});
+	// pendingNameEdit ЗДЕСЬ НЕ claim'им: Name.svelte / Link.svelte на
+	// канвасе могут смонтироваться позже Tree, и если строка перехватит
+	// запрос первой — редактор откроется в дереве, а не на холсте, где
+	// пользователь его и ждёт. Авто-открытие в TreeForm запрашивается
+	// только через явный клик на иконку «edit».
 
 	async function openEdit() {
 		draft = displayName;

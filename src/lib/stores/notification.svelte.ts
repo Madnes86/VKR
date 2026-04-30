@@ -9,7 +9,7 @@ interface Notification {
 	duration?: number;
 }
 
-const DEFAULT_DURATION = 5000;
+const DEFAULT_DURATION = 10000;
 
 class NotificationStore {
 	private notifications = $state<Notification[]>([

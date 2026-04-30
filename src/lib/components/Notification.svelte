@@ -6,7 +6,7 @@
 		icon = 'alert',
 		title,
 		type = 'info',
-		duration = 5000,
+		duration = 10000,
 		onClose
 	}: {
 		icon?: string;
@@ -98,7 +98,7 @@
 		<div class="flex size-8 shrink-0 items-center justify-center rounded-full {tone.bg}">
 			<Icon name={icon} stroke={tone.stroke} />
 		</div>
-		<h3 class="w-full text-sm leading-snug font-medium">{title}</h3>
+		<h3 class="w-full text-xs leading-snug font-medium">{title}</h3>
 		<button
 			type="button"
 			onclick={close}
@@ -120,7 +120,7 @@
 			style="animation-duration: {duration}ms; animation-play-state: {paused
 				? 'paused'
 				: 'running'};"
-			class="countdown absolute bottom-0 left-0 h-0.5 {tone.bar}"
+			class="countdown absolute bottom-0 left-0 h-1.5 {tone.bar}"
 		></div>
 	</div>
 {/if}

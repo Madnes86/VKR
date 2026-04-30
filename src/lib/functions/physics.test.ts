@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { physics, resizeObjects, REST_THRESHOLD } from './physics';
+import { centerObjects, physics, resizeObjects, REST_THRESHOLD } from './physics';
 import type { ITreeObject, ILink } from '$lib/interface';
 
 function makeObj(
@@ -245,6 +245,52 @@ describe('physics: устойчивость', () => {
 
 		expect(Number.isFinite(obj.x)).toBe(true);
 		expect(Number.isFinite(obj.y)).toBe(true);
+	});
+});
+
+describe('centerObjects', () => {
+	it('Помещает центр объекта в (cx, cy) с поправкой на size', () => {
+		const obj = makeObj({ id: 1, x: 0, y: 0, mass: 1 });
+		obj.size = 100;
+
+		centerObjects([obj], 500, 300, 0);
+
+		// центр объекта = x + size/2
+		expect(obj.x + obj.size / 2).toBeCloseTo(500, 5);
+		expect(obj.y + obj.size / 2).toBeCloseTo(300, 5);
+	});
+
+	it('jitter удерживает центры в допуске вокруг (cx, cy)', () => {
+		const objs = Array.from({ length: 20 }, (_, i) => {
+			const o = makeObj({ id: i, x: 0, y: 0, mass: 1 });
+			o.size = 100;
+			return o;
+		});
+
+		centerObjects(objs, 1000, 1000, 4);
+
+		for (const o of objs) {
+			expect(o.x + o.size / 2).toBeGreaterThanOrEqual(1000 - 2);
+			expect(o.x + o.size / 2).toBeLessThanOrEqual(1000 + 2);
+			expect(o.y + o.size / 2).toBeGreaterThanOrEqual(1000 - 2);
+			expect(o.y + o.size / 2).toBeLessThanOrEqual(1000 + 2);
+		}
+	});
+
+	it('Перезаписывает «угловой» старт из buildTree (Math.random < 1)', () => {
+		// buildTree выдаёт x/y ≈ 0..1 — это «угол». После centerObjects
+		// объекты должны быть рядом с центром, а не у (0,0).
+		const obj = makeObj({ id: 1, x: 0.4, y: 0.7, mass: 1 });
+		obj.size = 100;
+
+		centerObjects([obj], 800, 600, 0);
+
+		expect(Math.hypot(obj.x + 50, obj.y + 50)).toBeGreaterThan(100);
+		expect(Math.hypot(obj.x + 50 - 800, obj.y + 50 - 600)).toBeLessThan(1);
+	});
+
+	it('Пустой массив не падает', () => {
+		expect(() => centerObjects([], 0, 0)).not.toThrow();
 	});
 });
 

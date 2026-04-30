@@ -218,3 +218,22 @@ export function resizeObjects(objects: ITreeObject[], scale: number) {
 		}
 	});
 }
+
+// Стартовое центрирование: ставит x/y объектов так, чтобы их центры
+// (с учётом size) были около (centerX, centerY) с микро-разбросом.
+// Без разброса коллизия не получает направления и объекты остаются
+// слипшимися; с разбросом физика сразу разносит их наружу.
+export function centerObjects(
+	objects: ITreeObject[],
+	centerX: number,
+	centerY: number,
+	jitter: number = 4
+): void {
+	for (const obj of objects) {
+		const half = obj.size / 2;
+		const jx = jitter > 0 ? (Math.random() - 0.5) * jitter : 0;
+		const jy = jitter > 0 ? (Math.random() - 0.5) * jitter : 0;
+		obj.x = centerX - half + jx;
+		obj.y = centerY - half + jy;
+	}
+}

@@ -4,7 +4,7 @@
 	import { treeStore, objects as flatObjects } from '$lib/stores/objects.svelte';
 	import { scaleStore } from '$lib/stores/scale.svelte';
 	import { dragStore } from '$lib/stores/drag.svelte';
-	import { resizeObjects, runPhysicsLoop } from '$lib/functions/physics';
+	import { centerObjects, resizeObjects, runPhysicsLoop } from '$lib/functions/physics';
 	import { contextStore } from '$lib/stores/context.svelte';
 	import { searchStore } from '$lib/stores/search.svelte';
 	import { side } from '$lib/stores/other.svelte';
@@ -15,6 +15,7 @@
 	import { diagramSettings } from '$lib/stores/diagram.svelte';
 	import { i18n } from '$lib/i18n';
 	import type { ITreeObject, ILink } from '$lib/interface';
+	import Search from './Search.svelte';
 
 	let width: number = $state(0);
 	let height: number = $state(0);
@@ -103,6 +104,24 @@
 			return order.filter((id) => !appearanceStore.has(id));
 		});
 
+		// Размеры нужны корректные для центрирования (центр = x + size/2).
+		// buildTree даёт size=100, реальный размер задаёт resizeObjects по
+		// массе и scale. Untrack — реактивная подписка на scale тут не нужна.
+		untrack(() => resizeObjects(targetObjects, scaleStore.value));
+
+		// Стартовая позиция впервые появляющихся top-level объектов —
+		// центр канваса с микро-разбросом. Без этого Math.random() из
+		// buildTree даёт стартовые координаты около (0,0) и диаграмма
+		// «вылетает» из левого-верхнего угла. Дочерние не трогаем — у них
+		// координаты относительны контейнеру родителя.
+		const cx =
+			untrack(() => centerX) || (typeof window !== 'undefined' ? window.innerWidth / 2 : 0);
+		const cy =
+			untrack(() => centerY) || (typeof window !== 'undefined' ? window.innerHeight / 2 : 0);
+		const revealSet = new Set(toReveal);
+		const freshTopLevel = targetObjects.filter((o) => revealSet.has(o.id));
+		if (freshTopLevel.length > 0) centerObjects(freshTopLevel, cx, cy);
+
 		let cancelled = false;
 		let timer: ReturnType<typeof setTimeout> | undefined;
 		let i = 0;
@@ -180,12 +199,17 @@
 	{/each}
 </div>
 
-<div class="absolute"></div>
-<button
-	type="button"
-	onclick={untangle}
-	title={i18n.t('diagram.untangle.title')}
-	class="text-border absolute top-3 left-1/2 z-50 -translate-x-1/2 rounded-md border border-accent bg-gray-glass px-4 py-2 transition-colors select-none hover:bg-accent"
+<div
+	class="absolute top-5 left-1/2 z-4 flex -translate-x-1/2 rounded-md border border-gray bg-gray-glass p-2"
 >
-	{i18n.t('diagram.untangle.action')}
-</button>
+	<button
+		type="button"
+		onclick={untangle}
+		title={i18n.t('diagram.untangle.title')}
+		class="borde rounded-md border bg-black px-4 py-2 transition-colors select-none hover:bg-accent"
+	>
+		{i18n.t('diagram.untangle.action')}
+	</button>
+	<button>Отключить гравицию</button>
+	<Search />
+</div>

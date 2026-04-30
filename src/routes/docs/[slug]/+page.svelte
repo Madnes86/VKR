@@ -39,27 +39,32 @@
 	});
 </script>
 
-<Header />
+<!-- Layout: Header + растущая зона со статьёй + Footer прижат к низу.
+     Без min-h-screen + flex-1 короткие статьи оставляют пустое место
+     внизу, и Footer «поднимается» в середину экрана. -->
+<div class="flex min-h-screen flex-col">
+	<Header />
+	<div class="relative isolate flex-1">
+		<BgSpace />
+		<section class="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-10">
+			<a
+				href="/docs"
+				class="click flex w-fit items-center gap-2 rounded-sm px-2 py-1 text-sm opacity-70 hover:bg-gray hover:opacity-100"
+			>
+				<span class="rotate-180"><Icon name="forward" /></span>
+				К диаграмме
+			</a>
 
-<div class="relative isolate">
-	<BgSpace />
-	<section class="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-10">
-		<a
-			href="/docs"
-			class="click flex w-fit items-center gap-2 rounded-sm px-2 py-1 text-sm opacity-70 hover:bg-gray hover:opacity-100"
-		>
-			<span class="rotate-180"><Icon name="forward" /></span>
-			К диаграмме
-		</a>
-
-		<article class="rounded-md border border-gray bg-black/40 px-6 py-6 backdrop-blur-xs sm:px-10">
-			<h1 class="mb-4">{data.article.title}</h1>
-			<div bind:this={holder} class="docs-article-host text-md leading-relaxed"></div>
-		</article>
-	</section>
+			<article
+				class="rounded-md border border-gray bg-black/40 px-6 py-6 backdrop-blur-xs sm:px-10"
+			>
+				<h1 class="mb-4">{data.article.title}</h1>
+				<div bind:this={holder} class="docs-article-host text-md leading-relaxed"></div>
+			</article>
+		</section>
+	</div>
+	<Footer />
 </div>
-
-<Footer />
 
 <style>
 	/* EditorJS render в read-only кладёт служебные пустые тулбары —

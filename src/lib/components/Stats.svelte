@@ -28,7 +28,7 @@
 	style={positionStyle}
 	data-testid="sidebar-stats"
 	data-pos={oppositePos}
-	class="fixed bottom-3 z-3 flex items-center gap-3 rounded-md border border-gray bg-gray-glass px-3 py-1.5 text-[10px] leading-none opacity-60 backdrop-blur-xs select-none"
+	class="fixed bottom-3 z-3 flex items-center gap-3 rounded-md border border-gray bg-gray-glass px-3 py-1.5 text-[12px] leading-none opacity-60 backdrop-blur-xs select-none"
 >
 	<span class="flex items-center gap-1">
 		<span class="opacity-70">{i18n.t('stats.warnings')}</span>

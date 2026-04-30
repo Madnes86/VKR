@@ -125,7 +125,10 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	bind:this={ref}
-	style="top: {y}px; left: {x}px; width: {size}px; height: {size}px; z-index: {id}"
+	style="top: {y}px; left: {x}px; width: {size}px; height: {size}px; z-index: {Math.max(
+		1,
+		Math.abs(id)
+	)};"
 	class="absolute flex flex-col"
 	{onmousemove}
 >

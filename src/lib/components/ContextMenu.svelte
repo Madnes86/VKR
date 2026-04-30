@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { Icon } from '$lib/components';
 	import { contextStore } from '$lib/stores/context.svelte';
-	import { objects } from '$lib/stores/objects.svelte';
+	import { objects, links } from '$lib/stores/objects.svelte';
 	import { i18n } from '$lib/i18n';
 
 	let x: number = $derived(contextStore.x - 15);
 	let y: number = $derived(contextStore.y - 15);
-	let menu: HTMLInputElement | null = $state(null);
-	let id = $derived(contextStore.data?.id ?? 0);
-	let o = $derived(objects.get(id));
+	let menu: HTMLDivElement | null = $state(null);
+	let id = $derived(contextStore.id);
+	let kind = $derived(contextStore.kind);
+	let o = $derived(kind === 'object' ? objects.get(id) : undefined);
+	let link = $derived(kind === 'link' ? links.get(id) : undefined);
 	let type = $derived(o?.type ?? 'default');
 	let isComponent = $derived(type === 'component');
 
@@ -18,8 +20,6 @@
 		}
 	}
 
-	// CRUD helper: каждое действие закрывает меню — пользователю не
-	// нужно лишнее кликать мимо, чтобы продолжить работу.
 	function withClose<A extends unknown[]>(fn: (...args: A) => void): (...args: A) => void {
 		return (...args: A) => {
 			fn(...args);
@@ -27,22 +27,20 @@
 		};
 	}
 
+	// ── Canvas / Object: создание и редактирование объектов ────────────────
 	const create = withClose(() => {
-		// id=0 — клиентский sentinel «корень», на сервере его не бывает.
-		const p = contextStore.data?.id;
-		objects.create({
-			name: i18n.t('context.addObject'),
-			type: 'default',
-			parent: p && p > 0 ? p : null
-		});
+		// При kind=object создаём ребёнка к этому объекту, при kind=canvas
+		// — корневой. id<=0 — клиентский sentinel, на сервере таких нет.
+		const parent = kind === 'object' && id > 0 ? id : null;
+		objects.create({ name: i18n.t('context.addObject'), type: 'default', parent });
 	});
 
 	const defaultType = withClose(() => objects.updateType(id, 'default'));
 	const interfaceType = withClose(() => objects.updateType(id, 'interface'));
 	const optionalType = withClose(() => objects.updateType(id, 'optional'));
-	const remove = withClose(() => objects.remove(id));
+	const removeObject = withClose(() => objects.remove(id));
 
-	const rename = withClose(() => {
+	const renameObject = withClose(() => {
 		if (!o) return;
 		const next = window.prompt(i18n.t('context.renamePrompt'), o.name);
 		if (next === null) return;
@@ -53,7 +51,6 @@
 
 	const duplicate = withClose(() => {
 		if (!o) return;
-		// Координаты не дублируем — physics сам разнесёт; клонируем суть.
 		objects.create({
 			name: `${o.name} ${i18n.t('context.duplicateSuffix')}`,
 			type: o.type,
@@ -65,6 +62,29 @@
 	const toggleComponent = withClose(() => {
 		objects.updateType(id, isComponent ? 'default' : 'component');
 	});
+
+	// ── Link: переименовать / развернуть / удалить ─────────────────────────
+	const renameLink = withClose(() => {
+		if (!link) return;
+		const next = window.prompt(i18n.t('context.renamePrompt'), link.name);
+		if (next === null) return;
+		const trimmed = next.trim();
+		if (!trimmed || trimmed === link.name) return;
+		links.update(id, { name: trimmed });
+	});
+
+	const flipLink = withClose(() => {
+		if (!link) return;
+		// Меняем местами is/to — направление стрелки разворачивается.
+		links.update(id, {
+			is: link.to,
+			to: link.is,
+			isValue: link.toValue,
+			toValue: link.isValue
+		});
+	});
+
+	const removeLink = withClose(() => links.remove(id));
 </script>
 
 <svelte:window {onclick} />
@@ -79,29 +99,37 @@
 {#if contextStore.isOpen}
 	<div
 		bind:this={menu}
+		role="menu"
 		style="left: {x}px; top: {y}px"
-		class="fixed z-1000 flex flex-col items-start gap-2 rounded-lg border border-white bg-gray-glass p-2 backdrop-blur-[4px]"
+		class="fixed z-1000 flex flex-col items-start gap-2 rounded-lg border border-white bg-gray-glass p-2 backdrop-blur-xs"
 		data-testid="context-menu"
+		data-kind={kind}
 	>
-		{@render button('add', i18n.t('context.addObject'), create)}
-		{#if id > 0}
-			{@render button('edit', i18n.t('context.rename'), rename)}
+		{#if kind === 'canvas'}
+			{@render button('add', i18n.t('context.addObject'), create)}
+		{:else if kind === 'object'}
+			{@render button('add', i18n.t('context.addChild'), create)}
+			{@render button('edit', i18n.t('context.rename'), renameObject)}
 			{@render button('component', i18n.t('context.duplicate'), duplicate)}
 			{#if isComponent}
 				{@render button('component', i18n.t('context.unmarkComponent'), toggleComponent)}
 			{:else}
 				{@render button('component', i18n.t('context.markComponent'), toggleComponent)}
 			{/if}
-			{#if type !== 'default' && !isComponent}
+			{#if !isComponent && type !== 'default'}
 				{@render button('object', i18n.t('context.defaultType'), defaultType)}
 			{/if}
-			{#if type !== 'interface' && !isComponent}
+			{#if !isComponent && type !== 'interface'}
 				{@render button('interface', i18n.t('context.interfaceType'), interfaceType)}
 			{/if}
-			{#if type !== 'optional' && !isComponent}
+			{#if !isComponent && type !== 'optional'}
 				{@render button('optional', i18n.t('context.optionalType'), optionalType)}
 			{/if}
-			{@render button('delete', i18n.t('context.remove'), remove, 'red')}
+			{@render button('delete', i18n.t('context.remove'), removeObject, 'red')}
+		{:else if kind === 'link'}
+			{@render button('edit', i18n.t('context.linkRename'), renameLink)}
+			{@render button('forward', i18n.t('context.linkFlip'), flipLink)}
+			{@render button('delete', i18n.t('context.linkRemove'), removeLink, 'red')}
 		{/if}
 	</div>
 {/if}

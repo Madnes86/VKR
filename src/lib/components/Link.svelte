@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { selectedStore, links as linksStore } from '$lib/stores/objects.svelte';
 	import { validationStore } from '$lib/stores/validation.svelte';
+	import { contextStore } from '$lib/stores/context.svelte';
 	import { LightText } from '$lib/components';
 	import type { ILink } from '$lib/interface';
 
@@ -69,6 +70,11 @@
 	}
 	function onmouseleave() {
 		selectedStore.clear('hover');
+	}
+	function oncontextmenu(e: MouseEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		contextStore.set(e, id, 'link');
 	}
 
 	// ── редактирование имени ────────────────────────────────────────────────
@@ -151,6 +157,7 @@
 			{onmouseenter}
 			{onmouseleave}
 			{onclick}
+			{oncontextmenu}
 			x1={sx}
 			y1={sy}
 			x2={ex}
@@ -169,6 +176,7 @@
 		{onmouseenter}
 		{onmouseleave}
 		{onclick}
+		{oncontextmenu}
 		ondblclick={startEdit}
 		style="left: {midX}px; top: {midY}px; font-size: {size / 8}px; z-index: 99999999"
 		class="text-border absolute flex -translate-1/2 items-center gap-1"

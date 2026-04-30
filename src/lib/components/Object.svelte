@@ -84,7 +84,7 @@
 	function oncontextmenu(e: MouseEvent) {
 		e.preventDefault();
 		e.stopPropagation();
-		contextStore.set(e, id);
+		contextStore.set(e, id, 'object');
 	}
 	$effect(() => {
 		if (objects.length === 0) return;

@@ -116,7 +116,10 @@
 	function oncontextmenu(e: MouseEvent) {
 		e.preventDefault();
 		e.stopPropagation();
-		contextStore.set(e, id);
+		// Канвас — фоллбек для пустого места. Если правый клик пришёл
+		// от Object/Link, они уже остановят propagation своими
+		// listener-ами, и сюда мы не попадём.
+		contextStore.set(e, id ?? 0, 'canvas');
 	}
 	// Подсчёт visibility — не делаем spread, чтобы оригинальные ITreeObject
 	// (на которые мутирует physics x/y) сохранились между переключениями
@@ -223,15 +226,13 @@
 	});
 </script>
 
-<svelte:window
-	{oncontextmenu}
-	{onmousemove}
-	{onwheel}
-	bind:innerWidth={width}
-	bind:innerHeight={height}
-/>
+<svelte:window {onmousemove} {onwheel} bind:innerWidth={width} bind:innerHeight={height} />
 
-<div class="fixed top-0 left-0 z-0 size-full">
+<!-- oncontextmenu вешаем на корневой div, а не на window: иначе
+     правый клик в SideBar (он absolute поверх) вызывал бы меню,
+     даже если клик не на диаграмме. Object/Link ставят свой kind
+     и stopPropagation; пустой канвас сюда долетит как kind=canvas. -->
+<div {oncontextmenu} class="fixed top-0 left-0 z-0 size-full">
 	{#each objects as { id, name, type, x, y, size, objects, links }, i}
 		{#if appearanceStore.has(id)}
 			<Object {id} {name} {type} {x} {y} {size} {objects} {links} selParent={false} />

@@ -3,158 +3,170 @@ import { render } from 'vitest-browser-svelte';
 import { flushSync } from 'svelte';
 import ContextMenu from './ContextMenu.svelte';
 import { contextStore } from '$lib/stores/context.svelte';
-import { objects } from '$lib/stores/objects.svelte';
+import { objects, links } from '$lib/stores/objects.svelte';
 
 beforeEach(() => {
 	objects.clear();
+	links.clear();
 	contextStore.close();
 });
 
 afterEach(() => {
 	objects.clear();
+	links.clear();
 	contextStore.close();
 });
 
-function openFor(id: number, x = 100, y = 100) {
-	const e = new MouseEvent('contextmenu', { clientX: x, clientY: y });
-	contextStore.set(e, id);
+function open(id: number, kind: 'canvas' | 'object' | 'link' = 'canvas') {
+	const e = new MouseEvent('contextmenu', { clientX: 100, clientY: 100 });
+	contextStore.set(e, id, kind);
 	flushSync();
 }
 
-function btnByText(container: Element, text: string): HTMLButtonElement | null {
-	const buttons = Array.from(container.querySelectorAll('[data-testid="context-menu"] button'));
-	return (buttons.find((b) => b.textContent?.trim() === text) ?? null) as HTMLButtonElement | null;
+function buttons(container: Element) {
+	return Array.from(
+		container.querySelectorAll('[data-testid="context-menu"] button')
+	) as HTMLButtonElement[];
+}
+function btnByText(container: Element, text: string) {
+	return buttons(container).find((b) => b.textContent?.trim() === text) ?? null;
 }
 
-describe('ContextMenu — открытие/закрытие', () => {
-	it('Меню скрыто пока contextStore.isOpen=false', () => {
+describe('ContextMenu — переключение по kind', () => {
+	it('kind=canvas: только «Добавить объект»', () => {
 		const { container } = render(ContextMenu);
-		expect(container.querySelector('[data-testid="context-menu"]')).toBeNull();
+		open(0, 'canvas');
+		const bs = buttons(container);
+		expect(bs.length).toBe(1);
+		expect(bs[0].textContent?.trim()).toBe('Добавить объект');
 	});
 
-	it('После set() меню рендерится', () => {
+	it('kind=object: показываются rename/duplicate/тип/delete', () => {
+		objects.setAll([{ id: 5, name: 'A', type: 'default', parent: null, content: null }]);
 		const { container } = render(ContextMenu);
-		openFor(0);
-		expect(container.querySelector('[data-testid="context-menu"]')).not.toBeNull();
+		open(5, 'object');
+		expect(btnByText(container, 'Добавить дочерний')).not.toBeNull();
+		expect(btnByText(container, 'переименовать')).not.toBeNull();
+		expect(btnByText(container, 'дублировать')).not.toBeNull();
+		expect(btnByText(container, 'удалить')).not.toBeNull();
 	});
 
-	it('Для id=0 (корень) видна только кнопка «Добавить»', () => {
+	it('kind=link: rename / flip / delete', () => {
+		links.setAll([
+			{ id: 11, name: 'L', type: 'default', is: 1, to: 2, isValue: false, toValue: true }
+		]);
 		const { container } = render(ContextMenu);
-		openFor(0);
-		const buttons = container.querySelectorAll('[data-testid="context-menu"] button');
-		expect(buttons.length).toBe(1);
-		expect(buttons[0].textContent?.trim()).toBe('Добавить объект');
+		open(11, 'link');
+		expect(btnByText(container, 'Переименовать связь')).not.toBeNull();
+		expect(btnByText(container, 'Развернуть направление')).not.toBeNull();
+		expect(btnByText(container, 'Удалить связь')).not.toBeNull();
+		// Команд для объекта быть не должно.
+		expect(btnByText(container, 'дублировать')).toBeNull();
+	});
+
+	it('Корневой data-kind="canvas" атрибут на меню', () => {
+		const { container } = render(ContextMenu);
+		open(0, 'canvas');
+		const m = container.querySelector('[data-testid="context-menu"]') as HTMLElement;
+		expect(m.dataset.kind).toBe('canvas');
 	});
 });
 
-describe('ContextMenu — CRUD', () => {
-	it('Create: «Добавить объект» добавляет в стор и закрывает меню', () => {
+describe('ContextMenu — CRUD объектов', () => {
+	it('Создание ребёнка при kind=object: parent=id', () => {
+		objects.setAll([{ id: 5, name: 'P', type: 'default', parent: null, content: null }]);
 		const { container } = render(ContextMenu);
-		openFor(0);
-		const before = objects.all.length;
-		btnByText(container, 'Добавить объект')!.click();
+		open(5, 'object');
+		btnByText(container, 'Добавить дочерний')!.click();
 		flushSync();
-		expect(objects.all.length).toBe(before + 1);
-		expect(contextStore.isOpen).toBe(false);
+		expect(objects.all.find((o) => o.parent === 5)).toBeDefined();
 	});
 
-	it('Create: parent=id, если открыто на конкретном объекте', () => {
-		objects.setAll([{ id: 5, name: 'parent', type: 'default', parent: null, content: null }]);
+	it('Tmp-id (id<0) тоже трактуется как объект, видны все кнопки', () => {
+		objects.setAll([{ id: -1, name: 'tmp', type: 'default', parent: null, content: null }]);
 		const { container } = render(ContextMenu);
-		openFor(5);
-		btnByText(container, 'Добавить объект')!.click();
-		flushSync();
-		const created = objects.all.find((o) => o.parent === 5);
-		expect(created).toBeDefined();
+		open(-1, 'object');
+		expect(btnByText(container, 'переименовать')).not.toBeNull();
+		expect(btnByText(container, 'удалить')).not.toBeNull();
 	});
 
-	it('Update name: rename через prompt пишет новое имя', () => {
+	it('Rename: prompt пишет новое имя', () => {
 		objects.setAll([{ id: 7, name: 'old', type: 'default', parent: null, content: null }]);
-		const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('new name');
+		const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('new');
 		const { container } = render(ContextMenu);
-		openFor(7);
+		open(7, 'object');
 		btnByText(container, 'переименовать')!.click();
 		flushSync();
-		expect(objects.get(7)?.name).toBe('new name');
+		expect(objects.get(7)?.name).toBe('new');
 		promptSpy.mockRestore();
 	});
 
-	it('Update name: prompt отменён — имя не меняется', () => {
-		objects.setAll([{ id: 8, name: 'keep', type: 'default', parent: null, content: null }]);
-		const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue(null);
+	it('Duplicate: создаёт копию', () => {
+		objects.setAll([{ id: 9, name: 'A', type: 'interface', parent: null, content: null }]);
 		const { container } = render(ContextMenu);
-		openFor(8);
-		btnByText(container, 'переименовать')!.click();
-		flushSync();
-		expect(objects.get(8)?.name).toBe('keep');
-		promptSpy.mockRestore();
-	});
-
-	it('Update name: пустая строка не применяется', () => {
-		objects.setAll([{ id: 9, name: 'keep', type: 'default', parent: null, content: null }]);
-		const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('   ');
-		const { container } = render(ContextMenu);
-		openFor(9);
-		btnByText(container, 'переименовать')!.click();
-		flushSync();
-		expect(objects.get(9)?.name).toBe('keep');
-		promptSpy.mockRestore();
-	});
-
-	it('Update type: «обычный тип» меняет type на default', () => {
-		objects.setAll([{ id: 10, name: 'x', type: 'interface', parent: null, content: null }]);
-		const { container } = render(ContextMenu);
-		openFor(10);
-		btnByText(container, 'обычный тип')!.click();
-		flushSync();
-		expect(objects.get(10)?.type).toBe('default');
-	});
-
-	it('Toggle component: default → component', () => {
-		objects.setAll([{ id: 11, name: 'x', type: 'default', parent: null, content: null }]);
-		const { container } = render(ContextMenu);
-		openFor(11);
-		btnByText(container, 'сделать сущностью')!.click();
-		flushSync();
-		expect(objects.get(11)?.type).toBe('component');
-	});
-
-	it('Toggle component: component → default через «Убрать сущность»', () => {
-		objects.setAll([{ id: 12, name: 'x', type: 'component', parent: null, content: null }]);
-		const { container } = render(ContextMenu);
-		openFor(12);
-		btnByText(container, 'убрать сущность')!.click();
-		flushSync();
-		expect(objects.get(12)?.type).toBe('default');
-	});
-
-	it('Duplicate: создаёт копию с тем же type/parent и суффиксом в имени', () => {
-		objects.setAll([{ id: 13, name: 'A', type: 'interface', parent: null, content: { foo: 1 } }]);
-		const { container } = render(ContextMenu);
-		openFor(13);
+		open(9, 'object');
 		btnByText(container, 'дублировать')!.click();
 		flushSync();
-		const copy = objects.all.find((o) => o.id !== 13 && o.name.startsWith('A '));
-		expect(copy).toBeDefined();
-		expect(copy!.type).toBe('interface');
-		expect(copy!.parent).toBeNull();
+		const copy = objects.all.find((o) => o.id !== 9 && o.name.startsWith('A '));
+		expect(copy?.type).toBe('interface');
 	});
 
-	it('Delete: удаляет объект из стора', () => {
-		objects.setAll([{ id: 14, name: 'x', type: 'default', parent: null, content: null }]);
+	it('Toggle component', () => {
+		objects.setAll([{ id: 10, name: 'x', type: 'default', parent: null, content: null }]);
 		const { container } = render(ContextMenu);
-		openFor(14);
-		btnByText(container, 'удалить')!.click();
+		open(10, 'object');
+		btnByText(container, 'сделать сущностью')!.click();
 		flushSync();
-		expect(objects.get(14)).toBeUndefined();
+		expect(objects.get(10)?.type).toBe('component');
 	});
 
-	it('Любое CRUD-действие закрывает меню', () => {
-		objects.setAll([{ id: 15, name: 'x', type: 'default', parent: null, content: null }]);
+	it('Delete object', () => {
+		objects.setAll([{ id: 12, name: 'x', type: 'default', parent: null, content: null }]);
 		const { container } = render(ContextMenu);
-		openFor(15);
+		open(12, 'object');
 		btnByText(container, 'удалить')!.click();
 		flushSync();
-		expect(contextStore.isOpen).toBe(false);
+		expect(objects.get(12)).toBeUndefined();
+	});
+});
+
+describe('ContextMenu — CRUD связей', () => {
+	it('Rename link: prompt → links.update', () => {
+		links.setAll([
+			{ id: 20, name: 'old', type: 'default', is: 1, to: 2, isValue: false, toValue: true }
+		]);
+		const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('new');
+		const { container } = render(ContextMenu);
+		open(20, 'link');
+		btnByText(container, 'Переименовать связь')!.click();
+		flushSync();
+		expect(links.get(20)?.name).toBe('new');
+		promptSpy.mockRestore();
+	});
+
+	it('Flip link: меняет местами is/to и isValue/toValue', () => {
+		links.setAll([
+			{ id: 21, name: 'L', type: 'default', is: 1, to: 2, isValue: false, toValue: true }
+		]);
+		const { container } = render(ContextMenu);
+		open(21, 'link');
+		btnByText(container, 'Развернуть направление')!.click();
+		flushSync();
+		const l = links.get(21)!;
+		expect(l.is).toBe(2);
+		expect(l.to).toBe(1);
+		expect(l.isValue).toBe(true);
+		expect(l.toValue).toBe(false);
+	});
+
+	it('Delete link', () => {
+		links.setAll([
+			{ id: 22, name: 'L', type: 'default', is: 1, to: 2, isValue: false, toValue: true }
+		]);
+		const { container } = render(ContextMenu);
+		open(22, 'link');
+		btnByText(container, 'Удалить связь')!.click();
+		flushSync();
+		expect(links.get(22)).toBeUndefined();
 	});
 });

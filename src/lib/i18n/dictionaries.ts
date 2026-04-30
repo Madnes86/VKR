@@ -256,6 +256,10 @@ export const ru = {
 	'context.duplicateSuffix': '(копия)',
 	'context.markComponent': 'сделать сущностью',
 	'context.unmarkComponent': 'убрать сущность',
+	'context.addChild': 'Добавить дочерний',
+	'context.linkRename': 'Переименовать связь',
+	'context.linkRemove': 'Удалить связь',
+	'context.linkFlip': 'Развернуть направление',
 
 	'search.placeholder': 'Поиск',
 	'search.invalid': 'Некорректное значение поиска',
@@ -626,6 +630,10 @@ export const en: Record<Key, string> = {
 	'context.duplicateSuffix': '(copy)',
 	'context.markComponent': 'mark as entity',
 	'context.unmarkComponent': 'unmark entity',
+	'context.addChild': 'Add child',
+	'context.linkRename': 'Rename link',
+	'context.linkRemove': 'Delete link',
+	'context.linkFlip': 'Flip direction',
 
 	'search.placeholder': 'Search',
 	'search.invalid': 'Invalid search value',

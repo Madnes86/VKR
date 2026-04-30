@@ -14,6 +14,7 @@
 	import { untangleLinks } from '$lib/functions/untangle';
 	import { diagramSettings } from '$lib/stores/diagram.svelte';
 	import { notificationStore } from '$lib/stores/notification.svelte';
+	import { validationStore } from '$lib/stores/validation.svelte';
 	import { i18n } from '$lib/i18n';
 	import type { ITreeObject, ILink } from '$lib/interface';
 	import DiagramToolbar from './DiagramToolbar.svelte';
@@ -59,6 +60,39 @@
 			return;
 		}
 		physicsNudge++;
+	}
+
+	function validate() {
+		// Без объектов проверять нечего — выходим раньше, чтобы не
+		// показывать «success» на пустой диаграмме (это бы выглядело
+		// абсурдно).
+		if (flatObjects.all.length === 0) {
+			notificationStore.show({
+				icon: 'alert',
+				title: i18n.t('diagram.validate.empty'),
+				type: 'info'
+			});
+			return;
+		}
+		const issues = validationStore.run();
+		const errs = validationStore.errors.length;
+		const warns = validationStore.warnings.length;
+		if (issues.length === 0) {
+			notificationStore.success(i18n.t('diagram.validate.passed'));
+		} else if (errs > 0) {
+			notificationStore.error(
+				i18n
+					.t('diagram.validate.errors')
+					.replace('{errs}', String(errs))
+					.replace('{warns}', String(warns))
+			);
+		} else {
+			notificationStore.show({
+				icon: 'alert',
+				title: i18n.t('diagram.validate.warnings').replace('{warns}', String(warns)),
+				type: 'warning'
+			});
+		}
 	}
 
 	function onwheel(e: WheelEvent) {
@@ -220,4 +254,4 @@
 	{/each}
 </div>
 
-<DiagramToolbar onUntangle={untangle} />
+<DiagramToolbar onUntangle={untangle} onValidate={validate} />

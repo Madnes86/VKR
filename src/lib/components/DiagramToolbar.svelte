@@ -7,7 +7,13 @@
 	import { computeToolbarLayout } from '$lib/functions/toolbar';
 	import { i18n } from '$lib/i18n';
 
-	let { onUntangle }: { onUntangle: () => void } = $props();
+	let {
+		onUntangle,
+		onValidate
+	}: {
+		onUntangle: () => void;
+		onValidate: () => void;
+	} = $props();
 
 	let zoom = $derived(Math.round(scaleStore.value * 100));
 
@@ -76,8 +82,9 @@
 	</button>
 	<button
 		type="button"
-		title={i18n.t('diagram.untangle.title')}
-		aria-label={i18n.t('diagram.untangle.title')}
+		onclick={onValidate}
+		title={i18n.t('diagram.validate.title')}
+		aria-label={i18n.t('diagram.validate.title')}
 		class="click size-7 rounded-md p-1.5 transition-colors hover:bg-gray hover:text-yellow"
 	>
 		<Icon name="test16" />

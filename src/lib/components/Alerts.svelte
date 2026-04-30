@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { Alert, Button, Icon } from '$lib/components';
+	import { Alert, Button } from '$lib/components';
 	import { alerts } from '$lib/stores/alert.svelte';
 	import { searchStore } from '$lib/stores/search.svelte';
 	import { validationStore } from '$lib/stores/validation.svelte';
-	import { notificationStore } from '$lib/stores/notification.svelte';
 
 	let query = $derived(searchStore.get());
 
@@ -31,46 +30,22 @@
 		show = show === i ? null : i;
 	}
 
-	function runValidation() {
-		const issues = validationStore.run();
-		const errs = validationStore.errors.length;
-		const warns = validationStore.warnings.length;
-		if (issues.length === 0) {
-			notificationStore.success('Проверка пройдена: ошибок не найдено');
-		} else if (errs > 0) {
-			notificationStore.error(`Найдено ${errs} ошибок, ${warns} предупреждений`);
-		} else {
-			notificationStore.show({
-				icon: 'alert',
-				title: `Найдено ${warns} предупреждений`,
-				type: 'warning'
-			});
-		}
-	}
-
 	function clearValidation() {
 		validationStore.clear();
 	}
 </script>
 
 <div class="flex w-full flex-col gap-2 p-2">
-	<div class="flex items-center gap-2">
-		<Button
-			onclick={runValidation}
-			className="flex! items-center gap-2 px-2 py-1 rounded-md bg-accent text-white"
-		>
-			<Icon name="check" />
-			<span>Проверить</span>
-		</Button>
-		{#if validationStore.issues.length > 0}
+	{#if validationStore.issues.length > 0}
+		<div class="flex items-center gap-2">
 			<Button onclick={clearValidation} className="px-2 py-1 rounded-md border border-gray">
 				Очистить
 			</Button>
 			<span class="ml-auto text-xs text-zinc-400">
 				{validationStore.errors.length} ошибок · {validationStore.warnings.length} предупреждений
 			</span>
-		{/if}
-	</div>
+		</div>
+	{/if}
 
 	{#each validationAlerts as a, i (a.key)}
 		<Button onclick={() => toggle(i)} className="w-full">

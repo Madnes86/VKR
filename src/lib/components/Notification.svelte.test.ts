@@ -119,21 +119,30 @@ describe('Notification — обратный отсчёт и пауза', () => {
 		expect(afterResume).toBeLessThan(stillPaused);
 	});
 
-	it('Клик по крестику вызывает onClose (после анимации скрытия)', async () => {
+	it('Клик по крестику вызывает onClose синхронно с первого клика', () => {
 		const onClose = vi.fn();
 		const { container } = setup({ title: 't', duration: 100000, onClose });
 		const btn = container.querySelector('button[aria-label="close"]') as HTMLButtonElement;
 		btn.click();
 		flushSync();
-		// onClose дёргается через 300мс slide-out — ждём с запасом.
-		await new Promise((r) => setTimeout(r, 400));
+		expect(onClose).toHaveBeenCalledTimes(1);
+	});
+
+	it('Повторный клик по крестику не вызывает onClose дважды', () => {
+		const onClose = vi.fn();
+		const { container } = setup({ title: 't', duration: 100000, onClose });
+		const btn = container.querySelector('button[aria-label="close"]') as HTMLButtonElement;
+		btn.click();
+		btn.click();
+		btn.click();
+		flushSync();
 		expect(onClose).toHaveBeenCalledTimes(1);
 	});
 
 	it('Авто-закрытие по таймеру вызывает onClose', async () => {
 		const onClose = vi.fn();
-		setup({ title: 't', duration: 50, onClose });
-		await new Promise((r) => setTimeout(r, 50 + 350));
+		setup({ title: 't', duration: 80, onClose });
+		await new Promise((r) => setTimeout(r, 200));
 		expect(onClose).toHaveBeenCalledTimes(1);
 	});
 });

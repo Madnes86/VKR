@@ -336,6 +336,12 @@ export const ru = {
 	'diagram.untangle.empty': 'На диаграмме нет связей',
 	'diagram.untangle.optimized': 'Все связи уже оптимизированы',
 
+	'diagram.validate.title': 'Проверить структуру диаграммы',
+	'diagram.validate.empty': 'Нет объектов для проверки',
+	'diagram.validate.passed': 'Проверка пройдена: ошибок не найдено',
+	'diagram.validate.errors': 'Найдено {errs} ошибок, {warns} предупреждений',
+	'diagram.validate.warnings': 'Найдено {warns} предупреждений',
+
 	'diagram.toolbar.zoom': 'Масштаб',
 	'diagram.toolbar.search': 'Поиск',
 	'diagram.toolbar.gravity.disable': 'Отключить гравитацию',
@@ -682,6 +688,12 @@ export const en: Record<Key, string> = {
 	'diagram.untangle.title': 'Move distant endpoints closer to their source',
 	'diagram.untangle.empty': 'There are no links on the diagram',
 	'diagram.untangle.optimized': 'All links are already optimized',
+
+	'diagram.validate.title': 'Validate diagram structure',
+	'diagram.validate.empty': 'No objects to validate',
+	'diagram.validate.passed': 'Validation passed: no issues found',
+	'diagram.validate.errors': '{errs} errors, {warns} warnings found',
+	'diagram.validate.warnings': '{warns} warnings found',
 
 	'diagram.toolbar.zoom': 'Zoom',
 	'diagram.toolbar.search': 'Search',

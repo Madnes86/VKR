@@ -196,6 +196,30 @@ describe('ContextMenu — CRUD связей', () => {
 		flushSync();
 		expect(links.get(22)).toBeUndefined();
 	});
+
+	it('Toggle optional: default → optional, кнопка меняет подпись', () => {
+		links.setAll([
+			{ id: 23, name: 'L', type: 'default', is: 1, to: 2, isValue: false, toValue: true }
+		]);
+		const { container } = render(ContextMenu);
+		open(23, 'link');
+		// На default-связи кнопка предлагает «Опциональный».
+		btnByText(container, 'Опциональный')!.click();
+		flushSync();
+		expect(links.get(23)?.type).toBe('optional');
+	});
+
+	it('Toggle optional: optional → default', () => {
+		links.setAll([
+			{ id: 24, name: 'L', type: 'optional', is: 1, to: 2, isValue: false, toValue: true }
+		]);
+		const { container } = render(ContextMenu);
+		open(24, 'link');
+		// На optional-связи кнопка предлагает «Обычный».
+		btnByText(container, 'Обычный')!.click();
+		flushSync();
+		expect(links.get(24)?.type).toBe('default');
+	});
 });
 
 describe('ContextMenu — групповой режим', () => {

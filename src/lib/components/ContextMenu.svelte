@@ -105,6 +105,14 @@
 		});
 	});
 
+	// Тоггл «опциональности» связи. Link.svelte рендерит dashed-линию
+	// для всех типов, кроме 'default', — переключение default ↔ optional
+	// визуально различимо.
+	const toggleLinkOptional = withClose(() => {
+		if (!link) return;
+		links.update(id, { type: link.type === 'optional' ? 'default' : 'optional' });
+	});
+
 	const removeLink = withClose(() => links.remove(id));
 
 	// ── Bulk-команды над выделенной группой ────────────────────────────────
@@ -167,6 +175,11 @@
 		{:else if kind === 'link'}
 			{@render button('edit', i18n.t('context.linkRename'), renameLink)}
 			{@render button('forward', i18n.t('context.linkFlip'), flipLink)}
+			{@render button(
+				'optional',
+				link?.type === 'optional' ? i18n.t('context.defaultType') : i18n.t('context.optionalType'),
+				toggleLinkOptional
+			)}
 			<div class="my-1 h-px bg-gray"></div>
 			{@render button('delete', i18n.t('context.linkRemove'), removeLink, 'red')}
 		{/if}

@@ -9,6 +9,8 @@ interface Notification {
 	duration?: number;
 }
 
+const DEFAULT_DURATION = 5000;
+
 class NotificationStore {
 	private notifications = $state<Notification[]>([
 		{
@@ -16,7 +18,7 @@ class NotificationStore {
 			icon: 'check',
 			title: i18n.t('notification.welcome'),
 			type: 'success',
-			duration: 3000
+			duration: DEFAULT_DURATION
 		}
 	]);
 
@@ -24,29 +26,26 @@ class NotificationStore {
 		return this.notifications;
 	}
 
+	// Авто-закрытие отдано компоненту: он визуально показывает прогресс
+	// и умеет паузиться по hover. Стора держит уведомление, пока
+	// компонент не вызовет remove(id) через onClose. Иначе пауза в
+	// компоненте конфликтовала бы с независимым таймером стора.
 	show(notification: Omit<Notification, 'id'>) {
 		const id = crypto.randomUUID();
 		const newNotification = {
 			...notification,
 			id,
-			duration: notification.duration || 3000
+			duration: notification.duration ?? DEFAULT_DURATION
 		};
-
 		this.notifications = [...this.notifications, newNotification];
-
-		// Авто-закрытие
-		setTimeout(() => {
-			this.remove(id);
-		}, newNotification.duration);
-
 		return id;
 	}
 
-	success(title: string, icon = 'check', duration = 3000) {
+	success(title: string, icon = 'check', duration = DEFAULT_DURATION) {
 		return this.show({ icon, title, type: 'success', duration });
 	}
 
-	error(title: string, icon = 'alert', duration = 3000) {
+	error(title: string, icon = 'alert', duration = DEFAULT_DURATION) {
 		return this.show({ icon, title, type: 'error', duration });
 	}
 

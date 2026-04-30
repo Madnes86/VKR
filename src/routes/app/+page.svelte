@@ -30,11 +30,20 @@
 	<!-- Стек уведомлений: контейнер закреплён за нижний правый угол.
          flex-col укладывает детей сверху вниз; новые приходят последними
          в массиве store-а, поэтому отображаются внизу, а контейнер
-         растёт вверх — старые уведомления автоматически сдвигаются. -->
+         растёт вверх — старые уведомления автоматически сдвигаются.
+         Ключ — id (не title): два уведомления с одинаковым текстом
+         не должны схлопываться в один DOM-узел. onClose удаляет
+         запись из стора при клике на крестик или истечении таймера. -->
 	<div class="pointer-events-none fixed right-4 bottom-4 z-4 flex flex-col items-end gap-2">
-		{#each notifications as { icon, title, type } (title)}
+		{#each notifications as { icon, title, type, id, duration } (id)}
 			<div class="pointer-events-auto">
-				<Notification {icon} {title} {type} />
+				<Notification
+					{icon}
+					{title}
+					{type}
+					{duration}
+					onClose={() => notificationStore.remove(id)}
+				/>
 			</div>
 		{/each}
 	</div>

@@ -1,14 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import Notification from './Notification.svelte';
 import { render } from 'vitest-browser-svelte';
+import { flushSync } from 'svelte';
 
 function setup(props: {
 	icon?: string;
 	title?: string;
 	type?: 'success' | 'error' | 'info' | 'warning';
+	duration?: number;
+	onClose?: () => void;
 }) {
 	return render(Notification, {
-		props: { duration: 100000, ...props } // долго, чтобы не сработал авто-close
+		props: { duration: 100000, ...props } // длинный default, чтобы тест не падал по таймеру
 	});
 }
 
@@ -56,5 +59,47 @@ describe('Notification — стиль и палитра', () => {
 		const { container } = setup({ title: 'x', type: 'info' });
 		const btn = container.querySelector('button[aria-label="close"]');
 		expect(btn).not.toBeNull();
+	});
+});
+
+describe('Notification — обратный отсчёт и пауза', () => {
+	it('Прогресс-бар присутствует и его длительность анимации = duration', () => {
+		const { container } = setup({ title: 't', duration: 7000 });
+		const bar = container.querySelector('[data-testid="countdown"]') as HTMLElement;
+		expect(bar).not.toBeNull();
+		expect(bar.style.animationDuration).toBe('7000ms');
+		expect(bar.style.animationPlayState).toBe('running');
+	});
+
+	it('Hover ставит прогресс-бар в paused, mouseleave — обратно в running', async () => {
+		const { container } = setup({ title: 't', duration: 7000 });
+		const card = container.querySelector('[role="status"]') as HTMLElement;
+		const bar = container.querySelector('[data-testid="countdown"]') as HTMLElement;
+
+		card.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+		flushSync();
+		expect(bar.style.animationPlayState).toBe('paused');
+
+		card.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+		flushSync();
+		expect(bar.style.animationPlayState).toBe('running');
+	});
+
+	it('Клик по крестику вызывает onClose (после анимации скрытия)', async () => {
+		const onClose = vi.fn();
+		const { container } = setup({ title: 't', duration: 100000, onClose });
+		const btn = container.querySelector('button[aria-label="close"]') as HTMLButtonElement;
+		btn.click();
+		flushSync();
+		// onClose дёргается через 300мс slide-out — ждём с запасом.
+		await new Promise((r) => setTimeout(r, 400));
+		expect(onClose).toHaveBeenCalledTimes(1);
+	});
+
+	it('Авто-закрытие по таймеру вызывает onClose', async () => {
+		const onClose = vi.fn();
+		setup({ title: 't', duration: 50, onClose });
+		await new Promise((r) => setTimeout(r, 50 + 350));
+		expect(onClose).toHaveBeenCalledTimes(1);
 	});
 });

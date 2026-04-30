@@ -319,13 +319,12 @@
 			onclick={() => void onExtract()}
 			disabled={generating}
 			title="Превратить текст в граф объектов: существительные → объекты, прилагательные → дочерние объекты, глаголы → связи."
-			class="flex items-center gap-2 rounded-md bg-accent px-2 py-1 text-sm text-white transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+			class="flex items-center gap-2 rounded-md bg-accent p-1.5 text-sm text-white transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
 		>
-			{generating ? 'Извлекаю…' : 'Извлечь'}
 			{#if generating}
 				<Icon name="load" className="animate-spin" />
 			{:else}
-				<Icon name="diagramm" />
+				<Icon name="al" />
 			{/if}
 		</button>
 
@@ -340,7 +339,7 @@
 
 	<div
 		bind:this={editorEl}
-		class="editor-host w-full flex-1 overflow-auto rounded-md font-sans text-lg leading-relaxed text-white"
+		class="editor-host text-md w-full flex-1 overflow-auto rounded-md font-sans leading-relaxed text-white"
 	></div>
 </div>
 

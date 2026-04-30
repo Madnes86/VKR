@@ -92,6 +92,23 @@
 			onWakeSignal: (wake) => dragStore.subscribe(() => wake())
 		});
 	});
+
+	// Снимаем выделение при клике вне выбранного объекта.
+	// Capture-фаза нужна, чтобы listener сработал ДО onmousedown на
+	// другом Object'e (тот вызывает stopPropagation в bubble) — иначе
+	// клик по соседу не очистил бы прежнее выделение в глобальном
+	// listener'е, и могла остаться рассинхронизация. Подписываемся
+	// только когда объект реально выбран — лишних подписок нет.
+	$effect(() => {
+		if (!selected) return;
+		function onWindowMouseDown(e: MouseEvent) {
+			if (!ref) return;
+			if (ref.contains(e.target as Node)) return;
+			selectedStore.clear('selected');
+		}
+		window.addEventListener('mousedown', onWindowMouseDown, true);
+		return () => window.removeEventListener('mousedown', onWindowMouseDown, true);
+	});
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->

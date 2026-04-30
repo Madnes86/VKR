@@ -410,16 +410,23 @@
 		{/if}
 	{/each}
 	{#if linkDraft.active && draftStart}
+		<!-- Толщина и шаг пунктира растут с zoom — иначе при увеличении
+		     объектов pending-линия выглядит «нитью», а штрихи начинают
+		     сливаться. Базовые 2px и 6/4 умножаем на scaleStore.value. -->
+		{@const draftStroke = Math.max(1.5, 2 * scaleStore.value)}
+		{@const dashOn = Math.max(3, 6 * scaleStore.value)}
+		{@const dashOff = Math.max(2, 4 * scaleStore.value)}
 		<svg class="pointer-events-none fixed top-0 left-0 z-2 size-full">
 			<line
 				class="draft-line"
+				style="--dash-cycle: {dashOn + dashOff}px"
 				x1={draftStart.x}
 				y1={draftStart.y}
 				x2={linkDraft.x}
 				y2={linkDraft.y}
 				stroke="var(--color-accent)"
-				stroke-width={2}
-				stroke-dasharray="6 4"
+				stroke-width={draftStroke}
+				stroke-dasharray="{dashOn} {dashOff}"
 				stroke-linecap="round"
 			/>
 		</svg>
@@ -445,16 +452,15 @@
 <DiagramToolbar onUntangle={untangle} onValidate={toggleValidation} />
 
 <style>
-	/* «Marching ants»: штрихи pending-линии бегут от source к курсору,
-	   чтобы пользователь чувствовал направление будущей связи. Сумма
-	   значений stroke-dasharray = 6+4 = 10 → анимируем dashoffset на
-	   -10 за один цикл, движение бесшовно зацикливается. */
+	/* «Marching ants»: штрихи pending-линии бегут от source к курсору.
+	   Сдвиг dashoffset за цикл = сумма on+off (--dash-cycle), так
+	   движение бесшовно зацикливается при любом zoom. */
 	.draft-line {
 		animation: marching-ants 0.6s linear infinite;
 	}
 	@keyframes marching-ants {
 		to {
-			stroke-dashoffset: -10;
+			stroke-dashoffset: calc(var(--dash-cycle, 10px) * -1);
 		}
 	}
 </style>

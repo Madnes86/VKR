@@ -52,6 +52,11 @@
 	// связи. Минимум 4, чтобы стрелка оставалась видимой даже на
 	// мелких объектах.
 	let markerSize: number = $derived(Math.max(4, size / 46));
+	// Толщина линии связи тоже растёт пропорционально размеру
+	// эндпоинтов: при zoom-in объекты увеличиваются, и тонкая 3px-линия
+	// между ними выглядит нитью; формула делает связь визуально
+	// согласованной с объектом и его текстом.
+	let strokeWidth: number = $derived(Math.max(1.5, size / 50));
 	let strokeColor = $derived.by(() => {
 		if (selected || hover) return 'var(--color-accent)';
 		// Подсветка проблемных связей включается из toolbar — иначе при
@@ -185,7 +190,7 @@
 			x2={ex}
 			y2={ey}
 			stroke={strokeColor}
-			stroke-width={3}
+			stroke-width={strokeWidth}
 			stroke-dasharray={dasharray}
 			stroke-linecap="round"
 			marker-start={isValue ? `url(#${markerStart})` : undefined}

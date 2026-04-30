@@ -186,6 +186,19 @@
 			</div>
 		{/each}
 	</div>
+	<!-- Ссылка на документацию: открывается в новой вкладке, чтобы
+	     пользователь не терял контекст работы с диаграммой. -->
+	<a
+		href="/docs"
+		target="_blank"
+		rel="noopener"
+		class="click m-1 flex w-full items-center gap-2 rounded-md p-1 hover:bg-gray"
+	>
+		<Icon name="file-text" />
+		<p class="grow text-left">{i18n.t('settings.docs')}</p>
+		<Icon name="forward" />
+	</a>
+
 	{#if isAuth}
 		<Form icon="user" text={displayName} validate={userRule} onsave={saveName} />
 		<Form icon="mail" text={email} validate={emailRule} onsave={saveEmail} />

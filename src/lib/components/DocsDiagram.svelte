@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Object, Link } from '$lib/components';
-	import { runPhysicsLoop } from '$lib/functions/physics';
+	import { centerObjects, runPhysicsLoop } from '$lib/functions/physics';
 	import type { ITreeObject, ILink } from '$lib/interface';
 	import type { DocArticle, DocLink } from '$lib/mocs/docs';
 
@@ -27,22 +27,23 @@
 	let centerY = $derived(height / 2);
 	let visible = $state(true);
 
+	// Стартовые координаты — нули; реальное центрирование сделаем
+	// в onMount, когда уже измерим width/height контейнера. Тот же
+	// приём, что в Canvas: centerObjects ставит все узлы в центр с
+	// микро-разбросом, и физика затем расходит их наружу.
 	const objects: ITreeObject[] = $state(
-		articles.map((a, i) => {
-			const angle = (i / articles.length) * Math.PI * 2;
-			return {
-				id: a.id,
-				name: a.title,
-				type: a.type,
-				parent: null,
-				x: 400 + Math.cos(angle) * 180,
-				y: 250 + Math.sin(angle) * 180,
-				size: 100 * (a.mass ?? 1),
-				mass: a.mass ?? 1,
-				objects: [],
-				links: []
-			};
-		})
+		articles.map((a) => ({
+			id: a.id,
+			name: a.title,
+			type: a.type,
+			parent: null,
+			x: 0,
+			y: 0,
+			size: 100 * (a.mass ?? 1),
+			mass: a.mass ?? 1,
+			objects: [],
+			links: []
+		}))
 	);
 	const slugById: Map<number, string> = new Map(articles.map((a) => [a.id, a.slug]));
 	const treeLinks: ILink[] = links.map((l) => ({ ...l }));
@@ -60,6 +61,10 @@
 		const rect = c.getBoundingClientRect();
 		width = rect.width;
 		height = rect.height;
+		// Стартовое центрирование. Объекты появляются из центра холста
+		// и физика дальше разносит их по кольцу — выглядит так же, как
+		// первое появление диаграммы в основном Canvas.
+		centerObjects(objects, width / 2, height / 2);
 
 		// Блокируем интерактивные события Object/Link в capture-фазе,
 		// но ПРОПУСКАЕМ события, чей target — наш overlay-handle.

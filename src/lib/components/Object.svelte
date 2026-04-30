@@ -135,7 +135,7 @@
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<!-- TODO: размеры ввода большие -->
 	<div class="relative size-full">
-		<Name {name} {size} />
+		<Name {id} {name} {size} />
 		<!-- svelte-ignore a11y_mouse_events_have_key_events -->
 		<div
 			{onmousedown}

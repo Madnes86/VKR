@@ -2,6 +2,7 @@
 	import { Icon } from '$lib/components';
 	import { contextStore } from '$lib/stores/context.svelte';
 	import { objects, links, selectedStore } from '$lib/stores/objects.svelte';
+	import { pendingNameEdit } from '$lib/stores/pendingEdit.svelte';
 	import { i18n } from '$lib/i18n';
 
 	let x: number = $derived(contextStore.x - 15);
@@ -55,11 +56,18 @@
 		// — нормальные клиентские объекты, ребёнка к ним создаём как и к
 		// серверным.
 		const parent = kind === 'object' && id !== 0 ? id : null;
-		objects.create({ name: i18n.t('context.addObject'), type: 'default', parent });
+		const newId = objects.create({
+			name: i18n.t('context.newName'),
+			type: 'default',
+			parent
+		});
+		// Гибрид UX: создан с дефолтным именем + сразу попадает в
+		// inline-edit. Name.svelte при mount забирает этот id из
+		// pendingNameEdit и открывает редактор с автофокусом + select.
+		pendingNameEdit.request(newId);
 	});
 
 	const defaultType = withClose(() => objects.updateType(id, 'default'));
-	const interfaceType = withClose(() => objects.updateType(id, 'interface'));
 	const optionalType = withClose(() => objects.updateType(id, 'optional'));
 	const removeObject = withClose(() => objects.remove(id));
 
@@ -70,16 +78,6 @@
 		const trimmed = next.trim();
 		if (!trimmed || trimmed === o.name) return;
 		objects.update(id, { name: trimmed });
-	});
-
-	const duplicate = withClose(() => {
-		if (!o) return;
-		objects.create({
-			name: `${o.name} ${i18n.t('context.duplicateSuffix')}`,
-			type: o.type,
-			parent: o.parent,
-			content: o.content
-		});
 	});
 
 	const toggleComponent = withClose(() => {
@@ -114,21 +112,6 @@
 		for (const objId of selectedObjectIds()) objects.remove(objId);
 		selectedStore.clearAll();
 	});
-
-	const bulkDuplicate = withClose(() => {
-		const suffix = i18n.t('context.duplicateSuffix');
-		for (const objId of selectedObjectIds()) {
-			const obj = objects.get(objId);
-			if (!obj) continue;
-			objects.create({
-				name: `${obj.name} ${suffix}`,
-				type: obj.type,
-				parent: obj.parent,
-				content: obj.content
-			});
-		}
-		selectedStore.clearAll();
-	});
 </script>
 
 <svelte:window {onclick} />
@@ -156,12 +139,10 @@
 			<p class="px-1 text-xs opacity-60" data-testid="group-count">
 				{i18n.t('context.groupSelected')}: {groupCount}
 			</p>
-			{@render button('component', i18n.t('context.bulkDuplicate'), bulkDuplicate)}
 			{@render button('delete', i18n.t('context.bulkRemove'), bulkRemove, 'red')}
 		{:else if kind === 'object'}
 			{@render button('add', i18n.t('context.addChild'), create)}
 			{@render button('edit', i18n.t('context.rename'), renameObject)}
-			{@render button('component', i18n.t('context.duplicate'), duplicate)}
 			{#if isComponent}
 				{@render button('component', i18n.t('context.unmarkComponent'), toggleComponent)}
 			{:else}
@@ -169,9 +150,6 @@
 			{/if}
 			{#if !isComponent && type !== 'default'}
 				{@render button('object', i18n.t('context.defaultType'), defaultType)}
-			{/if}
-			{#if !isComponent && type !== 'interface'}
-				{@render button('interface', i18n.t('context.interfaceType'), interfaceType)}
 			{/if}
 			{#if !isComponent && type !== 'optional'}
 				{@render button('optional', i18n.t('context.optionalType'), optionalType)}

@@ -4,12 +4,14 @@ import { flushSync } from 'svelte';
 import ContextMenu from './ContextMenu.svelte';
 import { contextStore } from '$lib/stores/context.svelte';
 import { objects, links, selectedStore } from '$lib/stores/objects.svelte';
+import { pendingNameEdit } from '$lib/stores/pendingEdit.svelte';
 
 beforeEach(() => {
 	objects.clear();
 	links.clear();
 	contextStore.close();
 	selectedStore.clearAll();
+	pendingNameEdit.clear();
 });
 
 afterEach(() => {
@@ -17,6 +19,7 @@ afterEach(() => {
 	links.clear();
 	contextStore.close();
 	selectedStore.clearAll();
+	pendingNameEdit.clear();
 });
 
 function open(id: number, kind: 'canvas' | 'object' | 'link' = 'canvas') {
@@ -43,14 +46,16 @@ describe('ContextMenu — переключение по kind', () => {
 		expect(bs[0].textContent?.trim()).toBe('Добавить объект');
 	});
 
-	it('kind=object: показываются rename/duplicate/тип/delete', () => {
+	it('kind=object: показываются rename/тип/delete (без duplicate и interface)', () => {
 		objects.setAll([{ id: 5, name: 'A', type: 'default', parent: null, content: null }]);
 		const { container } = render(ContextMenu);
 		open(5, 'object');
 		expect(btnByText(container, 'Добавить дочерний')).not.toBeNull();
 		expect(btnByText(container, 'переименовать')).not.toBeNull();
-		expect(btnByText(container, 'дублировать')).not.toBeNull();
 		expect(btnByText(container, 'удалить')).not.toBeNull();
+		// Удалённые опции — кнопок быть не должно.
+		expect(btnByText(container, 'дублировать')).toBeNull();
+		expect(btnByText(container, 'тип интерфейс')).toBeNull();
 	});
 
 	it('kind=link: rename / flip / delete', () => {
@@ -124,14 +129,13 @@ describe('ContextMenu — CRUD объектов', () => {
 		promptSpy.mockRestore();
 	});
 
-	it('Duplicate: создаёт копию', () => {
-		objects.setAll([{ id: 9, name: 'A', type: 'interface', parent: null, content: null }]);
+	it('Создание запрашивает inline-edit имени через pendingNameEdit', () => {
 		const { container } = render(ContextMenu);
-		open(9, 'object');
-		btnByText(container, 'дублировать')!.click();
+		open(0, 'canvas');
+		btnByText(container, 'Добавить объект')!.click();
 		flushSync();
-		const copy = objects.all.find((o) => o.id !== 9 && o.name.startsWith('A '));
-		expect(copy?.type).toBe('interface');
+		const created = objects.all[objects.all.length - 1];
+		expect(pendingNameEdit.id).toBe(created.id);
 	});
 
 	it('Toggle component', () => {
@@ -210,10 +214,11 @@ describe('ContextMenu — групповой режим', () => {
 		open(100, 'object');
 		const indicator = container.querySelector('[data-testid="group-count"]');
 		expect(indicator?.textContent).toContain('3');
-		expect(btnByText(container, 'Дублировать выделенные')).not.toBeNull();
 		expect(btnByText(container, 'Удалить выделенные')).not.toBeNull();
 		// Single-команды в группе не показываются.
 		expect(btnByText(container, 'переименовать')).toBeNull();
+		// Дублирование убрано — кнопки нет ни в одиночном, ни в групповом меню.
+		expect(btnByText(container, 'Дублировать выделенные')).toBeNull();
 	});
 
 	it('Правый клик на объекте ВНЕ группы → одиночное меню, даже если группа есть', () => {
@@ -238,15 +243,5 @@ describe('ContextMenu — групповой режим', () => {
 		expect(objects.get(101)).toBeUndefined();
 		expect(objects.get(102)).toBeUndefined();
 		expect(selectedStore.count).toBe(0);
-	});
-
-	it('Bulk duplicate создаёт копию для каждого выделенного объекта', () => {
-		setupGroup();
-		const before = objects.all.length;
-		const { container } = render(ContextMenu);
-		open(100, 'object');
-		btnByText(container, 'Дублировать выделенные')!.click();
-		flushSync();
-		expect(objects.all.length).toBe(before + 3);
 	});
 });

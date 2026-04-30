@@ -63,26 +63,48 @@ describe('Notification — стиль и палитра', () => {
 });
 
 describe('Notification — обратный отсчёт и пауза', () => {
-	it('Прогресс-бар присутствует и его длительность анимации = duration', () => {
+	it('Прогресс-бар присутствует и стартует на 100% (не paused)', () => {
 		const { container } = setup({ title: 't', duration: 7000 });
 		const bar = container.querySelector('[data-testid="countdown"]') as HTMLElement;
 		expect(bar).not.toBeNull();
-		expect(bar.style.animationDuration).toBe('7000ms');
-		expect(bar.style.animationPlayState).toBe('running');
+		expect(bar.dataset.paused).toBe('false');
+		// progress = 1.0 в момент маунта (elapsed=0).
+		expect(parseFloat(bar.dataset.progress!)).toBeCloseTo(1, 3);
 	});
 
-	it('Hover ставит прогресс-бар в paused, mouseleave — обратно в running', async () => {
-		const { container } = setup({ title: 't', duration: 7000 });
+	it('Стаб matches(":hover") = true ставит data-paused=true и замораживает прогресс', async () => {
+		const { container } = setup({ title: 't', duration: 400 });
 		const card = container.querySelector('[role="status"]') as HTMLElement;
 		const bar = container.querySelector('[data-testid="countdown"]') as HTMLElement;
 
-		card.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
-		flushSync();
-		expect(bar.style.animationPlayState).toBe('paused');
+		// Эмулируем hover: matches(':hover') опрашивается каждый tick.
+		const originalMatches = card.matches.bind(card);
+		(card as unknown as { matches: (s: string) => boolean }).matches = (s: string) =>
+			s === ':hover' ? true : originalMatches(s);
 
-		card.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
-		flushSync();
-		expect(bar.style.animationPlayState).toBe('running');
+		await new Promise((r) => setTimeout(r, 80));
+		expect(bar.dataset.paused).toBe('true');
+		const atPause = parseFloat(bar.dataset.progress!);
+
+		await new Promise((r) => setTimeout(r, 120));
+		const stillPaused = parseFloat(bar.dataset.progress!);
+		// На паузе разница пренебрежимо мала (один тик допустим).
+		expect(Math.abs(atPause - stillPaused)).toBeLessThan(0.15);
+		expect(bar.dataset.paused).toBe('true');
+
+		// Снимаем hover.
+		(card as unknown as { matches: (s: string) => boolean }).matches = originalMatches;
+		await new Promise((r) => setTimeout(r, 80));
+		expect(bar.dataset.paused).toBe('false');
+		const afterResume = parseFloat(bar.dataset.progress!);
+		expect(afterResume).toBeLessThan(stillPaused);
+	});
+
+	it('Прогресс уменьшается во времени без hover', async () => {
+		const { container } = setup({ title: 't', duration: 400 });
+		const bar = container.querySelector('[data-testid="countdown"]') as HTMLElement;
+		await new Promise((r) => setTimeout(r, 120));
+		expect(parseFloat(bar.dataset.progress!)).toBeLessThan(1);
 	});
 
 	it('Клик по крестику вызывает onClose (после анимации скрытия)', async () => {

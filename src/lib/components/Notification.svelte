@@ -16,45 +16,39 @@
 		onClose?: () => void;
 	} = $props();
 
+	let ref: HTMLDivElement | undefined = $state(undefined);
 	let visible: boolean = $state(true);
 	let isHiding: boolean = $state(false);
 	let paused: boolean = $state(false);
+	// elapsed — единственный источник истины и для таймера, и для
+	// прогресс-бара: оба считают одно и то же. Раньше JS-таймер
+	// и CSS-keyframes считали независимо, и при быстрых сменах hover
+	// CSS-анимация теряла состояние play-state — пауза работала
+	// «через раз». Теперь и закрытие, и ширина бара берутся из
+	// elapsed, синхронизация автоматическая.
+	let elapsed: number = $state(0);
 
-	// Таймер закрытия живёт в компоненте, не в сторе. При hover паузим
-	// его и аккумулируем «отыгранное» время в elapsed, чтобы возобновить
-	// с того же места, а не сначала. Это синхронизируется с CSS-
-	// анимацией прогресс-бара, у которой animation-play-state: paused.
-	let elapsed = 0;
-	let lastStart = Date.now();
-	let timer: ReturnType<typeof setTimeout> | undefined;
+	const TICK_MS = 50;
 
-	function startTimer() {
+	// Опрашиваем CSS :hover через matches(':hover') каждый tick, а не
+	// слушаем pointerenter/pointerleave. Pointer-события могут «теряться»
+	// при движении через дочерние элементы с собственным transition
+	// (наш крестик с hover-стилями), из-за чего пауза срабатывала через
+	// раз. matches(':hover') опирается напрямую на состояние браузера —
+	// оно одинаково для крестика, текста, бейджа и любых других детей.
+	const interval = setInterval(() => {
 		if (isHiding) return;
-		lastStart = Date.now();
-		const remaining = Math.max(0, duration - elapsed);
-		timer = setTimeout(close, remaining);
-	}
-	function pauseTimer() {
-		if (timer !== undefined) {
-			clearTimeout(timer);
-			timer = undefined;
-			elapsed += Date.now() - lastStart;
-		}
-	}
+		paused = ref?.matches(':hover') ?? false;
+		if (paused) return;
+		elapsed += TICK_MS;
+		if (elapsed >= duration) close();
+	}, TICK_MS);
 
-	startTimer();
-
-	onDestroy(() => {
-		if (timer !== undefined) clearTimeout(timer);
-	});
+	onDestroy(() => clearInterval(interval));
 
 	function close() {
 		if (isHiding) return;
 		isHiding = true;
-		if (timer !== undefined) {
-			clearTimeout(timer);
-			timer = undefined;
-		}
 		// Даём 300мс на slide-out, затем уведомляем родителя — тот
 		// удаляет запись из notificationStore. Если onClose не передан
 		// (нет контейнера-стека) — просто скрываемся локально.
@@ -62,17 +56,6 @@
 			visible = false;
 			onClose?.();
 		}, 300);
-	}
-
-	function onmouseenter() {
-		if (paused || isHiding) return;
-		paused = true;
-		pauseTimer();
-	}
-	function onmouseleave() {
-		if (!paused || isHiding) return;
-		paused = false;
-		startTimer();
 	}
 
 	// Палитра под токены проекта (layout.css).
@@ -83,14 +66,13 @@
 		info: { bg: 'bg-gray', stroke: 'white', bar: 'bg-accent' }
 	};
 	const tone = $derived(palette[type] ?? palette.info);
+	const progress = $derived(Math.max(0, Math.min(1, 1 - elapsed / duration)));
 </script>
 
 {#if visible}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
+		bind:this={ref}
 		role="status"
-		{onmouseenter}
-		{onmouseleave}
 		class="{isHiding
 			? 'hide'
 			: 'show'} relative flex max-w-96 min-w-72 items-center gap-3 overflow-hidden rounded-md border border-gray bg-gray-glass p-3 shadow-lg shadow-black/40 backdrop-blur-xs"
@@ -109,34 +91,17 @@
 		</button>
 
 		<!--
-			Прогресс-бар обратного отсчёта. Width анимируется CSS-keyframes
-			от 100% до 0 за `duration`. animation-play-state управляется
-			реактивно — при hover ставится paused, и таймер закрытия
-			синхронно паузится в JS. Бар идёт цветом, согласованным с
-			бейджем типа уведомления.
+			Прогресс-бар обратного отсчёта. Width вычисляется из elapsed/
+			duration в каждом тике setInterval — никаких CSS-анимаций,
+			поэтому пауза по hover применяется мгновенно и надёжно.
+			data-paused / data-progress нужны для интеграционных тестов.
 		-->
 		<div
 			data-testid="countdown"
-			style="animation-duration: {duration}ms; animation-play-state: {paused
-				? 'paused'
-				: 'running'};"
-			class="countdown absolute bottom-0 left-0 h-1.5 {tone.bar}"
+			data-paused={paused}
+			data-progress={progress.toFixed(3)}
+			style="width: {progress * 100}%; transition: width {TICK_MS}ms linear;"
+			class="absolute bottom-0 left-0 h-1.5 {tone.bar}"
 		></div>
 	</div>
 {/if}
-
-<style>
-	.countdown {
-		animation-name: shrink;
-		animation-timing-function: linear;
-		animation-fill-mode: forwards;
-	}
-	@keyframes shrink {
-		from {
-			width: 100%;
-		}
-		to {
-			width: 0%;
-		}
-	}
-</style>

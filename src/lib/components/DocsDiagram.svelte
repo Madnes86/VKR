@@ -61,18 +61,19 @@
 		width = rect.width;
 		height = rect.height;
 
-		// Блокируем все интерактивные события Object/Link в capture-фазе:
-		// dragStore.setDrag не вызывается, контекстное меню не открывается,
-		// inline-rename Link не запускается. Click пропускаем — overlay
-		// ниже его обрабатывает (capture'ный stopPropagation внутри Object
-		// нам не страшен, поскольку у overlay свой listener).
-		const block = (e: Event) => {
+		// Блокируем интерактивные события Object/Link в capture-фазе,
+		// но ПРОПУСКАЕМ события, чей target — наш overlay-handle.
+		// Иначе capture-block тушил mousedown на overlay раньше, чем
+		// до него доходил bubble — и drag/click ничего не делали.
+		const blockExceptOverlay = (e: Event) => {
+			const t = e.target as HTMLElement | null;
+			if (t?.closest('.docs-overlay')) return;
 			e.stopPropagation();
 			e.preventDefault();
 		};
-		c.addEventListener('mousedown', block, true);
-		c.addEventListener('contextmenu', block, true);
-		c.addEventListener('dblclick', block, true);
+		c.addEventListener('mousedown', blockExceptOverlay, true);
+		c.addEventListener('contextmenu', blockExceptOverlay, true);
+		c.addEventListener('dblclick', blockExceptOverlay, true);
 
 		let wakeFn: (() => void) | null = null;
 		const stopLoop = runPhysicsLoop({
@@ -97,9 +98,9 @@
 			stopLoop();
 			ro.disconnect();
 			io.disconnect();
-			c.removeEventListener('mousedown', block, true);
-			c.removeEventListener('contextmenu', block, true);
-			c.removeEventListener('dblclick', block, true);
+			c.removeEventListener('mousedown', blockExceptOverlay, true);
+			c.removeEventListener('contextmenu', blockExceptOverlay, true);
+			c.removeEventListener('dblclick', blockExceptOverlay, true);
 		};
 	});
 

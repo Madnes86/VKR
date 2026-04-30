@@ -5,6 +5,19 @@ import { page } from 'vitest/browser';
 import { objects, selectedStore } from '$lib/stores/objects.svelte';
 
 describe('Тестирование компонента формы для дерева', () => {
+	beforeEach(() => {
+		objects.clear();
+		selectedStore.clearAll();
+		// Стора видит объект — TreeForm.displayName читает из неё, а не
+		// из «застывшего» prop. Без этого commit обновлял store, но
+		// строка показывала старое имя из props.
+		objects.setAll([{ id: 1, name: 'root', type: 'default', parent: null, content: null }]);
+	});
+	afterEach(() => {
+		objects.clear();
+		selectedStore.clearAll();
+	});
+
 	function setup() {
 		render(TreeForm, {
 			props: {
@@ -17,7 +30,8 @@ describe('Тестирование компонента формы для дер
 		});
 		return {
 			main: () => page.getByRole('button').first(),
-			buttonRead: () => page.getByRole('button').last(),
+			rename: () => page.getByRole('button', { name: 'rename' }),
+			remove: () => page.getByRole('button', { name: 'delete' }),
 			input: () => page.getByRole('textbox'),
 			getNameText: (text: string) => page.getByText(text),
 			wrapper: () => page.getByTestId('row')
@@ -36,29 +50,36 @@ describe('Тестирование компонента формы для дер
 		await expect.element(wrapper()).toHaveClass(/border-accent/);
 	});
 	it('Переключение состояния', async () => {
-		const { wrapper, input, buttonRead, getNameText } = setup();
+		const { wrapper, input, rename, getNameText } = setup();
 
 		await expect.element(getNameText('root')).toBeVisible();
 		await expect.element(getNameText('root')).toHaveTextContent('root');
 
 		await wrapper().hover();
-		await expect.element(buttonRead()).toBeVisible();
-		await buttonRead().click();
+		await expect.element(rename()).toBeVisible();
+		await rename().click();
 		await expect.element(input()).toBeVisible();
 		await expect.element(input()).toHaveValue('root');
 	});
 	it('Редактирование названия', async () => {
-		const { wrapper, input, buttonRead, getNameText } = setup();
+		const { wrapper, input, rename, getNameText } = setup();
 
 		await wrapper().hover();
-		await buttonRead().click();
+		await rename().click();
 
 		await expect.element(input()).toHaveValue('root');
 		await input().fill('good');
 
-		await buttonRead().click();
+		await rename().click();
 		await expect.element(getNameText('good')).toBeVisible();
-		await expect.element(getNameText('good')).toHaveTextContent('good');
+		expect(objects.get(1)?.name).toBe('good');
+	});
+	it('Удаление: кнопка delete вызывает objects.remove', async () => {
+		const { wrapper, remove } = setup();
+		expect(objects.get(1)).toBeDefined();
+		await wrapper().hover();
+		await remove().click();
+		expect(objects.get(1)).toBeUndefined();
 	});
 	// it('Изминение типа')
 });

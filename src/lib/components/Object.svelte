@@ -118,6 +118,10 @@
 		function onWindowMouseDown(e: MouseEvent) {
 			if (!ref) return;
 			if (ref.contains(e.target as Node)) return;
+			// Shift+click — операция мульти-выделения. Если её обработать
+			// здесь как «клик вне», группа сбросится прямо перед тем как
+			// onmousedown целевого Object добавит элемент. Пропускаем.
+			if (e.shiftKey) return;
 			selectedStore.clear('selected');
 		}
 		window.addEventListener('mousedown', onWindowMouseDown, true);

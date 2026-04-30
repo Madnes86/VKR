@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Icon, LightText } from '$lib/components';
-	import { selectedStore, viewStore } from '$lib/stores/objects.svelte';
+	import { selectedStore, viewStore, objects } from '$lib/stores/objects.svelte';
 
 	let {
 		id,
@@ -17,7 +17,9 @@
 	} = $props();
 
 	let data = $derived(`${type} + ${id}`);
-	let selected: boolean = $derived(selectedStore.selected === data);
+	// Учитываем не только primary-selected, но и membership в группе:
+	// иначе при Shift+click из дерева выделенные строки не подсвечивались.
+	let selected: boolean = $derived(selectedStore.selected === data || selectedStore.has(data));
 	let hover: boolean = $derived(selectedStore.hover === data);
 	let state: boolean = $state(true);
 	let icon: string = $derived.by(() => {
@@ -30,7 +32,17 @@
 
 	const onmouseenter = () => selectedStore.set('hover', data);
 	const onmouseleave = () => selectedStore.clear('hover');
-	const onclick = () => selectedStore.set('selected', data);
+	function onclick(e: MouseEvent) {
+		// Shift+click — toggle вхождения в группу. parent тянем из
+		// flat-стора; для связей групповые операции не предусмотрены —
+		// фолбэк на одиночный select.
+		if (e.shiftKey && type === 'o') {
+			const parent = objects.get(id)?.parent ?? null;
+			selectedStore.toggleAtLevel(data, parent);
+			return;
+		}
+		selectedStore.set('selected', data);
+	}
 	const toggle = () => (state = !state);
 
 	function ondblclick(e: MouseEvent) {

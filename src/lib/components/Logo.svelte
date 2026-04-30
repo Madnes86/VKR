@@ -31,18 +31,16 @@
 		     узнаваемой и более насыщенной. -->
 		<circle cx={width / 2} cy={height / 2} r={height / 8} fill={stroke} />
 	{:else}
-		<defs>
-			<style>
-				@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
-			</style>
-		</defs>
-
+		<!-- Шрифт Fredoka One подгружается через <link> в app.html.
+		     Раньше @import url был внутри SVG <defs><style> — Chromium
+		     для inline-svg внешние ресурсы не догружает, поэтому текст
+		     рендерился системным fallback-ом. -->
 		<text
 			x={width / 2}
 			y={height / 2}
 			text-anchor="middle"
-			font-family="'Fredoka One', 'Fredoka One', cursive"
-			font-size="18"
+			font-family="'Fredoka One', cursive"
+			font-size={height * 0.3}
 			font-weight="normal"
 			{fill}
 			dominant-baseline="middle"

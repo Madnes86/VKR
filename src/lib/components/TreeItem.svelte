@@ -38,11 +38,11 @@
 	{/if}
 	{#if show || !name}
 		<div class={`${name && isObjects && 'ml-10!'}`}>
-			{#each objects as { id, name, objects, links }}
+			{#each objects as { id, name, objects, links } (id)}
 				<TreeItem {id} {name} {objects} {links} {highlightedIds} />
 			{/each}
 			<div class="flex flex-col items-center gap-2">
-				{#each links as { id, name }}
+				{#each links as { id, name } (id)}
 					<TreeForm {id} {name} type="l" more={false} {query} />
 				{/each}
 			</div>

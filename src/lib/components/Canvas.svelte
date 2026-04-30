@@ -329,12 +329,12 @@
      даже если клик не на диаграмме. Object/Link ставят свой kind
      и stopPropagation; пустой канвас сюда долетит как kind=canvas. -->
 <div {oncontextmenu} {ondragover} {ondrop} class="fixed top-0 left-0 z-0 size-full">
-	{#each objects as { id, name, type, x, y, size, objects, links }, i}
+	{#each objects as { id, name, type, x, y, size, objects, links } (id)}
 		{#if appearanceStore.has(id)}
 			<Object {id} {name} {type} {x} {y} {size} {objects} {links} selParent={false} />
 		{/if}
 	{/each}
-	{#each links as l}
+	{#each links as l (l.id)}
 		{@const is = objects.find((o) => o.id === l.is)}
 		{@const to = objects.find((o) => o.id === l.to)}
 

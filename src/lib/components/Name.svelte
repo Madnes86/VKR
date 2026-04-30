@@ -45,7 +45,11 @@
 
 	function commit() {
 		const next = draft.trim();
-		if (next && next !== name) objects.update(id, { name: next });
+		// Сохраняем при любом непустом имени. Сравнение с prop `name`
+		// раньше иногда «съедало» правку: при первом mount Name мог
+		// получить name из прежнего рендера treeStore (race с
+		// pendingNameEdit), и valid правка ошибочно считалась no-op.
+		if (next) objects.update(id, { name: next });
 		read = false;
 	}
 

@@ -156,7 +156,7 @@
 				: validationColor}; outline: {size / 100}px {border} black; transition-duration: {size}ms"
 			class={`${selected && 'border-none! bg-accent!'} ${hover && 'border-0! outline-accent!'} size-full rounded-full bg-black transition-all`}
 		>
-			{#each objects as { id, name, type, x, y, size, objects, links }, i}
+			{#each objects as { id, name, type, x, y, size, objects, links } (id)}
 				{#if appearanceStore.has(id)}
 					<Object
 						{id}
@@ -172,7 +172,7 @@
 					/>
 				{/if}
 			{/each}
-			{#each links as l}
+			{#each links as l (l.id)}
 				{@const self = { x: 0, y: 0, size }}
 				{@const is = l.is === id ? self : objects.find((o) => o.id === l.is)}
 				{@const to = l.to === id ? self : objects.find((o) => o.id === l.to)}

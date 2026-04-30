@@ -205,7 +205,7 @@ describe('ContextMenu — групповой режим', () => {
 			{ id: 101, name: 'B', type: 'default', parent: null, content: null },
 			{ id: 102, name: 'C', type: 'default', parent: null, content: null }
 		]);
-		selectedStore.setMulti(['o + 100', 'o + 101', 'o + 102']);
+		selectedStore.setMulti(['o + 100', 'o + 101', 'o + 102'], null);
 	}
 
 	it('Правый клик на объекте из группы → bulk-меню с count', () => {

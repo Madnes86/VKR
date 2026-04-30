@@ -294,44 +294,64 @@ export async function bootstrapDiagram(): Promise<void> {
 // Множественный выбор объектов:
 // - selected — текущий «главный» (последний кликнутый), для совместимости.
 // - multi — Set всех выделенных, наполняется Shift+click.
-// При обычном клике multi сбрасывается в [selected]. Так одиночный
-// клик работает по-старому, а Shift+click копит группу.
+// - groupParent — parent первого объекта группы. Group-операции имеют
+//   смысл только в пределах одного уровня (родитель + ребёнок —
+//   неоднозначно: при «удалить» ребёнок удалится дважды). Поэтому
+//   Shift+click на объект с другим parent сбрасывает группу и стартует
+//   новую. Объекты одного уровня — добавляются по-обычному.
 class SelectedStore {
 	selected: string | null = $state<any>(null);
 	hover: string | null = $state<any>(null);
 	#multi: Set<string> = $state(new Set());
+	#groupParent: number | null = $state(null);
 
 	set(key: 'selected' | 'hover', id: string) {
 		this[key] = id;
 		if (key === 'selected') {
 			this.#multi = new Set([id]);
+			this.#groupParent = null;
 		}
 	}
 	clear(key: 'selected' | 'hover') {
 		this[key] = null;
-		if (key === 'selected') this.#multi = new Set();
+		if (key === 'selected') {
+			this.#multi = new Set();
+			this.#groupParent = null;
+		}
 	}
-	/** Тоггл вхождения id в группу. Используется Shift+click. */
-	toggle(id: string) {
+	/**
+	 * Toggle вхождения id в группу с привязкой к уровню (parent).
+	 * Если parent совпадает с уровнем текущей группы — обычный toggle.
+	 * Если parent отличается — группа сбрасывается и стартует новая.
+	 * Используется Shift+click.
+	 */
+	toggleAtLevel(id: string, parent: number | null) {
 		const next = new Set(this.#multi);
-		if (next.has(id)) {
-			next.delete(id);
-		} else {
+		if (next.size === 0) {
 			next.add(id);
+			this.#groupParent = parent;
+		} else if (this.#groupParent === parent) {
+			if (next.has(id)) next.delete(id);
+			else next.add(id);
+		} else {
+			next.clear();
+			next.add(id);
+			this.#groupParent = parent;
 		}
 		this.#multi = next;
-		// «Главный» selected — последний добавленный, либо null.
 		this.selected = next.size > 0 ? id : null;
 	}
-	/** Полностью заменить группу. */
-	setMulti(ids: string[]) {
+	/** Полностью заменить группу. parent — общий уровень всех ids. */
+	setMulti(ids: string[], parent: number | null = null) {
 		this.#multi = new Set(ids);
+		this.#groupParent = parent;
 		this.selected = ids[ids.length - 1] ?? null;
 	}
 	clearAll() {
 		this.selected = null;
 		this.hover = null;
 		this.#multi = new Set();
+		this.#groupParent = null;
 	}
 	get multi(): Set<string> {
 		return this.#multi;
@@ -341,6 +361,9 @@ class SelectedStore {
 	}
 	get count(): number {
 		return this.#multi.size;
+	}
+	get groupParent(): number | null {
+		return this.#groupParent;
 	}
 }
 export const selectedStore = new SelectedStore();

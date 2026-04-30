@@ -3,7 +3,7 @@
 	import { runPhysicsLoop } from '$lib/functions/physics';
 	import { appearanceStore } from '$lib/stores/appearance.svelte';
 	import { dragStore } from '$lib/stores/drag.svelte';
-	import { viewStore, selectedStore } from '$lib/stores/objects.svelte';
+	import { viewStore, selectedStore, objects as flatObjects } from '$lib/stores/objects.svelte';
 	import { contextStore } from '$lib/stores/context.svelte';
 	import { validationStore } from '$lib/stores/validation.svelte';
 	import type { ITreeObject } from '$lib/interface';
@@ -44,10 +44,13 @@
 		e.stopPropagation();
 		e.preventDefault();
 
-		// Shift+click — мульти-выделение. Без Shift — старый одиночный
-		// select; drag активен только в одиночном режиме.
+		// Shift+click — мульти-выделение. Группа имеет смысл только в
+		// пределах одного уровня (одинаковый parent), иначе bulk-операции
+		// над «родитель + его дети» неоднозначны. parent тянем из
+		// flat-стора, чтобы не зависеть от prop'ов tree.
 		if (e.shiftKey) {
-			selectedStore.toggle(data);
+			const parent = flatObjects.get(id)?.parent ?? null;
+			selectedStore.toggleAtLevel(data, parent);
 			return;
 		}
 

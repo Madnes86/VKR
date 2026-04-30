@@ -30,8 +30,17 @@
 	data-pos={oppositePos}
 	class="fixed bottom-3 z-3 flex items-center gap-3 rounded-md border border-gray bg-gray-glass px-3 py-1.5 text-[12px] leading-none opacity-60 backdrop-blur-xs select-none"
 >
-	<span class="flex items-center gap-1">
-		<span class="opacity-70">{i18n.t('stats.warnings')}</span>
+	<!--
+		Когда есть хоть одна проблема, вся группа «Предупреждений N»
+		подсвечивается жёлтым — пользователь замечает её даже если
+		подсветка на канвасе отключена. Иначе цифра тонет в общем
+		fade-фоне (opacity-60 на корне).
+	-->
+	<span
+		class="flex items-center gap-1 {issuesCount > 0 ? 'text-yellow opacity-100' : ''}"
+		data-testid="stats-warnings"
+	>
+		<span class={issuesCount > 0 ? '' : 'opacity-70'}>{i18n.t('stats.warnings')}</span>
 		<span class="tabular-nums">{issuesCount}</span>
 	</span>
 	<span class="text-gray">·</span>

@@ -43,6 +43,25 @@ describe('Stats — горизонтальная строка под Canvas', ()
 		expect(zeros).toBeGreaterThanOrEqual(4);
 	});
 
+	it('Группа «Предупреждений» становится жёлтой при наличии issues', () => {
+		// Без issues — нейтральный цвет.
+		const before = render(Stats);
+		const cleanRow = before.container.querySelector(
+			'[data-testid="stats-warnings"]'
+		) as HTMLElement;
+		expect(cleanRow.className).not.toContain('text-yellow');
+
+		// Добавляем issue через прямую инжекцию: заполняем objects и
+		// триггерим validationStore.run — настоящие правила выдадут
+		// что-нибудь (например, пустое имя — empty-name issue).
+		objects.setAll([{ id: 1, name: '', type: 'default', parent: null, content: null }]);
+		validationStore.run();
+
+		const after = render(Stats);
+		const dirtyRow = after.container.querySelector('[data-testid="stats-warnings"]') as HTMLElement;
+		expect(dirtyRow.className).toContain('text-yellow');
+	});
+
 	it('Сущности — это объекты type="component"', () => {
 		objects.setAll([
 			{ id: 1, name: 'a', type: 'default', parent: null, content: null },

@@ -15,6 +15,7 @@
 	import { diagramSettings } from '$lib/stores/diagram.svelte';
 	import { notificationStore } from '$lib/stores/notification.svelte';
 	import { validationStore } from '$lib/stores/validation.svelte';
+	import { pendingDrop } from '$lib/stores/pendingDrop.svelte';
 	import { i18n } from '$lib/i18n';
 	import type { ITreeObject, ILink } from '$lib/interface';
 	import DiagramToolbar from './DiagramToolbar.svelte';
@@ -121,6 +122,55 @@
 		// listener-ами, и сюда мы не попадём.
 		contextStore.set(e, id ?? 0, 'canvas');
 	}
+
+	// Drop из дерева/компонентов: создаём копии перетянутых объектов
+	// рядом с курсором. Содержимое (имя, тип, content) наследуется от
+	// исходного, parent сбрасываем в null — объект «уезжает» на верхний
+	// уровень. Реальные позиции выставляет Canvas $effect ниже через
+	// pendingDrop.claim — иначе centerObjects сбросил бы их в центр.
+	function ondragover(e: DragEvent) {
+		// Просто включаем drop-zone; без preventDefault drop не сработает.
+		if (e.dataTransfer?.types.includes('application/x-structura-objects')) {
+			e.preventDefault();
+			e.dataTransfer.dropEffect = 'copy';
+		}
+	}
+	function ondrop(e: DragEvent) {
+		const payload = e.dataTransfer?.getData('application/x-structura-objects');
+		if (!payload) return;
+		e.preventDefault();
+		let ids: number[];
+		try {
+			const parsed = JSON.parse(payload);
+			ids = Array.isArray(parsed) ? parsed.filter((n) => typeof n === 'number') : [];
+		} catch {
+			return;
+		}
+		if (ids.length === 0) return;
+
+		const baseX = e.clientX;
+		const baseY = e.clientY;
+		const SPREAD = 60;
+		ids.forEach((srcId, i) => {
+			const src = flatObjects.get(srcId);
+			if (!src) return;
+			const newId = flatObjects.create({
+				name: src.name,
+				// component-источник копируется как обычный объект:
+				// «компонент» — это шаблон, на канвасе его инстанциируют.
+				type: src.type === 'component' ? 'default' : src.type,
+				parent: null,
+				content: src.content
+			});
+			// Лёгкий веер вокруг точки drop, чтобы группа не слиплась.
+			const angle = (i / Math.max(1, ids.length)) * Math.PI * 2;
+			pendingDrop.request(
+				newId,
+				baseX + Math.cos(angle) * (i === 0 ? 0 : SPREAD),
+				baseY + Math.sin(angle) * (i === 0 ? 0 : SPREAD)
+			);
+		});
+	}
 	// Подсчёт visibility — не делаем spread, чтобы оригинальные ITreeObject
 	// (на которые мутирует physics x/y) сохранились между переключениями
 	// фильтра. Filter возвращает массив с теми же refs.
@@ -209,7 +259,23 @@
 			untrack(() => centerY) || (typeof window !== 'undefined' ? window.innerHeight / 2 : 0);
 		const revealSet = new Set(toReveal);
 		const freshTopLevel = targetObjects.filter((o) => revealSet.has(o.id));
-		if (freshTopLevel.length > 0) centerObjects(freshTopLevel, cx, cy);
+		// Drop из дерева/компонентов: pendingDrop хранит координаты,
+		// куда упал курсор для конкретного id. Размещаем его прямо
+		// туда; centerObjects запускаем только для оставшихся (новые
+		// объекты, созданные не drop-ом — например через ContextMenu).
+		const dropped: ITreeObject[] = [];
+		const centered: ITreeObject[] = [];
+		for (const o of freshTopLevel) {
+			const pos = pendingDrop.claim(o.id);
+			if (pos) {
+				o.x = pos.x - o.size / 2;
+				o.y = pos.y - o.size / 2;
+				dropped.push(o);
+			} else {
+				centered.push(o);
+			}
+		}
+		if (centered.length > 0) centerObjects(centered, cx, cy);
 
 		let cancelled = false;
 		let timer: ReturnType<typeof setTimeout> | undefined;
@@ -262,7 +328,7 @@
      правый клик в SideBar (он absolute поверх) вызывал бы меню,
      даже если клик не на диаграмме. Object/Link ставят свой kind
      и stopPropagation; пустой канвас сюда долетит как kind=canvas. -->
-<div {oncontextmenu} class="fixed top-0 left-0 z-0 size-full">
+<div {oncontextmenu} {ondragover} {ondrop} class="fixed top-0 left-0 z-0 size-full">
 	{#each objects as { id, name, type, x, y, size, objects, links }, i}
 		{#if appearanceStore.has(id)}
 			<Object {id} {name} {type} {x} {y} {size} {objects} {links} selParent={false} />

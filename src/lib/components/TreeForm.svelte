@@ -45,6 +45,22 @@
 	}
 	const toggle = () => (state = !state);
 
+	// Drag-source. Если строка входит в multi-выделение, тянем всю
+	// группу (только объекты, связи в группе участвовать не могут).
+	// Иначе тянем единственный объект. Связи (type='l') не draggable —
+	// dragstart возвращаем без payload.
+	function ondragstart(e: DragEvent) {
+		if (type !== 'o' || !e.dataTransfer) return;
+		const ids = selectedStore.has(data)
+			? Array.from(selectedStore.multi)
+					.filter((k) => k.startsWith('o + '))
+					.map((k) => Number.parseInt(k.slice(4), 10))
+					.filter((n) => Number.isFinite(n))
+			: [id];
+		e.dataTransfer.effectAllowed = 'copy';
+		e.dataTransfer.setData('application/x-structura-objects', JSON.stringify(ids));
+	}
+
 	function ondblclick(e: MouseEvent) {
 		if (type === 'l') return;
 		e.stopPropagation();
@@ -59,6 +75,8 @@
 	{ondblclick}
 	{onmouseenter}
 	{onmouseleave}
+	{ondragstart}
+	draggable={type === 'o'}
 	data-testid="row"
 	class={`${selected && 'border border-accent'} ${hover && 'outline-1 outline-accent'} m-1 flex w-full gap-2 rounded-sm`}
 >

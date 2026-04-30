@@ -326,6 +326,8 @@ export const ru = {
 
 	'diagram.untangle.action': 'Распутать связи',
 	'diagram.untangle.title': 'Перенести дальние эндпоинты ближе к их источнику',
+	'diagram.untangle.empty': 'На диаграмме нет связей',
+	'diagram.untangle.optimized': 'Все связи уже оптимизированы',
 
 	'diagram.toolbar.zoom': 'Масштаб',
 	'diagram.toolbar.search': 'Поиск',
@@ -664,6 +666,8 @@ export const en: Record<Key, string> = {
 
 	'diagram.untangle.action': 'Untangle links',
 	'diagram.untangle.title': 'Move distant endpoints closer to their source',
+	'diagram.untangle.empty': 'There are no links on the diagram',
+	'diagram.untangle.optimized': 'All links are already optimized',
 
 	'diagram.toolbar.zoom': 'Zoom',
 	'diagram.toolbar.search': 'Search',

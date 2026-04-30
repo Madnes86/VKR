@@ -13,6 +13,8 @@
 	import { appearanceStore } from '$lib/stores/appearance.svelte';
 	import { untangleLinks } from '$lib/functions/untangle';
 	import { diagramSettings } from '$lib/stores/diagram.svelte';
+	import { notificationStore } from '$lib/stores/notification.svelte';
+	import { i18n } from '$lib/i18n';
 	import type { ITreeObject, ILink } from '$lib/interface';
 	import DiagramToolbar from './DiagramToolbar.svelte';
 
@@ -35,7 +37,27 @@
 	let physicsNudge: number = $state(0);
 
 	function untangle() {
-		untangleLinks(objects, links);
+		// Без связей распутывать нечего — сообщаем явно, иначе клик
+		// по кнопке выглядит как «ничего не произошло».
+		if (links.length === 0) {
+			notificationStore.show({
+				icon: 'alert',
+				title: i18n.t('diagram.untangle.empty'),
+				type: 'info'
+			});
+			return;
+		}
+		const moved = untangleLinks(objects, links);
+		if (moved === 0) {
+			// Связи есть, но все короче порога — повторное нажатие
+			// без видимого эффекта. Показываем info-уведомление.
+			notificationStore.show({
+				icon: 'check',
+				title: i18n.t('diagram.untangle.optimized'),
+				type: 'info'
+			});
+			return;
+		}
 		physicsNudge++;
 	}
 

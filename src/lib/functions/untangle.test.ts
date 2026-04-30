@@ -102,6 +102,20 @@ describe('untangleLinks', () => {
 		expect(dist).toBeCloseTo((root.size + child.size) * 0.6, 5);
 	});
 
+	it('Пустой массив связей возвращает 0 (контракт для notification «нет связей»)', () => {
+		const a = obj(1, 0, 0, 1);
+		const b = obj(2, 50, 0, 1);
+		expect(untangleLinks([a, b], [])).toBe(0);
+	});
+
+	it('Связи есть, но все короче порога — возвращает 0 (контракт для «уже оптимизированы»)', () => {
+		const a = obj(1, 0, 0, 1);
+		const b = obj(2, 100, 0, 1);
+		const c = obj(3, 0, 100, 1);
+		const moved = untangleLinks([a, b, c], [link(100, 1, 2), link(101, 1, 3)]);
+		expect(moved).toBe(0);
+	});
+
 	it('Кастомный longRatio влияет на порог', () => {
 		const heavy = obj(1, 0, 0, 5);
 		const light = obj(2, 1000, 0, 1);

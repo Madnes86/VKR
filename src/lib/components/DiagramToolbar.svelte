@@ -64,7 +64,7 @@
 		onclick={onUntangle}
 		title={i18n.t('diagram.untangle.title')}
 		aria-label={i18n.t('diagram.untangle.title')}
-		class="click mr-2 size-7 rounded-md p-1.5 transition-colors hover:bg-gray"
+		class="click mr-2 size-7 rounded-md p-1.5 transition-colors hover:bg-gray hover:text-accent"
 	>
 		<Icon name="al" />
 	</button>

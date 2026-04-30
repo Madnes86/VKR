@@ -72,7 +72,10 @@
 	}
 
 	let generating: boolean = $state(false);
-	let status: string = $state('');
+	// Состояние автосейва запоминаем, чтобы не спамить нотификациями на
+	// каждый debounce-цикл — выдаём notification только при ПЕРЕХОДЕ
+	// неуспех/успех (например, сервер упал → восстановился).
+	let lastSaveOk: boolean = true;
 
 	// Тоггл «семантический анализ»: пользователь сам решает, ждать ли
 	// дополнительный голос LLM. Persisted через localStorage.
@@ -99,24 +102,33 @@
 
 		if (projectStore.id !== null) {
 			const ok = await projectStore.save();
-			status = ok ? projectStore.saveStatus : `только локально (${projectStore.saveStatus})`;
-		} else {
-			status = 'сохранено локально (нет аккаунта)';
+			// Notification только на переходе: либо «упало впервые», либо
+			// «восстановилось после падения». Иначе при отсутствии сети
+			// каждые 1.2с летела бы новая ошибка.
+			if (!ok && lastSaveOk) {
+				notificationStore.show({
+					icon: 'alert',
+					title: i18n.t('editor.notify.savedLocalServerFail'),
+					type: 'warning'
+				});
+			}
+			lastSaveOk = ok;
 		}
+		// Гость без аккаунта: save идёт только локально — это нормальный
+		// режим работы, шумной нотификации тут не место.
 	}
 
 	function scheduleSave() {
 		if (!editor || !editorReady || suppressOnChange) return;
 		if (saveTimer) clearTimeout(saveTimer);
-		status = 'editing…';
 		saveTimer = setTimeout(async () => {
 			saveTimer = null;
 			if (!editor) return;
 			try {
 				const data = await editor.save();
 				await performSave(data);
-			} catch (e) {
-				status = `save failed: ${(e as Error).message}`;
+			} catch {
+				notificationStore.error(i18n.t('editor.notify.saveFailed'));
 			}
 		}, AUTOSAVE_DEBOUNCE_MS);
 	}
@@ -259,7 +271,11 @@
 		const data = await editor.save();
 		const plain = blocksToPlainText(data);
 		if (!plain.trim()) {
-			status = 'пустой текст';
+			notificationStore.show({
+				icon: 'alert',
+				title: i18n.t('editor.notify.emptyText'),
+				type: 'warning'
+			});
 			return;
 		}
 		// Перед извлечением — финализируем сохранение.
@@ -271,16 +287,18 @@
 
 		generating = true;
 		const mode: ExtractMode = useSemantic ? 'semantic' : 'fast';
-		status =
-			mode === 'semantic' ? 'разбираю текст + LLM-семантика (это дольше)…' : 'разбираю текст…';
 		try {
 			const res = await extractSyntax(plain, mode);
 			if (!res) {
-				status = 'failed';
+				notificationStore.error(i18n.t('editor.notify.extractFailed'));
 				return;
 			}
 			if (res.objects.length === 0) {
-				status = 'spacy ничего не извлёк';
+				notificationStore.show({
+					icon: 'alert',
+					title: i18n.t('editor.notify.extractEmpty'),
+					type: 'warning'
+				});
 				return;
 			}
 
@@ -293,7 +311,7 @@
 			// Прогоняем валидацию по свежему графу: если что-то найдено —
 			// notification + список в Alerts; объекты/связи окрасятся
 			// через validationStore.severityForObject/Link.
-			const issues = validationStore.run();
+			validationStore.run();
 			const errs = validationStore.errors.length;
 			const warns = validationStore.warnings.length;
 			if (errs > 0) {
@@ -305,7 +323,11 @@
 					type: 'warning'
 				});
 			}
-			status = `извлечено: ${res.objects.length} объектов, ${res.links.length} связей · issues: ${issues.length}`;
+			const extracted = i18n
+				.t('editor.notify.extracted')
+				.replace('{objects}', String(res.objects.length))
+				.replace('{links}', String(res.links.length));
+			notificationStore.success(extracted);
 		} finally {
 			generating = false;
 		}
@@ -319,7 +341,7 @@
 			onclick={() => void onExtract()}
 			disabled={generating}
 			title="Превратить текст в граф объектов: существительные → объекты, прилагательные → дочерние объекты, глаголы → связи."
-			class="flex items-center gap-2 rounded-md bg-accent p-1.5 text-sm text-white transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+			class="click flex items-center gap-2 rounded-md p-1.5 text-sm text-white transition hover:bg-gray disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			{#if generating}
 				<Icon name="load" className="animate-spin" />
@@ -333,8 +355,6 @@
 		>
 			<Toggle bind:power={useSemantic} text="LLM-семантика" />
 		</span>
-
-		<span class="ml-auto text-xs text-zinc-400">{status}</span>
 	</div>
 
 	<div

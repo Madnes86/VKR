@@ -323,6 +323,13 @@ export const ru = {
 	'editor.tune.moveDown': 'Вниз',
 	'editor.placeholder':
 		'Опишите систему: компоненты, их свойства, связи. Поддерживаются заголовки, списки, выделение и inline-код. Автосохранение каждые ~1.2 секунды.',
+	'editor.notify.savedLocalNoAccount': 'Сохранено локально (нет аккаунта)',
+	'editor.notify.savedLocalServerFail': 'Сохранено локально (сервер недоступен)',
+	'editor.notify.saveFailed': 'Не удалось сохранить',
+	'editor.notify.emptyText': 'Текст пустой — нечего извлекать',
+	'editor.notify.extractFailed': 'Не удалось извлечь структуру',
+	'editor.notify.extractEmpty': 'Структура не найдена в тексте',
+	'editor.notify.extracted': 'Извлечено: {objects} объектов, {links} связей',
 
 	'diagram.untangle.action': 'Распутать связи',
 	'diagram.untangle.title': 'Перенести дальние эндпоинты ближе к их источнику',
@@ -663,6 +670,13 @@ export const en: Record<Key, string> = {
 	'editor.tune.moveDown': 'Move down',
 	'editor.placeholder':
 		'Describe the system: components, their properties and relations. Headings, lists, marker and inline-code are supported. Autosave runs every ~1.2 seconds.',
+	'editor.notify.savedLocalNoAccount': 'Saved locally (no account)',
+	'editor.notify.savedLocalServerFail': 'Saved locally (server unavailable)',
+	'editor.notify.saveFailed': 'Failed to save',
+	'editor.notify.emptyText': 'Text is empty — nothing to extract',
+	'editor.notify.extractFailed': 'Failed to extract structure',
+	'editor.notify.extractEmpty': 'No structure found in the text',
+	'editor.notify.extracted': 'Extracted: {objects} objects, {links} links',
 
 	'diagram.untangle.action': 'Untangle links',
 	'diagram.untangle.title': 'Move distant endpoints closer to their source',

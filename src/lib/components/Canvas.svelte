@@ -139,13 +139,18 @@
 		// существующих объектов. buildTree выдаёт ITreeObject с
 		// Math.random() координатами; без восстановления каждый
 		// create/update/delete заставлял бы все объекты на холсте
-		// прыгать в случайные точки.
-		const prevPos = new Map<number, { x: number; y: number }>();
-		function snapshot(o: ITreeObject) {
-			prevPos.set(o.id, { x: o.x, y: o.y });
-			for (const c of o.objects ?? []) snapshot(c);
-		}
-		for (const o of objects) snapshot(o);
+		// прыгать в случайные точки. Чтение `objects` в untrack —
+		// иначе эффект подписался бы на ту же переменную, которую
+		// чуть ниже сам и перезаписывает (бесконечный цикл).
+		const prevPos = untrack(() => {
+			const m = new Map<number, { x: number; y: number }>();
+			function snap(o: ITreeObject) {
+				m.set(o.id, { x: o.x, y: o.y });
+				for (const c of o.objects ?? []) snap(c);
+			}
+			for (const o of objects) snap(o);
+			return m;
+		});
 
 		const baseLinks = data.links ?? [];
 		const targetObjects = v ? data.objects.filter((o) => v.has(o.id)) : data.objects;

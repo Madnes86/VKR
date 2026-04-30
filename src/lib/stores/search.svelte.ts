@@ -1,4 +1,4 @@
-import type { ICategory } from "$lib/interface";
+import type { ICategory } from '$lib/interface';
 
 /**
  * Поиск имеет два режима, которыми пользователь явно управляет:
@@ -13,28 +13,36 @@ import type { ICategory } from "$lib/interface";
  *    (apply сбросится) или нажать «крестик».
  */
 class SearchStore {
-    #data: string = $state('');
-    #cats: Omit<ICategory, 'icon'>[] = $state([]);
-    #applied: boolean = $state(false);
+	#data: string = $state('');
+	#cats: Omit<ICategory, 'icon'>[] = $state([]);
+	#applied: boolean = $state(false);
 
-    set(v: string, cats: Omit<ICategory, 'icon'>[]) {
-        // Любая правка строки — переход обратно в режим подсветки.
-        // Иначе пользователь, набирая после применённого фильтра, не
-        // увидит ни старых результатов, ни новых частичных совпадений.
-        if (v !== this.#data) this.#applied = false;
-        this.#data = v;
-        this.#cats = cats;
-    }
-    get() { return this.#data }
-    get cats() { return this.#cats }
+	set(v: string, cats: Omit<ICategory, 'icon'>[]) {
+		// Любая правка строки — переход обратно в режим подсветки.
+		// Иначе пользователь, набирая после применённого фильтра, не
+		// увидит ни старых результатов, ни новых частичных совпадений.
+		if (v !== this.#data) this.#applied = false;
+		this.#data = v;
+		this.#cats = cats;
+	}
+	get() {
+		return this.#data;
+	}
+	get cats() {
+		return this.#cats;
+	}
 
-    apply() { this.#applied = true; }
-    get applied() { return this.#applied; }
+	apply() {
+		this.#applied = true;
+	}
+	get applied() {
+		return this.#applied;
+	}
 
-    clear() {
-        this.#data = '';
-        this.#applied = false;
-    }
+	clear() {
+		this.#data = '';
+		this.#applied = false;
+	}
 }
 
 export const searchStore = new SearchStore();

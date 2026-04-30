@@ -14,17 +14,13 @@ import type { Issue } from './types';
 
 export type { Issue, IssueCode, IssueTarget, Severity } from './types';
 
-
-export function validate(
-    objects: IFlatObject[],
-    links: IFlatLink[],
-): Issue[] {
-    return [
-        ...detectParentCycles(objects),
-        ...detectSelfLinks(links),
-        ...detectDanglingLinks(objects, links),
-        ...detectLinkCycles(objects, links),
-        ...detectDuplicateNames(objects),
-        ...detectEmptyNames(objects, links),
-    ];
+export function validate(objects: IFlatObject[], links: IFlatLink[]): Issue[] {
+	return [
+		...detectParentCycles(objects),
+		...detectSelfLinks(links),
+		...detectDanglingLinks(objects, links),
+		...detectLinkCycles(objects, links),
+		...detectDuplicateNames(objects),
+		...detectEmptyNames(objects, links)
+	];
 }

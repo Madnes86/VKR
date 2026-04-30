@@ -1,9 +1,12 @@
 <!doctype html>
 <html lang="en">
 	<head>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+			rel="stylesheet"
+		/>
 
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -17,99 +20,96 @@
 <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
 <script src="editor.js"></script>
 
-
 <style>
-    /* @import url('https://fonts.googleapis.com'); */
+	/* @import url('https://fonts.googleapis.com'); */
 
 
-    * {
-        box-sizing: border-box;
-    }
-    body {
-        color: white;
-        font-family: 'Nunito', sans-serif;
-        /* overflow-y: hidden; */
-    }
-    .click:active {
-        filter: brightness(0.5);
-        transition: all 0.2s ease;  
-    }
-    .click:hover {
-        opacity: 0.7;
-    }
-    .click {
-        cursor: pointer;
-    }
-    
-    input[type="text"]:focus {
-        box-shadow: none !important;
-    }
-    input {
-        border: none;
-    }
-    input:active {
-        transparen
-    }
-    textarea {
-        border: none;
-    }
-    h1 {
-        font-size: 28px;
-    }
-    h2 {
-        font-size: 24px;
-    }
-    h3 {
-        font-size: 20px;
-    }
-    .text-border {
-        text-shadow: 
-            -1px -1px 0 black,
-            1px -1px 0 black,
-            -1px  1px 0 black,
-            1px  1px 0 black,
-            -2px 0 0 black,
-            2px 0 0 black,
-            0 -2px 0 black,
-            0 2px 0 black;
-    }
-    .show {
-        animation: slideIn 0.3s ease-out;
-    }
+	* {
+	    box-sizing: border-box;
+	}
+	body {
+	    color: white;
+	    font-family: 'Nunito', sans-serif;
+	    /* overflow-y: hidden; */
+	}
+	.click:active {
+	    filter: brightness(0.5);
+	    transition: all 0.2s ease;
+	}
+	.click:hover {
+	    opacity: 0.7;
+	}
+	.click {
+	    cursor: pointer;
+	}
 
-    .hide {
-        animation: slideOut 0.3s ease-in forwards;
-    }
+	input[type="text"]:focus {
+	    box-shadow: none !important;
+	}
+	input {
+	    border: none;
+	}
+	input:active {
+	    transparen
+	}
+	textarea {
+	    border: none;
+	}
+	h1 {
+	    font-size: 28px;
+	}
+	h2 {
+	    font-size: 24px;
+	}
+	h3 {
+	    font-size: 20px;
+	}
+	.text-border {
+	    text-shadow:
+	        -1px -1px 0 black,
+	        1px -1px 0 black,
+	        -1px  1px 0 black,
+	        1px  1px 0 black,
+	        -2px 0 0 black,
+	        2px 0 0 black,
+	        0 -2px 0 black,
+	        0 2px 0 black;
+	}
+	.show {
+	    animation: slideIn 0.3s ease-out;
+	}
 
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
+	.hide {
+	    animation: slideOut 0.3s ease-in forwards;
+	}
 
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-    
-    html, body {
-        scrollbar-width: none; /* Firefox */
-    }
+	@keyframes slideIn {
+	    from {
+	        transform: translateX(100%);
+	        opacity: 0;
+	    }
+	    to {
+	        transform: translateX(0);
+	        opacity: 1;
+	    }
+	}
 
-    body::-webkit-scrollbar {
-        display: none; /* Chrome/Safari */
-    }
+	@keyframes slideOut {
+	    from {
+	        transform: translateX(0);
+	        opacity: 1;
+	    }
+	    to {
+	        transform: translateX(100%);
+	        opacity: 0;
+	    }
+	}
 
+	html, body {
+	    scrollbar-width: none; /* Firefox */
+	}
 
+	body::-webkit-scrollbar {
+	    display: none; /* Chrome/Safari */
+	}
 </style>

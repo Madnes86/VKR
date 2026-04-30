@@ -3,13 +3,13 @@
 @plugin '@tailwindcss/typography';
 
 @theme {
-    /* white */
-    /* black */
-    --color-gray-glass: #6F6F6F50;
-    --color-gray: #323232;
-    --color-accent: #835CFD;
-    --color-yellow-glass: #c2fd0050;
-    --color-yellow: #FFF700;
-    --color-red-glass: #ff000050;
-    --color-red: #FF0000;
+	/* white */
+	/* black */
+	--color-gray-glass: #6f6f6f50;
+	--color-gray: #323232;
+	--color-accent: #835cfd;
+	--color-yellow-glass: #c2fd0050;
+	--color-yellow: #fff700;
+	--color-red-glass: #ff000050;
+	--color-red: #ff0000;
 }

@@ -9,21 +9,21 @@
 export type Severity = 'error' | 'warning';
 
 export type IssueCode =
-    | 'cycle_links'        // направленный цикл в графе связей
-    | 'cycle_parents'      // цикл в parent-цепочке
-    | 'self_link'          // is === to
-    | 'dangling_link'      // is или to указывают на удалённый объект
-    | 'duplicate_name'     // несколько детей одного родителя имеют одно имя
-    | 'empty_name';        // пустое или пробельное имя у объекта/связи
+	| 'cycle_links' // направленный цикл в графе связей
+	| 'cycle_parents' // цикл в parent-цепочке
+	| 'self_link' // is === to
+	| 'dangling_link' // is или to указывают на удалённый объект
+	| 'duplicate_name' // несколько детей одного родителя имеют одно имя
+	| 'empty_name'; // пустое или пробельное имя у объекта/связи
 
 export interface IssueTarget {
-    kind: 'object' | 'link';
-    id: number;
+	kind: 'object' | 'link';
+	id: number;
 }
 
 export interface Issue {
-    code: IssueCode;
-    severity: Severity;
-    message: string;
-    targets: IssueTarget[];
+	code: IssueCode;
+	severity: Severity;
+	message: string;
+	targets: IssueTarget[];
 }

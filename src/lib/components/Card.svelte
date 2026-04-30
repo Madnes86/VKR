@@ -1,16 +1,17 @@
 <script lang="ts">
-	import type { Snippet } from "svelte";
+	import type { Snippet } from 'svelte';
 
-    let {
-        children,
-        className,
-    } : {
-        children: Snippet;
-        className?: string;
-    } = $props();
-
+	let {
+		children,
+		className
+	}: {
+		children: Snippet;
+		className?: string;
+	} = $props();
 </script>
 
-<div class="flex flex-col p-4 gap-4 w-180 rounded-md border backdrop-blur-[2px] border-gray bg-gray-glass {className}">
-    {@render children()}
+<div
+	class="flex w-180 flex-col gap-4 rounded-md border border-gray bg-gray-glass p-4 backdrop-blur-[2px] {className}"
+>
+	{@render children()}
 </div>

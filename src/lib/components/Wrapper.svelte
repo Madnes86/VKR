@@ -1,16 +1,15 @@
 <script lang="ts">
-	import type { Snippet } from "svelte";
+	import type { Snippet } from 'svelte';
 
-    let {
-        children,
-        className,
-    } : {
-        children: Snippet;
-        className?: string;
-    } = $props();
-
+	let {
+		children,
+		className
+	}: {
+		children: Snippet;
+		className?: string;
+	} = $props();
 </script>
 
-<div class="p-10 max-w-400 m-auto {className}">
-    {@render children()}
+<div class="m-auto max-w-400 p-10 {className}">
+	{@render children()}
 </div>

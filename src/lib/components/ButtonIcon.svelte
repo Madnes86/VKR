@@ -1,17 +1,17 @@
 <script lang="ts">
-    import Icon from "./Icon.svelte";
+	import Icon from './Icon.svelte';
 
-    let {
-        onclick,
-        name,
-        stroke
-    } : {
-        onclick: () => void;
-        name: string;
-        stroke?: string;
-    } = $props();
+	let {
+		onclick,
+		name,
+		stroke
+	}: {
+		onclick: () => void;
+		name: string;
+		stroke?: string;
+	} = $props();
 </script>
 
 <button {onclick} class="click rounded-full border border-gray bg-gray-glass p-1.5">
-    <Icon {name} {stroke} />
+	<Icon {name} {stroke} />
 </button>

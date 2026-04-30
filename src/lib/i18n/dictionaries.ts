@@ -262,6 +262,8 @@ export const ru = {
 	'context.newName': 'Новый объект',
 	'context.newLinkName': 'Связь',
 
+	'canvas.linkDropMissed': 'Отпустите курсор на другом объекте, чтобы создать связь',
+
 	'search.placeholder': 'Поиск',
 	'search.invalid': 'Некорректное значение поиска',
 
@@ -638,6 +640,8 @@ export const en: Record<Key, string> = {
 	'context.bulkRemove': 'Delete group',
 	'context.newName': 'New object',
 	'context.newLinkName': 'Link',
+
+	'canvas.linkDropMissed': 'Drop the cursor on another object to create a link',
 
 	'search.placeholder': 'Search',
 	'search.invalid': 'Invalid search value',

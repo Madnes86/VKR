@@ -83,10 +83,16 @@
 	// иначе отменяем. Window-listener живёт только в активной фазе.
 	$effect(() => {
 		if (!linkDraft.active) return;
+		// Стартовая позиция курсора, чтобы отличать «случайный отпуск
+		// на месте» от настоящей попытки создать связь.
+		const startX = linkDraft.x;
+		const startY = linkDraft.y;
+		const DROP_HINT_THRESHOLD_PX = 12;
+
 		function onMove(e: MouseEvent) {
 			linkDraft.move(e.clientX, e.clientY);
 		}
-		function onUp() {
+		function onUp(e: MouseEvent) {
 			const src = linkDraft.sourceId;
 			const tgt = linkDraft.targetId;
 			if (src !== null && tgt !== null && src !== tgt) {
@@ -101,6 +107,20 @@
 				// Сразу открыть имя связи в inline-edit — пользователь
 				// печатает поверх дефолта.
 				pendingNameEdit.request(newId, 'link');
+			} else if (src !== null) {
+				// Drop мимо: пользователь реально дотащил курсор далеко
+				// от старта, но не попал на другой объект. Подсказываем
+				// info-уведомлением. Кратчайшее «нажал и отпустил на
+				// месте» (drag<threshold) считаем отменой и молчим.
+				const dx = e.clientX - startX;
+				const dy = e.clientY - startY;
+				if (Math.hypot(dx, dy) > DROP_HINT_THRESHOLD_PX) {
+					notificationStore.show({
+						icon: 'alert',
+						title: i18n.t('canvas.linkDropMissed'),
+						type: 'info'
+					});
+				}
 			}
 			linkDraft.cancel();
 		}

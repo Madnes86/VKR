@@ -395,6 +395,7 @@
 	{#if linkDraft.active && draftStart}
 		<svg class="pointer-events-none fixed top-0 left-0 z-2 size-full">
 			<line
+				class="draft-line"
 				x1={draftStart.x}
 				y1={draftStart.y}
 				x2={linkDraft.x}
@@ -425,3 +426,18 @@
 </div>
 
 <DiagramToolbar onUntangle={untangle} onValidate={toggleValidation} />
+
+<style>
+	/* «Marching ants»: штрихи pending-линии бегут от source к курсору,
+	   чтобы пользователь чувствовал направление будущей связи. Сумма
+	   значений stroke-dasharray = 6+4 = 10 → анимируем dashoffset на
+	   -10 за один цикл, движение бесшовно зацикливается. */
+	.draft-line {
+		animation: marching-ants 0.6s linear infinite;
+	}
+	@keyframes marching-ants {
+		to {
+			stroke-dashoffset: -10;
+		}
+	}
+</style>

@@ -214,8 +214,8 @@
 					e.preventDefault();
 					linkDraft.start(id, e.clientX, e.clientY);
 				}}
-				style="width: {size / 5}px; height: {size / 5}px; border: {size / 100}px solid black;"
-				class="absolute top-full left-1/2 z-5 -translate-x-1/2 cursor-crosshair rounded-full bg-white transition-colors hover:bg-accent"
+				style="width: {size / 7}px; height: {size / 7}px; border: {size / 100}px solid black;"
+				class="absolute top-full left-1/2 z-5 mt-1 -translate-x-1/2 cursor-crosshair rounded-full bg-white transition-colors hover:bg-accent"
 			></button>
 		{/if}
 	</div>

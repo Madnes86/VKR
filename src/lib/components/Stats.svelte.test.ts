@@ -3,7 +3,7 @@ import Stats from './Stats.svelte';
 import { render } from 'vitest-browser-svelte';
 import { objects, links } from '$lib/stores/objects.svelte';
 import { validationStore } from '$lib/stores/validation.svelte';
-import pkg from '../../../package.json';
+import { APP_VERSION } from '$lib/version';
 
 beforeEach(() => {
 	objects.clear();
@@ -29,10 +29,10 @@ describe('Stats — счётчики и версия', () => {
 		expect(r.length).toBe(5);
 	});
 
-	it('Версия берётся из package.json', () => {
+	it('Версия берётся из APP_VERSION', () => {
 		const { container } = render(Stats);
 		const html = container.querySelector('[data-testid="sidebar-stats"]')?.textContent ?? '';
-		expect(html).toContain(pkg.version);
+		expect(html).toContain(APP_VERSION);
 	});
 
 	it('Пустой проект — все счётчики 0', () => {

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { objects, links } from '$lib/stores/objects.svelte';
 	import { validationStore } from '$lib/stores/validation.svelte';
+	import { APP_VERSION } from '$lib/version';
 	import { i18n } from '$lib/i18n';
-	import pkg from '../../../package.json';
 
 	const issuesCount = $derived(validationStore.issues.length);
 	const objectsCount = $derived(objects.all.length);
@@ -33,6 +33,6 @@
 	</div>
 	<div class="mt-1 flex items-center justify-between border-t border-gray pt-1">
 		<span>{i18n.t('stats.version')}</span>
-		<span class="tabular-nums">{pkg.version}</span>
+		<span class="tabular-nums">{APP_VERSION}</span>
 	</div>
 </div>

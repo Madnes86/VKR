@@ -3,7 +3,14 @@
 	import { runPhysicsLoop } from '$lib/functions/physics';
 	import { appearanceStore } from '$lib/stores/appearance.svelte';
 	import { dragStore } from '$lib/stores/drag.svelte';
-	import { viewStore, selectedStore, objects as flatObjects } from '$lib/stores/objects.svelte';
+	import {
+		viewStore,
+		selectedStore,
+		objects as flatObjects,
+		links as linksStore
+	} from '$lib/stores/objects.svelte';
+	import { linkDraft } from '$lib/stores/linkDraft.svelte';
+	import { pendingNameEdit } from '$lib/stores/pendingEdit.svelte';
 	import { contextStore } from '$lib/stores/context.svelte';
 	import { validationStore } from '$lib/stores/validation.svelte';
 	import type { ITreeObject } from '$lib/interface';
@@ -79,10 +86,14 @@
 	function onmouseover(e: MouseEvent) {
 		e.stopPropagation();
 		selectedStore.set('hover', data);
+		// Если идёт перетягивание связи — этот объект становится
+		// потенциальным target. Без этого drop-зона не определится.
+		if (linkDraft.active) linkDraft.setTarget(id);
 	}
 	function onmouseleave(e: MouseEvent) {
 		e.stopPropagation();
 		selectedStore.clear('hover');
+		linkDraft.clearTarget(id);
 	}
 	function ondblclick(e: MouseEvent) {
 		e.stopPropagation();
@@ -191,19 +202,21 @@
 			{/each}
 		</div>
 		{#if selected}
-			<div
-				style="width: {size / 3}px; height: {size / 3}px"
-				class="bg- absolute top-full left-1/2 z-5 flex -translate-x-1/2 items-center justify-between rounded-full"
-			>
-				<button
-					style="border: {size / 100}px solid black;"
-					class="size-1/3 rounded-full bg-white hover:bg-accent"
-				></button>
-				<button
-					style="border: {size / 100}px solid black;"
-					class="size-1/3 rounded-full bg-white hover:bg-red"
-				></button>
-			</div>
+			<!-- Drag-handle для создания связи. Mousedown начинает черновик
+			     в linkDraft, mouseup на другом Object.svelte закрывает —
+			     Canvas рисует pending-line и обрабатывает hit. -->
+			<button
+				type="button"
+				aria-label="create-link"
+				onmousedown={(e) => {
+					if (e.button !== 0) return;
+					e.stopPropagation();
+					e.preventDefault();
+					linkDraft.start(id, e.clientX, e.clientY);
+				}}
+				style="width: {size / 5}px; height: {size / 5}px; border: {size / 100}px solid black;"
+				class="absolute top-full left-1/2 z-5 -translate-x-1/2 cursor-crosshair rounded-full bg-white transition-colors hover:bg-accent"
+			></button>
 		{/if}
 	</div>
 </div>

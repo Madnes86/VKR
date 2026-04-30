@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { selectedStore, links as linksStore } from '$lib/stores/objects.svelte';
 	import { validationStore } from '$lib/stores/validation.svelte';
 	import { contextStore } from '$lib/stores/context.svelte';
+	import { pendingNameEdit } from '$lib/stores/pendingEdit.svelte';
 	import { LightText } from '$lib/components';
 	import type { ILink } from '$lib/interface';
 
@@ -80,15 +82,35 @@
 	// ── редактирование имени ────────────────────────────────────────────────
 	let editing: boolean = $state(false);
 	let draftName: string = $state('');
+	let inputEl: HTMLInputElement | undefined = $state();
+
+	// Если связь только что создана через drag-link — pendingNameEdit
+	// помечает её id; автоматически открываем редактор имени с
+	// автофокусом и selectAll, чтобы пользователь мог напечатать
+	// поверх дефолта без лишнего клика.
+	$effect(() => {
+		if (pendingNameEdit.claim(id, 'link')) {
+			void openEdit();
+		}
+	});
+
+	async function openEdit() {
+		draftName = name;
+		editing = true;
+		await tick();
+		inputEl?.focus();
+		inputEl?.select();
+	}
 
 	function startEdit(e: MouseEvent) {
 		e.stopPropagation();
-		draftName = name;
-		editing = true;
+		void openEdit();
 	}
 	function commit() {
 		const next = draftName.trim();
-		if (next && next !== name) linksStore.update(id, { name: next });
+		// Сохраняем при любом непустом — иначе race с pendingNameEdit
+		// мог «съесть» правку (Name.svelte имеет ту же проблему).
+		if (next) linksStore.update(id, { name: next });
 		editing = false;
 	}
 	function onKeydown(e: KeyboardEvent) {
@@ -182,9 +204,8 @@
 		class="text-border absolute flex -translate-1/2 items-center gap-1"
 	>
 		{#if editing}
-			<!-- svelte-ignore a11y_autofocus -->
 			<input
-				autofocus
+				bind:this={inputEl}
 				bind:value={draftName}
 				onkeydown={onKeydown}
 				onblur={commit}

@@ -16,6 +16,9 @@
 	import { notificationStore } from '$lib/stores/notification.svelte';
 	import { validationStore } from '$lib/stores/validation.svelte';
 	import { pendingDrop } from '$lib/stores/pendingDrop.svelte';
+	import { linkDraft } from '$lib/stores/linkDraft.svelte';
+	import { pendingNameEdit } from '$lib/stores/pendingEdit.svelte';
+	import { links as linksStore } from '$lib/stores/objects.svelte';
 	import { i18n } from '$lib/i18n';
 	import type { ITreeObject, ILink } from '$lib/interface';
 	import DiagramToolbar from './DiagramToolbar.svelte';
@@ -73,6 +76,61 @@
 		// здесь у нас локальная переменная `links` — это ITree-список,
 		// он тоже зависит от flat-сторов косвенно через treeStore.
 		untrack(() => validationStore.run());
+	});
+
+	// Перетягивание связи: пока активен linkDraft, обновляем курсор и
+	// слушаем mouseup. На mouseup создаём связь, если есть target,
+	// иначе отменяем. Window-listener живёт только в активной фазе.
+	$effect(() => {
+		if (!linkDraft.active) return;
+		function onMove(e: MouseEvent) {
+			linkDraft.move(e.clientX, e.clientY);
+		}
+		function onUp() {
+			const src = linkDraft.sourceId;
+			const tgt = linkDraft.targetId;
+			if (src !== null && tgt !== null && src !== tgt) {
+				const newId = linksStore.create({
+					name: i18n.t('context.newLinkName'),
+					type: 'default',
+					is: src,
+					to: tgt,
+					isValue: false,
+					toValue: true
+				});
+				// Сразу открыть имя связи в inline-edit — пользователь
+				// печатает поверх дефолта.
+				pendingNameEdit.request(newId, 'link');
+			}
+			linkDraft.cancel();
+		}
+		window.addEventListener('mousemove', onMove);
+		window.addEventListener('mouseup', onUp);
+		return () => {
+			window.removeEventListener('mousemove', onMove);
+			window.removeEventListener('mouseup', onUp);
+		};
+	});
+
+	// Стартовая точка pending-линии — центр source-объекта на холсте.
+	let draftStart = $derived.by(() => {
+		const id = linkDraft.sourceId;
+		if (id === null) return null;
+		// Ищем объект в актуальных tree-objects (включая вложенные —
+		// hit-test может произойти на ребёнке).
+		function find(arr: ITreeObject[]): ITreeObject | null {
+			for (const o of arr) {
+				if (o.id === id) return o;
+				if (o.objects?.length) {
+					const r = find(o.objects);
+					if (r) return r;
+				}
+			}
+			return null;
+		}
+		const o = find(objects);
+		if (!o) return null;
+		return { x: o.x + o.size / 2, y: o.y + o.size / 2 };
 	});
 
 	function toggleValidation() {
@@ -334,6 +392,20 @@
 			<Object {id} {name} {type} {x} {y} {size} {objects} {links} selParent={false} />
 		{/if}
 	{/each}
+	{#if linkDraft.active && draftStart}
+		<svg class="pointer-events-none fixed top-0 left-0 z-2 size-full">
+			<line
+				x1={draftStart.x}
+				y1={draftStart.y}
+				x2={linkDraft.x}
+				y2={linkDraft.y}
+				stroke="var(--color-accent)"
+				stroke-width={2}
+				stroke-dasharray="6 4"
+				stroke-linecap="round"
+			/>
+		</svg>
+	{/if}
 	{#each links as l (l.id)}
 		{@const is = objects.find((o) => o.id === l.is)}
 		{@const to = objects.find((o) => o.id === l.to)}

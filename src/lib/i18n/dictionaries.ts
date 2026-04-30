@@ -260,6 +260,7 @@ export const ru = {
 	'context.groupSelected': 'Группа',
 	'context.bulkRemove': 'Удалить группу',
 	'context.newName': 'Новый объект',
+	'context.newLinkName': 'Связь',
 
 	'search.placeholder': 'Поиск',
 	'search.invalid': 'Некорректное значение поиска',
@@ -636,6 +637,7 @@ export const en: Record<Key, string> = {
 	'context.groupSelected': 'Group',
 	'context.bulkRemove': 'Delete group',
 	'context.newName': 'New object',
+	'context.newLinkName': 'Link',
 
 	'search.placeholder': 'Search',
 	'search.invalid': 'Invalid search value',

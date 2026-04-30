@@ -10,10 +10,12 @@ beforeEach(() => {
 	// на друга: оба стора singletons и переживают между кейсами.
 	scaleStore.value = 1;
 	diagramSettings.gravity = DIAGRAM_DEFAULTS.gravity;
+	diagramSettings.spring = DIAGRAM_DEFAULTS.spring;
 });
 
 afterEach(() => {
 	diagramSettings.gravity = DIAGRAM_DEFAULTS.gravity;
+	diagramSettings.spring = DIAGRAM_DEFAULTS.spring;
 });
 
 describe('DiagramToolbar — индикатор зума', () => {
@@ -39,9 +41,9 @@ describe('DiagramToolbar — индикатор зума', () => {
 });
 
 describe('DiagramToolbar — toggle гравитации', () => {
-	it('Клик по кнопке гравитации зануляет diagramSettings.gravity', async () => {
-		const before = diagramSettings.gravity;
-		expect(before).toBeGreaterThan(0);
+	it('Клик по кнопке гравитации зануляет gravity И spring', async () => {
+		expect(diagramSettings.gravity).toBeGreaterThan(0);
+		expect(diagramSettings.spring).toBeGreaterThan(0);
 
 		const { container } = render(DiagramToolbar, {
 			props: { onUntangle: () => {}, onValidate: () => {} }
@@ -53,10 +55,14 @@ describe('DiagramToolbar — toggle гравитации', () => {
 		btn!.click();
 
 		expect(diagramSettings.gravity).toBe(0);
+		// Пружина связей тоже паузится — иначе spring force продолжал бы
+		// стягивать связанные узлы, мешая ручной раскладке.
+		expect(diagramSettings.spring).toBe(0);
 	});
 
-	it('Повторный клик возвращает гравитацию к прежнему значению', async () => {
+	it('Повторный клик возвращает gravity И spring к прежним значениям', async () => {
 		diagramSettings.gravity = 0.0007;
+		diagramSettings.spring = 0.005;
 		const { container } = render(DiagramToolbar, {
 			props: { onUntangle: () => {}, onValidate: () => {} }
 		});
@@ -66,6 +72,7 @@ describe('DiagramToolbar — toggle гравитации', () => {
 		) as HTMLButtonElement;
 		flushSync(() => offBtn.click());
 		expect(diagramSettings.gravity).toBe(0);
+		expect(diagramSettings.spring).toBe(0);
 
 		const onBtn = container.querySelector(
 			'button[aria-label="Включить гравитацию"]'
@@ -74,6 +81,7 @@ describe('DiagramToolbar — toggle гравитации', () => {
 		flushSync(() => onBtn.click());
 
 		expect(diagramSettings.gravity).toBeCloseTo(0.0007, 6);
+		expect(diagramSettings.spring).toBeCloseTo(0.005, 6);
 	});
 
 	it('При gravity=0 на старте кнопка показывает «Включить» и берёт backup из дефолтов', async () => {

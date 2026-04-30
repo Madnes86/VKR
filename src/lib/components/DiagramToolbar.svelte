@@ -28,21 +28,27 @@
 	let rightSide = $derived(side.v.find((s) => s.pos === 'r')?.width ?? 0);
 	let layout = $derived(computeToolbarLayout({ windowWidth, leftSide, rightSide }));
 
-	// Toggle гравитации: при выключении сохраняем текущее значение и
-	// зануляем, при включении — восстанавливаем. Если на момент монтирования
-	// гравитация уже 0 (например, после reload с persist), backup берём из
-	// дефолтов, чтобы пользователь смог её включить.
+	// Toggle «физики»: одновременно паузим гравитацию (тяга к центру) и
+	// пружину связей. Без паузы spring продолжал стягивать связанные
+	// объекты обратно друг к другу — мешало раскладывать узлы вручную.
+	// При выключении сохраняем текущие значения, при включении —
+	// восстанавливаем; если на момент монтирования силы уже 0 (после
+	// reload с persist), backup берём из дефолтов.
 	let gravityEnabled = $state(diagramSettings.gravity > 0);
 	let gravityBackup =
 		diagramSettings.gravity > 0 ? diagramSettings.gravity : DIAGRAM_DEFAULTS.gravity;
+	let springBackup = diagramSettings.spring > 0 ? diagramSettings.spring : DIAGRAM_DEFAULTS.spring;
 
 	function toggleGravity() {
 		if (gravityEnabled) {
 			gravityBackup = diagramSettings.gravity || gravityBackup;
+			springBackup = diagramSettings.spring || springBackup;
 			diagramSettings.gravity = 0;
+			diagramSettings.spring = 0;
 			gravityEnabled = false;
 		} else {
 			diagramSettings.gravity = gravityBackup;
+			diagramSettings.spring = springBackup;
 			gravityEnabled = true;
 		}
 		diagramSettings.persist();

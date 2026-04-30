@@ -100,7 +100,7 @@
 						href="/"
 						title={i18n.t('logo.home')}
 						aria-label={i18n.t('logo.home')}
-						class="click rounded-sm p-1 hover:bg-gray"
+						class="click flex items-center justify-center rounded-sm p-1 hover:bg-gray"
 					>
 						<Logo width={20} height={20} iconOnly />
 					</a>

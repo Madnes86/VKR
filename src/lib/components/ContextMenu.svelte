@@ -142,7 +142,7 @@
 		{:else if kind === 'object' && groupMode}
 			<!-- Bulk: правый клик пришёл на объект из группы выделения. -->
 			<p
-				class="px-2 pt-1 pb-0.5 text-[10px] tracking-wide uppercase opacity-50 select-none"
+				class="px-1 pt-1 pb-0.5 text-[10px] tracking-wide uppercase opacity-50 select-none"
 				data-testid="group-count"
 			>
 				{i18n.t('context.groupSelected')}: {groupCount}

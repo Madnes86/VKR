@@ -342,6 +342,11 @@ export const ru = {
 	'diagram.validate.errors': 'Найдено {errs} ошибок, {warns} предупреждений',
 	'diagram.validate.warnings': 'Найдено {warns} предупреждений',
 
+	'alerts.title.error': 'Ошибка структуры',
+	'alerts.title.warn': 'Предупреждение',
+	'alerts.clear': 'Очистить',
+	'alerts.empty': 'Замечаний не найдено',
+
 	'diagram.toolbar.zoom': 'Масштаб',
 	'diagram.toolbar.search': 'Поиск',
 	'diagram.toolbar.gravity.disable': 'Отключить гравитацию',
@@ -694,6 +699,11 @@ export const en: Record<Key, string> = {
 	'diagram.validate.passed': 'Validation passed: no issues found',
 	'diagram.validate.errors': '{errs} errors, {warns} warnings found',
 	'diagram.validate.warnings': '{warns} warnings found',
+
+	'alerts.title.error': 'Structure error',
+	'alerts.title.warn': 'Warning',
+	'alerts.clear': 'Clear',
+	'alerts.empty': 'No issues found',
 
 	'diagram.toolbar.zoom': 'Zoom',
 	'diagram.toolbar.search': 'Search',

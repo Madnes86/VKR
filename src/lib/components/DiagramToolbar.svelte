@@ -4,6 +4,7 @@
 	import { scaleStore } from '$lib/stores/scale.svelte';
 	import { diagramSettings, DIAGRAM_DEFAULTS } from '$lib/stores/diagram.svelte';
 	import { side } from '$lib/stores/other.svelte';
+	import { validationStore } from '$lib/stores/validation.svelte';
 	import { computeToolbarLayout } from '$lib/functions/toolbar';
 	import { i18n } from '$lib/i18n';
 
@@ -52,6 +53,13 @@
 			? i18n.t('diagram.toolbar.gravity.disable')
 			: i18n.t('diagram.toolbar.gravity.enable')
 	);
+
+	// Кнопка валидации: подсветка активна — кнопка «нажата» (жёлтый
+	// фон). Есть issues, но подсветка выключена — кнопка пульсирует,
+	// привлекая внимание: «есть что показать, нажми меня».
+	let hasIssues = $derived(validationStore.issues.length > 0);
+	let validateActive = $derived(validationStore.highlight && hasIssues);
+	let validatePulse = $derived(!validationStore.highlight && hasIssues);
 </script>
 
 <svelte:window bind:innerWidth={windowWidth} />
@@ -85,7 +93,15 @@
 		onclick={onValidate}
 		title={i18n.t('diagram.validate.title')}
 		aria-label={i18n.t('diagram.validate.title')}
-		class="click size-7 rounded-md p-1.5 transition-colors hover:bg-gray hover:text-yellow"
+		aria-pressed={validateActive}
+		data-testid="toolbar-validate"
+		data-active={validateActive}
+		data-pulse={validatePulse}
+		class={[
+			'click size-7 rounded-md p-1.5 transition-colors',
+			validateActive ? 'bg-yellow text-black' : 'hover:bg-gray hover:text-yellow',
+			validatePulse ? 'pulse-issue' : ''
+		].join(' ')}
 	>
 		<Icon name="test16" />
 	</button>
@@ -99,3 +115,21 @@
 		<Icon name="al" />
 	</button>
 </div>
+
+<style>
+	/* Нежная пульсация: жёлтое мягкое сияние «дышит» вокруг кнопки.
+	   Используется когда есть issues, но подсветка ошибок ещё не
+	   включена пользователем — привлекает внимание, не раздражая. */
+	.pulse-issue {
+		animation: pulse-issue 2s ease-in-out infinite;
+	}
+	@keyframes pulse-issue {
+		0%,
+		100% {
+			box-shadow: 0 0 0 0 rgba(255, 247, 0, 0);
+		}
+		50% {
+			box-shadow: 0 0 0 4px rgba(255, 247, 0, 0.35);
+		}
+	}
+</style>

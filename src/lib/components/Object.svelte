@@ -26,6 +26,10 @@
 	let selected: boolean = $derived(selectedStore.selected === data);
 	let hover: boolean = $derived(selectedStore.hover === data);
 	let validationColor: string = $derived.by(() => {
+		// Окрашиваем только когда пользователь явно включил подсветку
+		// кнопкой в toolbar — иначе при перетаскивании или мелких
+		// правках диаграмма мигала бы красным.
+		if (!validationStore.highlight) return 'white';
 		const sev = validationStore.severityForObject(id);
 		if (sev === 'error') return 'var(--color-red)';
 		if (sev === 'warning') return 'var(--color-yellow)';

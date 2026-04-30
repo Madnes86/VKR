@@ -51,6 +51,10 @@
 	let markerSize: number = $derived(Math.max(4, size / 46));
 	let strokeColor = $derived.by(() => {
 		if (selected || hover) return 'var(--color-accent)';
+		// Подсветка проблемных связей включается из toolbar — иначе при
+		// каждом изменении графа цвета мерцали бы. Issues живут в сторе
+		// актуально, но окраска применяется только при highlight=true.
+		if (!validationStore.highlight) return 'white';
 		const sev = validationStore.severityForLink(id);
 		if (sev === 'error') return 'var(--color-red)';
 		if (sev === 'warning') return 'var(--color-yellow)';

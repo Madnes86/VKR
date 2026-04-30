@@ -1,45 +1,51 @@
 <script lang="ts">
-	import { fly } from 'svelte/transition';
-	import { Button, Flex, Icon, Spacer, LightText } from '$lib/components';
+	import { slide } from 'svelte/transition';
+	import { Icon, LightText } from '$lib/components';
 
 	let {
 		title,
 		text,
 		type,
-		show = false,
-		query
+		show = false
 	}: {
 		title: string;
 		text: string;
 		type: 'alert' | 'error';
-		show: boolean;
-		query: string;
+		show?: boolean;
 	} = $props();
 
-	let hover: boolean = $state(false);
-	let color: string = $derived(type == 'error' ? 'text-red' : 'text-yellow');
-	let glass: string = $derived(type == 'error' ? 'bg-red-glass' : 'bg-yellow-glass');
-	let stroke: string = $derived(type == 'error' ? 'red' : 'yellow');
-	let bg: string = $derived(type == 'error' ? 'bg-red text-gray' : 'bg-yellow text-gray');
-
-	const goError = () => alert();
+	// Палитра под токены проекта (layout.css). Error — красный бейдж
+	// с белой иконкой; warning ('alert') — жёлтый бейдж с чёрной
+	// иконкой (контрастнее на ярком фоне). То же решение, что в
+	// Notification — пользователь сразу узнаёт «семью» статусных
+	// уведомлений.
+	const palette = {
+		error: { badge: 'bg-red', stroke: 'white', side: 'border-l-red' },
+		alert: { badge: 'bg-yellow', stroke: 'black', side: 'border-l-yellow' }
+	};
+	const tone = $derived(palette[type] ?? palette.alert);
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div onmouseenter={() => (hover = true)} onmouseleave={() => (hover = false)} class="w-full">
-	<Flex className={`${hover ? bg : show ? bg : color} p-1 w-full flex items-center`}>
-		<Icon name="alert" stroke={hover ? '#323232' : show ? '#323232' : stroke} />
-		<h3 class={`${hover ? '' : show ? 'text-gray' : color} p-1 whitespace-nowrap`}>
+<div
+	class="overflow-hidden rounded-md border border-l-2 border-gray bg-gray-glass backdrop-blur-xs {tone.side}"
+>
+	<div class="flex items-center gap-3 p-2.5 text-left">
+		<div class="flex size-7 shrink-0 items-center justify-center rounded-full {tone.badge}">
+			<Icon name="alert" stroke={tone.stroke} />
+		</div>
+		<h3 class="min-w-0 flex-1 truncate text-xs leading-snug font-medium">
 			<LightText text={title} />
 		</h3>
-		<Spacer />
-		<Button onclick={goError} className="p-1 hover:bg-gray hover:text-white rounded-md">
+		<div class="shrink-0 opacity-60 {show ? 'rotate-90' : ''} transition-transform">
 			<Icon name="forward" />
-		</Button>
-	</Flex>
+		</div>
+	</div>
 	{#if show}
-		<p transition:fly class={`${show ? glass : glass} ${color} w-full p-3 text-start`}>
+		<div
+			transition:slide={{ duration: 200 }}
+			class="border-t border-gray px-3 py-2 text-xs leading-relaxed opacity-80"
+		>
 			<LightText {text} />
-		</p>
+		</div>
 	{/if}
 </div>

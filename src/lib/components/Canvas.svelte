@@ -62,10 +62,20 @@
 		physicsNudge++;
 	}
 
-	function validate() {
-		// Без объектов проверять нечего — выходим раньше, чтобы не
-		// показывать «success» на пустой диаграмме (это бы выглядело
-		// абсурдно).
+	// Issues всегда живут актуально — пересчитываем на каждое изменение
+	// графа. Подсветку на самой диаграмме включает кнопка в toolbar
+	// (validationStore.highlight), иначе при перетаскивании объекты
+	// мерцали бы красным.
+	$effect(() => {
+		flatObjects.all;
+		// link store импортирован как `links` через objects.svelte;
+		// здесь у нас локальная переменная `links` — это ITree-список,
+		// он тоже зависит от flat-сторов косвенно через treeStore.
+		untrack(() => validationStore.run());
+	});
+
+	function toggleValidation() {
+		// Пустая диаграмма — нечего показывать.
 		if (flatObjects.all.length === 0) {
 			notificationStore.show({
 				icon: 'alert',
@@ -74,25 +84,16 @@
 			});
 			return;
 		}
-		const issues = validationStore.run();
-		const errs = validationStore.errors.length;
-		const warns = validationStore.warnings.length;
-		if (issues.length === 0) {
+		// Без issues — пользователю просто сообщаем, что всё чисто.
+		// Подсветка не имеет смысла без проблем.
+		if (validationStore.issues.length === 0) {
 			notificationStore.success(i18n.t('diagram.validate.passed'));
-		} else if (errs > 0) {
-			notificationStore.error(
-				i18n
-					.t('diagram.validate.errors')
-					.replace('{errs}', String(errs))
-					.replace('{warns}', String(warns))
-			);
-		} else {
-			notificationStore.show({
-				icon: 'alert',
-				title: i18n.t('diagram.validate.warnings').replace('{warns}', String(warns)),
-				type: 'warning'
-			});
+			return;
 		}
+		// Есть issues — toggle подсветки. Сами объекты/связи окрасятся
+		// в Object/Link через severityForObject/severityForLink, но
+		// только когда highlight=true.
+		validationStore.toggleHighlight();
 	}
 
 	function onwheel(e: WheelEvent) {
@@ -254,4 +255,4 @@
 	{/each}
 </div>
 
-<DiagramToolbar onUntangle={untangle} onValidate={validate} />
+<DiagramToolbar onUntangle={untangle} onValidate={toggleValidation} />

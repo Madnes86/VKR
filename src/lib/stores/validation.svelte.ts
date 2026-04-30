@@ -1,12 +1,11 @@
 /**
  * validationStore — состояние результата проверки диаграммы.
  *
- * Не реактивно-derived: проверка запускается явно (после extract или
- * по кнопке в Alerts), результат сохраняется в #issues. Это
- * сознательно — пересчёт на каждое изменение объектов/связей в
- * сценарии редактирования сейчас не нужен и шумит на UX (объекты
- * краснеют при перетаскивании, пока пользователь не дотащил до
- * нужного места).
+ * Issues пересчитываются автоматически при изменении графа (Canvas
+ * подписан через $effect). Подсветка же на самой диаграмме
+ * (Object/Link окраска) включается отдельным флагом #highlight, который
+ * пользователь явно тогглит кнопкой в DiagramToolbar — иначе в
+ * процессе перетаскивания объекты постоянно мерцали бы красным.
  *
  * severityForObject/severityForLink — error > warning > null.
  */
@@ -17,6 +16,7 @@ import { validate, type Issue, type Severity } from '$lib/functions/validation';
 class ValidationStore {
 	#issues: Issue[] = $state([]);
 	#lastRunAt: number | null = $state(null);
+	#highlight: boolean = $state(false);
 
 	get issues() {
 		return this.#issues;
@@ -30,6 +30,10 @@ class ValidationStore {
 	get warnings() {
 		return this.#issues.filter((i) => i.severity === 'warning');
 	}
+	/** Активна ли подсветка проблемных узлов на диаграмме. */
+	get highlight() {
+		return this.#highlight;
+	}
 
 	run(): Issue[] {
 		this.#issues = validate(objects.all, links.all);
@@ -37,9 +41,19 @@ class ValidationStore {
 		return this.#issues;
 	}
 
+	toggleHighlight(): boolean {
+		this.#highlight = !this.#highlight;
+		return this.#highlight;
+	}
+
+	setHighlight(v: boolean): void {
+		this.#highlight = v;
+	}
+
 	clear() {
 		this.#issues = [];
 		this.#lastRunAt = null;
+		this.#highlight = false;
 	}
 
 	/** Финальная серьёзность для объекта по правилу error > warning > null. */

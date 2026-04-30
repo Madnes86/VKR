@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Alert, Button } from '$lib/components';
-	import { alerts } from '$lib/stores/alert.svelte';
+	import { Alert, Icon } from '$lib/components';
 	import { searchStore } from '$lib/stores/search.svelte';
 	import { validationStore } from '$lib/stores/validation.svelte';
+	import { i18n } from '$lib/i18n';
 
 	let query = $derived(searchStore.get());
 
@@ -15,41 +15,65 @@
 			.filter((i) => !query || i.message.toLowerCase().includes(query.toLowerCase()))
 			.map((i, idx) => ({
 				key: `v-${i.code}-${idx}`,
-				title: i.severity === 'error' ? 'Ошибка структуры' : 'Предупреждение',
+				title: i.severity === 'error' ? i18n.t('alerts.title.error') : i18n.t('alerts.title.warn'),
 				text: i.message,
 				type: i.severity === 'error' ? ('error' as const) : ('alert' as const)
 			}))
 	);
 
-	let filterAlerts = $derived.by(() => {
-		return alerts.all.filter((e) => !query || e.title.includes(query));
-	});
-
-	let show: number | null = $state(1000);
+	let show: number | null = $state(null);
 	function toggle(i: number) {
 		show = show === i ? null : i;
 	}
 
 	function clearValidation() {
 		validationStore.clear();
+		show = null;
 	}
+
+	let hasIssues = $derived(validationStore.issues.length > 0);
 </script>
 
 <div class="flex w-full flex-col gap-2 p-2">
-	{#if validationStore.issues.length > 0}
-		<div class="flex items-center gap-2">
-			<Button onclick={clearValidation} className="px-2 py-1 rounded-md border border-gray">
-				Очистить
-			</Button>
-			<span class="ml-auto text-xs text-zinc-400">
-				{validationStore.errors.length} ошибок · {validationStore.warnings.length} предупреждений
+	{#if hasIssues}
+		<!-- Header: количество issues + кнопка «Очистить». Стиль выровнен
+		     с DiagramToolbar — gray-glass + border + backdrop-blur. -->
+		<div
+			class="flex items-center gap-2 rounded-md border border-gray bg-gray-glass p-2 backdrop-blur-xs"
+		>
+			<span class="flex items-center gap-1 text-xs">
+				<span class="inline-block size-2 rounded-full bg-red"></span>
+				<span class="tabular-nums">{validationStore.errors.length}</span>
 			</span>
+			<span class="flex items-center gap-1 text-xs">
+				<span class="inline-block size-2 rounded-full bg-yellow"></span>
+				<span class="tabular-nums">{validationStore.warnings.length}</span>
+			</span>
+			<button
+				type="button"
+				onclick={clearValidation}
+				title={i18n.t('alerts.clear')}
+				aria-label={i18n.t('alerts.clear')}
+				class="click ml-auto rounded-sm p-1 transition-colors hover:bg-gray hover:text-accent"
+			>
+				<Icon name="cross" />
+			</button>
+		</div>
+	{:else}
+		<!-- Пустое состояние — нет issues. Тон спокойный, без иконок-
+		     алертов: пользователь не должен волноваться при чистой
+		     диаграмме. -->
+		<div
+			class="flex items-center gap-2 rounded-md border border-gray bg-gray-glass p-3 text-xs opacity-60 backdrop-blur-xs"
+		>
+			<Icon name="check" />
+			<span>{i18n.t('alerts.empty')}</span>
 		</div>
 	{/if}
 
 	{#each validationAlerts as a, i (a.key)}
-		<Button onclick={() => toggle(i)} className="w-full">
-			<Alert title={a.title} text={a.text} type={a.type} show={show === i} {query} />
-		</Button>
+		<button type="button" onclick={() => toggle(i)} class="click w-full text-left">
+			<Alert title={a.title} text={a.text} type={a.type} show={show === i} />
+		</button>
 	{/each}
 </div>

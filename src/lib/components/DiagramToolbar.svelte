@@ -37,7 +37,7 @@
 </script>
 
 <div
-	class="fixed top-5 left-1/2 z-4 flex w-[min(640px,90vw)] -translate-x-1/2 items-center gap-2 rounded-md border border-gray bg-gray-glass p-2"
+	class="fixed top-5 left-1/2 z-4 flex w-[min(440px,90vw)] -translate-x-1/2 items-center gap-2 rounded-md border border-gray bg-gray-glass p-2"
 >
 	<span
 		title={i18n.t('diagram.toolbar.zoom')}

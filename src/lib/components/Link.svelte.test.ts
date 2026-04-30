@@ -33,7 +33,9 @@ describe('Тестирование компонента связи', () => {
 		try {
 			const { container } = setup('Connection');
 			const matched = container.querySelectorAll('.is-match');
-			expect(matched.length).toBe(4); // 'Conn'
+			// LightText теперь рендерит матч одним span'ом, а не по символу.
+			expect(matched.length).toBe(1);
+			expect(matched[0].textContent).toBe('Conn');
 		} finally {
 			searchStore.set('', []);
 		}

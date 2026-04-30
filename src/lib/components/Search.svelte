@@ -24,14 +24,33 @@
 	let placeholder = $derived(i18n.t('search.placeholder'));
 	const MAX_LENGTH = 64;
 
+	// Дебаунс реактивного обновления searchStore. Подписаны Tree,
+	// Canvas, Name и др. — каждый keystroke запускал каскад derived/
+	// rerender'ов и UI зависал на больших диаграммах. apply()/clear()
+	// идут мимо дебаунса, чтобы Enter и крестик отрабатывали мгновенно.
+	const DEBOUNCE_MS = 150;
+	let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+	function flushPending() {
+		if (debounceTimer !== undefined) {
+			clearTimeout(debounceTimer);
+			debounceTimer = undefined;
+		}
+	}
+
 	$effect(() => {
 		const newV = objectValidation(v);
 
 		if (newV.length > 64) {
 			notificationStore.error(i18n.t('search.invalid'), 'error');
-		} else {
-			searchStore.set(newV, selected);
+			return;
 		}
+		flushPending();
+		const sel = selected;
+		debounceTimer = setTimeout(() => {
+			searchStore.set(newV, sel);
+			debounceTimer = undefined;
+		}, DEBOUNCE_MS);
 	});
 
 	function search() {
@@ -39,6 +58,7 @@
 
 		if (newV.length > 64) return notificationStore.error(i18n.t('search.invalid'), 'error');
 
+		flushPending();
 		// searchStore.set уже выставит applied=false если строка изменилась.
 		// apply() переключает store в режим фильтра — узлы не матчащие
 		// запрос исчезнут из Tree/Entityes/Canvas.
@@ -48,6 +68,7 @@
 	}
 	function clear() {
 		v = '';
+		flushPending();
 		// Полный сброс: и query, и applied. После clear все элементы
 		// снова видны без подсветки.
 		searchStore.clear();

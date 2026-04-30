@@ -229,7 +229,9 @@ describe('GlobalCanvas', () => {
 		setup();
 		const rootBtn = document.querySelector('[aria-label="root"]') as HTMLElement;
 		const matches = rootBtn.querySelectorAll('.is-match');
-		expect(matches.length).toBe(3);
+		// LightText теперь рендерит матч одним span'ом.
+		expect(matches.length).toBe(1);
+		expect(matches[0].textContent).toBe('oot');
 	});
 
 	it('шрифт ноды пропорционален её размеру', async () => {

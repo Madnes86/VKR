@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { searchStore } from '$lib/stores/search.svelte';
-	// TODO: remove name Store;
 
 	let {
 		text
@@ -17,40 +16,32 @@
 	// lowercase-строке совпадают с оригинальными (toLowerCase
 	// сохраняет длину для русских букв и базовой латиницы), поэтому
 	// их можно использовать для подсветки исходных символов в шаблоне.
-	let match = $derived.by(() => {
+	let parts = $derived.by(() => {
 		const q = (query ?? '').toLowerCase();
-		if (!q) return { start: -1, end: -1 };
+		if (!q) return { before: text, match: '', after: '' };
 		const n = text.toLowerCase();
 		const start = n.indexOf(q);
-		if (start < 0) return { start: -1, end: -1 };
-		return { start, end: start + q.length };
+		if (start < 0) return { before: text, match: '', after: '' };
+		const end = start + q.length;
+		return { before: text.slice(0, start), match: text.slice(start, end), after: text.slice(end) };
 	});
 </script>
 
-<!-- TODO: md use global searchStore? -->
-<!-- TODO: styles migration -->
-
-<span class="inline">
-	{#each text as symbol, i}
-		{@const isMatch = i >= match.start && i < match.end}
-		{@const isFirst = i === match.start}
-		{@const isLast = i === match.end - 1}
-		<span class="{isMatch && 'is-match bg-accent'} {isFirst && 'rounded-l'} {isLast && 'rounded-r'}"
-			>{symbol}</span
-		>
-	{/each}
-</span>
+<!--
+	Раньше каждый символ выводился отдельным <span> через {#each text}.
+	На больших диаграммах это давало сотни span-ов, перерисовываемых
+	на каждое нажатие в поиске — UI заметно зависал. Теперь рендерим
+	максимум 3 узла (до матча / матч / после), а если матча нет — текст
+	вообще без обёрток. Подсветка визуально та же.
+-->
+<span class="inline"
+	>{parts.before}{#if parts.match}<span class="is-match bg-accent">{parts.match}</span
+		>{/if}{parts.after}</span
+>
 
 <style>
-	.rounded-l {
-		border-top-left-radius: 0.25em;
-		border-bottom-left-radius: 0.25em;
-	}
-	.rounded-r {
-		border-top-right-radius: 0.25em;
-		border-bottom-right-radius: 0.25em;
-	}
 	.is-match {
+		border-radius: 0.25em;
 		margin: 0 -0.5px;
 	}
 </style>

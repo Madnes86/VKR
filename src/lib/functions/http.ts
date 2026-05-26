@@ -22,7 +22,13 @@ export async function apiFetch(
 	init?: RequestInit
 ): Promise<Response | null> {
 	try {
-		return await fetch(input, init);
+		// ngrok-free показывает страницу-предупреждение для браузерных запросов;
+		// этот заголовок её пропускает. Для обычного бэка безвреден (CORS allow *).
+		const headers = new Headers(init?.headers);
+		if (!headers.has('ngrok-skip-browser-warning')) {
+			headers.set('ngrok-skip-browser-warning', 'true');
+		}
+		return await fetch(input, { ...init, headers });
 	} catch (err) {
 		console.error('[apiFetch] network failure:', err);
 		warnServerDown();

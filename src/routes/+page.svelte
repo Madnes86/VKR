@@ -163,7 +163,7 @@
 						<Icon name="test" stroke="yellow" />
 						<h1>{i18n.t(h)}</h1>
 					</div>
-					<img class="w-full rounded-sm" src="src/lib/svg/test-line.svg" alt="" />
+					<!-- <img class="w-full rounded-sm" src="src/lib/svg/test-line.svg" alt="" /> -->
 					<div class="flex flex-col gap-4 p-4">
 						<b>{i18n.t(b)}</b>
 						<p>{i18n.t(p)}</p>

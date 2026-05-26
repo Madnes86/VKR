@@ -1,9 +1,10 @@
 import { notificationStore } from '$lib/stores/notification.svelte';
 import { apiFetch } from '$lib/functions/http';
 import type { IFlatObject, IFlatLink } from '$lib/interface';
+import { API_URL } from '$lib/config';
 
 // Бэк проксирует в VKR-LLM, применяет дневные квоты.
-const BACKEND_URL: string = 'http://127.0.0.1:8000';
+const BACKEND_URL: string = API_URL;
 
 export type LlmHealth = {
 	upstream_ok: boolean;

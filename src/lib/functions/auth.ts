@@ -4,9 +4,9 @@ import { userStore, type AuthUser } from '$lib/stores/user.svelte';
 import { objects as objectsStore, links as linksStore } from '$lib/stores/objects.svelte';
 import { i18n } from '$lib/i18n';
 import { apiFetch } from '$lib/functions/http';
+import { API_URL } from '$lib/config';
 
-// TODO: вынести в env (VITE_API_URL)
-const BASE_URL: string = 'http://127.0.0.1:8000';
+const BASE_URL: string = API_URL;
 
 export type OAuthProvider = 'google' | 'yandex';
 

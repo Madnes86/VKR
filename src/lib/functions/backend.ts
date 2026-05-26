@@ -2,8 +2,9 @@ import { objects } from '$lib/mocs/objects';
 import { links } from '$lib/mocs/links';
 import type { IFlatObject, IFlatLink } from '$lib/interface';
 import { apiFetch } from '$lib/functions/http';
+import { API_URL } from '$lib/config';
 
-const BASE_URL: string = 'http://127.0.0.1:8000';
+const BASE_URL: string = API_URL;
 
 function authHeaders(): Record<string, string> {
 	const token = localStorage.getItem('token');

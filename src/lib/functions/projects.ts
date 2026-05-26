@@ -4,8 +4,9 @@
 
 import { apiFetch } from '$lib/functions/http';
 import { notificationStore } from '$lib/stores/notification.svelte';
+import { API_URL } from '$lib/config';
 
-const BASE_URL: string = 'http://127.0.0.1:8000';
+const BASE_URL: string = API_URL;
 
 export type ProjectSummary = {
 	id: number;
